@@ -21,6 +21,9 @@ import Projects from '@/pages/Projects';
 import ProjectDetail from '@/pages/ProjectDetail';
 import Learning from '@/pages/Learning';
 import Decisions from '@/pages/Decisions';
+import DecisionDetail from '@/pages/DecisionDetail';
+import Lessons from '@/pages/Lessons';
+import LessonDetail from '@/pages/LessonDetail';
 import Review from '@/pages/Review';
 import AIWorkspace from '@/pages/AIWorkspace';
 import Settings from '@/pages/Settings';
@@ -67,6 +70,9 @@ const AuthenticatedApp = () => {
           <Route path="/project-detail" element={<ProjectDetail />} />
           <Route path="/learning" element={<Learning />} />
           <Route path="/decisions" element={<Decisions />} />
+          <Route path="/decision-detail" element={<DecisionDetail />} />
+          <Route path="/lessons" element={<Lessons />} />
+          <Route path="/lesson-detail" element={<LessonDetail />} />
           <Route path="/review" element={<Review />} />
           <Route path="/ai" element={<AIWorkspace />} />
           <Route path="/search" element={<SearchPage />} />

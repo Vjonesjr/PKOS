@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { Plus, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
@@ -22,10 +23,10 @@ export default function ProjectLessons({ lessons, projectId, onChange }) {
         <EmptyState icon={Lightbulb} title="No lessons yet" />
       ) : (
         lessons.map((l) => (
-          <div key={l.id} className="rounded-lg border border-border bg-secondary/40 px-3 py-2">
+          <Link key={l.id} to={`/lesson-detail?id=${l.id}`} className="block rounded-lg border border-border bg-secondary/40 px-3 py-2 hover:border-primary/40">
             {l.title && <p className="text-sm text-foreground/90">{l.title}</p>}
             <p className="text-xs text-muted-foreground mt-0.5">Learned: {l.learned}</p>
-          </div>
+          </Link>
         ))
       )}
       <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setFormOpen(true)}>
