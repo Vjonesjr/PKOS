@@ -54,7 +54,7 @@ export default function Lessons() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Lessons</h1>
-          <p className="text-sm text-muted-foreground mt-1">Stop useful experience from disappearing.</p>
+          <p className="text-sm text-muted-foreground mt-1">Don't let useful experience disappear.</p>
         </div>
         <Button onClick={() => setFormOpen(true)} className="gap-1.5">
           <Plus className="h-4 w-4" /> New Lesson

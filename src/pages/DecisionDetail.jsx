@@ -74,10 +74,10 @@ export default function DecisionDetail() {
         <div className="mb-3 flex items-center justify-between">
           <StatusBadge value={decision.status} />
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="ghost" onClick={() => setEditOpen(true)}>
+            <Button size="sm" variant="ghost" onClick={() => setEditOpen(true)} aria-label="Edit decision">
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-            <Button size="sm" variant="ghost" onClick={remove}>
+            <Button size="sm" variant="ghost" onClick={remove} aria-label="Delete decision">
               <Trash2 className="h-3.5 w-3.5 text-destructive" />
             </Button>
           </div>
@@ -113,7 +113,7 @@ export default function DecisionDetail() {
                 <Link to={`/lesson-detail?id=${l.id}`} className="text-sm text-foreground/90 hover:text-primary">
                   {l.title || l.learned}
                 </Link>
-                <button onClick={() => unlinkLesson(l.id)} className="text-muted-foreground hover:text-destructive">
+                <button onClick={() => unlinkLesson(l.id)} className="text-muted-foreground hover:text-destructive" aria-label="Unlink lesson">
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>

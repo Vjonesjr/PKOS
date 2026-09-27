@@ -69,7 +69,7 @@ export default function Layout() {
 
       {/* Mobile top bar */}
       <div className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/90 px-4 py-3 backdrop-blur lg:hidden">
-        <button onClick={() => setMobileOpen(true)} className="text-foreground">
+        <button onClick={() => setMobileOpen(true)} className="text-foreground" aria-label="Open navigation menu">
           <Menu className="h-5 w-5" />
         </button>
         <WorkspaceSwitcherButton />
@@ -89,7 +89,7 @@ export default function Layout() {
             >
               <div className="mb-6 flex items-center justify-between">
                 <span className="font-semibold text-foreground">Smart PKOS</span>
-                <button onClick={() => setMobileOpen(false)}>
+                <button onClick={() => setMobileOpen(false)} aria-label="Close navigation menu">
                   <X className="h-5 w-5 text-muted-foreground" />
                 </button>
               </div>

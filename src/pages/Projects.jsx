@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Plus, FolderKanban, AlertTriangle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ export default function Projects() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const { workspace, isSeeding } = useWorkspace();
+  const navigate = useNavigate();
 
   const load = useCallback(async () => {
     if (isSeeding) return;
@@ -32,8 +33,7 @@ export default function Projects() {
   const create = async (data) => {
     const p = await base44.entities.Project.create({ ...data, workspace });
     setFormOpen(false);
-    load();
-    window.location.href = `/project-detail?id=${p.id}`;
+    navigate(`/project-detail?id=${p.id}`);
   };
 
   const filtered = projects

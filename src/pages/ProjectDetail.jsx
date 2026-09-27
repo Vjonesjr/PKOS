@@ -82,10 +82,10 @@ export default function ProjectDetail() {
             <StatusBadge value={project.priority} />
           </div>
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="ghost" onClick={() => setEditOpen(true)}>
+            <Button size="sm" variant="ghost" onClick={() => setEditOpen(true)} aria-label="Edit project">
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-            <Button size="sm" variant="ghost" onClick={remove}>
+            <Button size="sm" variant="ghost" onClick={remove} aria-label="Delete project">
               <Trash2 className="h-3.5 w-3.5 text-destructive" />
             </Button>
           </div>

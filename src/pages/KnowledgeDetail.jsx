@@ -62,13 +62,13 @@ export default function KnowledgeDetail() {
         <div className="mb-3 flex items-center justify-between">
           <StatusBadge value={record.type} />
           <div className="flex items-center gap-2">
-            <button onClick={toggleFavorite}>
+            <button onClick={toggleFavorite} aria-label={record.favorite ? "Remove from favorites" : "Add to favorites"}>
               <Star className={`h-4 w-4 ${record.favorite ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} />
             </button>
-            <Button size="sm" variant="ghost" onClick={() => setEditOpen(true)}>
+            <Button size="sm" variant="ghost" onClick={() => setEditOpen(true)} aria-label="Edit knowledge record">
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-            <Button size="sm" variant="ghost" onClick={archive}>
+            <Button size="sm" variant="ghost" onClick={archive} aria-label="Archive knowledge record">
               <Archive className="h-3.5 w-3.5 text-muted-foreground" />
             </Button>
           </div>

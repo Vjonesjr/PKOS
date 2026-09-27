@@ -116,7 +116,7 @@ export default function Knowledge() {
                 <Link key={k.id} to={`/knowledge-detail?id=${k.id}`} className="group rounded-xl border border-border bg-card/60 p-4 transition-all hover:border-primary/40 hover:-translate-y-0.5">
                   <div className="mb-2 flex items-center justify-between">
                     <StatusBadge value={k.type} />
-                    <button onClick={(e) => toggleFavorite(k, e)}>
+                    <button onClick={(e) => toggleFavorite(k, e)} aria-label={k.favorite ? "Remove from favorites" : "Add to favorites"}>
                       <Star className={`h-3.5 w-3.5 ${k.favorite ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} />
                     </button>
                   </div>

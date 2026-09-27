@@ -101,14 +101,14 @@ export default function Capture() {
                 </div>
                 {c.status === "inbox" && (
                   <div className="flex shrink-0 items-center gap-1.5">
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => toggleImportant(c)}>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => toggleImportant(c)} aria-label={c.important ? "Remove from important" : "Mark as important"}>
                       <Star className={`h-3.5 w-3.5 ${c.important ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} />
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditing(c)}>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditing(c)} aria-label="Edit capture">
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                     <ConvertMenu capture={c} />
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => archive(c)}>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => archive(c)} aria-label="Archive capture">
                       <ArchiveIcon className="h-3.5 w-3.5" />
                     </Button>
                   </div>

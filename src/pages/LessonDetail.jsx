@@ -77,10 +77,10 @@ export default function LessonDetail() {
 
       <div className="rounded-2xl border border-border bg-card/60 p-6">
         <div className="mb-3 flex items-center justify-end gap-2">
-          <Button size="sm" variant="ghost" onClick={() => setEditOpen(true)}>
+          <Button size="sm" variant="ghost" onClick={() => setEditOpen(true)} aria-label="Edit lesson">
             <Pencil className="h-3.5 w-3.5" />
           </Button>
-          <Button size="sm" variant="ghost" onClick={remove}>
+          <Button size="sm" variant="ghost" onClick={remove} aria-label="Delete lesson">
             <Trash2 className="h-3.5 w-3.5 text-destructive" />
           </Button>
         </div>
