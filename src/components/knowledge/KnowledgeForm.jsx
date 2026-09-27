@@ -8,13 +8,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 const TYPES = ["note", "concept", "reference", "information", "personal", "structured"];
 
 export default function KnowledgeForm({ open, onOpenChange, initial, onSave }) {
-  const [form, setForm] = useState({ title: "", content: "", type: "note", category: "", tags: "" });
+  const [form, setForm] = useState({ title: "", content: "", type: "note", category: "", source: "", tags: "" });
 
   useEffect(() => {
     if (initial) {
-      setForm({ title: initial.title || "", content: initial.content || "", type: initial.type || "note", category: initial.category || "", tags: (initial.tags || []).join(", ") });
+      setForm({
+        title: initial.title || "",
+        content: initial.content || "",
+        type: initial.type || "note",
+        category: initial.category || "",
+        source: initial.source || "",
+        tags: (initial.tags || []).join(", "),
+      });
     } else {
-      setForm({ title: "", content: "", type: "note", category: "", tags: "" });
+      setForm({ title: "", content: "", type: "note", category: "", source: "", tags: "" });
     }
   }, [initial, open]);
 
@@ -25,6 +32,7 @@ export default function KnowledgeForm({ open, onOpenChange, initial, onSave }) {
       content: form.content,
       type: form.type,
       category: form.category,
+      source: form.source,
       tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
     });
   };
@@ -54,6 +62,7 @@ export default function KnowledgeForm({ open, onOpenChange, initial, onSave }) {
             <Input placeholder="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
           </div>
           <Input placeholder="Tags, comma separated" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
+          <Input placeholder="Source / reference (optional)" value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} />
           <Button onClick={submit} disabled={!form.title.trim()} className="w-full">
             Save
           </Button>

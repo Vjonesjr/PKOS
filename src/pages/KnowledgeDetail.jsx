@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Pencil, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Star, Archive } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import KnowledgeForm from "@/components/knowledge/KnowledgeForm";
@@ -35,8 +35,8 @@ export default function KnowledgeDetail() {
     load();
   };
 
-  const remove = async () => {
-    await base44.entities.Knowledge.delete(id);
+  const archive = async () => {
+    await base44.entities.Knowledge.update(id, { status: "archived" });
     navigate("/knowledge");
   };
 
@@ -62,13 +62,14 @@ export default function KnowledgeDetail() {
             <Button size="sm" variant="ghost" onClick={() => setEditOpen(true)}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-            <Button size="sm" variant="ghost" onClick={remove}>
-              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+            <Button size="sm" variant="ghost" onClick={archive}>
+              <Archive className="h-3.5 w-3.5 text-muted-foreground" />
             </Button>
           </div>
         </div>
         <h1 className="text-xl font-semibold text-foreground">{record.title}</h1>
         {record.category && <p className="mt-1 text-xs text-muted-foreground">Category: {record.category}</p>}
+        {record.source && <p className="mt-1 text-xs text-muted-foreground">Source: {record.source}</p>}
         <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-foreground/80">{record.content}</p>
         {record.tags?.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-1.5">

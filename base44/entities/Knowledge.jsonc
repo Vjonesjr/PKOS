@@ -29,12 +29,23 @@
     "category": {
       "type": "string"
     },
+    "source": {
+      "type": "string"
+    },
     "project_id": {
       "type": "string"
     },
     "favorite": {
       "type": "boolean",
       "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived"
+      ],
+      "default": "active"
     }
   },
   "required": [
