@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { LogOut, UserCircle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
+import ExportPanel from "@/components/settings/ExportPanel";
+import RestorePanel from "@/components/settings/RestorePanel";
 
 export default function Settings() {
   const [user, setUser] = useState(null);
@@ -31,6 +33,9 @@ export default function Settings() {
           <LogOut className="h-4 w-4" /> Log Out
         </Button>
       </div>
+
+      <ExportPanel />
+      <RestorePanel />
     </div>
   );
 }
