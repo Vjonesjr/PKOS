@@ -33,11 +33,23 @@
     "project_id": {
       "type": "string"
     },
+    "knowledge_id": {
+      "type": "string"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "important": {
+      "type": "boolean",
+      "default": false
+    },
     "status": {
       "type": "string",
       "enum": [
         "inbox",
-        "processed"
+        "processed",
+        "archived"
       ],
       "default": "inbox"
     },
@@ -49,7 +61,6 @@
     }
   },
   "required": [
-    "title",
-    "type"
+    "content"
   ]
 }

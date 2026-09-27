@@ -1,17 +1,20 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Inbox, CheckCircle2 } from "lucide-react";
+import { Inbox, CheckCircle2, Archive as ArchiveIcon, Pencil, Star } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import ConvertMenu from "@/components/capture/ConvertMenu";
+import CaptureEditDialog from "@/components/capture/CaptureEditDialog";
 import StatusBadge from "@/components/shared/StatusBadge";
 import EmptyState from "@/components/shared/EmptyState";
 
 export default function Capture() {
   const [captures, setCaptures] = useState([]);
   const [tab, setTab] = useState("inbox");
+  const [editing, setEditing] = useState(null);
 
   const load = useCallback(async () => {
-    const items = await base44.entities.Capture.list("-created_date", 200);
+    const items = await base44.entities.Capture.list("-created_date", 300);
     setCaptures(items);
   }, []);
 
@@ -19,7 +22,38 @@ export default function Capture() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    const unsubscribe = base44.entities.Capture.subscribe((event) => {
+      setCaptures((prev) => {
+        if (event.type === "create") return [event.data, ...prev];
+        if (event.type === "update") return prev.map((c) => (c.id === event.data.id ? event.data : c));
+        if (event.type === "delete") return prev.filter((c) => c.id !== event.data.id);
+        return prev;
+      });
+    });
+    return unsubscribe;
+  }, []);
+
   const filtered = captures.filter((c) => c.status === tab);
+
+  const archive = async (c) => {
+    await base44.entities.Capture.update(c.id, { status: "archived" });
+  };
+
+  const toggleImportant = async (c) => {
+    await base44.entities.Capture.update(c.id, { important: !c.important });
+  };
+
+  const saveEdit = async (id, data) => {
+    await base44.entities.Capture.update(id, data);
+    setEditing(null);
+  };
+
+  const emptyCopy = {
+    inbox: "Nothing waiting to be organized.",
+    processed: "Nothing processed yet.",
+    archived: "Nothing archived yet.",
+  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -32,11 +66,12 @@ export default function Capture() {
         <TabsList>
           <TabsTrigger value="inbox">Inbox</TabsTrigger>
           <TabsTrigger value="processed">Processed</TabsTrigger>
+          <TabsTrigger value="archived">Archived</TabsTrigger>
         </TabsList>
       </Tabs>
 
       {filtered.length === 0 ? (
-        <EmptyState icon={tab === "inbox" ? Inbox : CheckCircle2} title={tab === "inbox" ? "Inbox is clear" : "Nothing processed yet"} description="Use the Capture button to add ideas, notes, tasks, and more." />
+        <EmptyState icon={tab === "inbox" ? Inbox : tab === "processed" ? CheckCircle2 : ArchiveIcon} title={emptyCopy[tab]} />
       ) : (
         <div className="space-y-2.5">
           {filtered.map((c) => (
@@ -45,17 +80,42 @@ export default function Capture() {
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex items-center gap-2">
                     <StatusBadge value={c.type} />
+                    {c.important && <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />}
                     {c.status === "processed" && <span className="text-xs text-muted-foreground">→ {c.converted_to_type}</span>}
                   </div>
-                  <p className="text-sm font-medium text-foreground/90">{c.title}</p>
-                  {c.content && <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{c.content}</p>}
+                  {c.title && <p className="text-sm font-medium text-foreground/90">{c.title}</p>}
+                  {c.content && <p className="mt-1 text-sm text-muted-foreground line-clamp-2 whitespace-pre-wrap">{c.content}</p>}
+                  {c.tags?.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {c.tags.map((t) => (
+                        <span key={t} className="rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
+                          #{t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {c.status === "inbox" && <ConvertMenu capture={c} onConverted={load} />}
+                {c.status === "inbox" && (
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => toggleImportant(c)}>
+                      <Star className={`h-3.5 w-3.5 ${c.important ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditing(c)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <ConvertMenu capture={c} />
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => archive(c)}>
+                      <ArchiveIcon className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      <CaptureEditDialog capture={editing} onOpenChange={(v) => !v && setEditing(null)} onSave={saveEdit} />
     </div>
   );
 }
