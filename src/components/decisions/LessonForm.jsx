@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-export default function LessonForm({ open, onOpenChange, onSave }) {
+export default function LessonForm({ open, onOpenChange, onSave, projectId }) {
   const [form, setForm] = useState({ title: "", what_happened: "", what_worked: "", what_didnt: "", learned: "", next_time: "" });
 
   useEffect(() => {
@@ -13,7 +13,7 @@ export default function LessonForm({ open, onOpenChange, onSave }) {
 
   const submit = () => {
     if (!form.learned.trim()) return;
-    onSave(form);
+    onSave({ ...form, project_id: projectId || undefined });
   };
 
   return (

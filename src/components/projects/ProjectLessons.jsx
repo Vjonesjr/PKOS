@@ -1,0 +1,35 @@
+import React, { useState } from "react";
+import { Plus, Lightbulb } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { base44 } from "@/api/base44Client";
+import LessonForm from "@/components/decisions/LessonForm";
+import EmptyState from "@/components/shared/EmptyState";
+
+export default function ProjectLessons({ lessons, projectId, onChange }) {
+  const [formOpen, setFormOpen] = useState(false);
+
+  const create = async (data) => {
+    await base44.entities.Lesson.create(data);
+    setFormOpen(false);
+    onChange();
+  };
+
+  return (
+    <div className="space-y-2">
+      {lessons.length === 0 ? (
+        <EmptyState icon={Lightbulb} title="No lessons yet" />
+      ) : (
+        lessons.map((l) => (
+          <div key={l.id} className="rounded-lg border border-border bg-secondary/40 px-3 py-2">
+            {l.title && <p className="text-sm text-foreground/90">{l.title}</p>}
+            <p className="text-xs text-muted-foreground mt-0.5">Learned: {l.learned}</p>
+          </div>
+        ))
+      )}
+      <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setFormOpen(true)}>
+        <Plus className="h-3.5 w-3.5" /> Add Lesson
+      </Button>
+      <LessonForm open={formOpen} onOpenChange={setFormOpen} onSave={create} projectId={projectId} />
+    </div>
+  );
+}

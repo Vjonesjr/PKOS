@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-export default function DecisionForm({ open, onOpenChange, onSave }) {
+export default function DecisionForm({ open, onOpenChange, onSave, projectId }) {
   const [form, setForm] = useState({ decision: "", context: "", alternatives: "", reasoning: "", expected_result: "" });
 
   useEffect(() => {
@@ -13,7 +13,7 @@ export default function DecisionForm({ open, onOpenChange, onSave }) {
 
   const submit = () => {
     if (!form.decision.trim()) return;
-    onSave({ ...form, date: new Date().toISOString().slice(0, 10) });
+    onSave({ ...form, date: new Date().toISOString().slice(0, 10), project_id: projectId || undefined });
   };
 
   return (

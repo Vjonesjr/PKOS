@@ -8,7 +8,7 @@ import { ENTITY_CONFIG, fetchRecord, recordLabel } from "@/lib/entityConfig";
 
 const LINKABLE_TYPES = ["knowledge", "project", "decision", "lesson", "learning", "capture"];
 
-export default function LinkedItems({ recordType, recordId, allowedTypes = LINKABLE_TYPES }) {
+export default function LinkedItems({ recordType, recordId, allowedTypes = LINKABLE_TYPES, filterTypes }) {
   const [related, setRelated] = useState([]);
   const [linkedFrom, setLinkedFrom] = useState([]);
   const [adding, setAdding] = useState(false);
@@ -23,9 +23,10 @@ export default function LinkedItems({ recordType, recordId, allowedTypes = LINKA
     ]);
     const fwd = await Promise.all(forward.map(async (l) => ({ link: l, record: await fetchRecord(l.target_type, l.target_id), type: l.target_type })));
     const rev = await Promise.all(reverse.map(async (l) => ({ link: l, record: await fetchRecord(l.source_type, l.source_id), type: l.source_type })));
-    setRelated(fwd.filter((x) => x.record));
-    setLinkedFrom(rev.filter((x) => x.record));
-  }, [recordType, recordId]);
+    const passesFilter = (x) => !filterTypes || filterTypes.includes(x.type);
+    setRelated(fwd.filter((x) => x.record && passesFilter(x)));
+    setLinkedFrom(rev.filter((x) => x.record && passesFilter(x)));
+  }, [recordType, recordId, filterTypes]);
 
   useEffect(() => {
     load();
