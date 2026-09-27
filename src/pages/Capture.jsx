@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Inbox, CheckCircle2, Archive as ArchiveIcon, Pencil, Star } from "lucide-react";
+import { Inbox, CheckCircle2, Archive as ArchiveIcon, Pencil, Star, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -61,9 +62,14 @@ export default function Capture() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Capture</h1>
-        <p className="text-sm text-muted-foreground mt-1">Everything you save lands here first. Classify and connect it whenever you're ready.</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Capture</h1>
+          <p className="text-sm text-muted-foreground mt-1">Everything you save lands here first. Classify and connect it whenever you're ready.</p>
+        </div>
+        <Link to="/triage">
+          <Button variant="outline" className="gap-1.5"><Sparkles className="h-4 w-4 text-accent" /> AI Triage</Button>
+        </Link>
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>

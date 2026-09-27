@@ -116,6 +116,67 @@ export default async function (req) {
       return Response.json(result);
     }
 
+    if (action === 'triage_inbox') {
+      const ids = (body.ids || []).slice(0, 15);
+      const captures = (await Promise.all(ids.map((id) => base44.entities.Capture.get(id).catch(() => null)))).filter(
+        (c) => c && c.workspace === workspace && c.status === 'inbox'
+      );
+      if (captures.length === 0) return Response.json({ suggestions: [] });
+      const [projects, knowledge, learning, decisions] = await Promise.all([
+        base44.entities.Project.filter({ workspace }, '-updated_date', 60),
+        base44.entities.Knowledge.filter({ workspace }, '-updated_date', 80),
+        base44.entities.LearningItem.filter({ workspace }, '-updated_date', 40),
+        base44.entities.Decision.filter({ workspace }, '-updated_date', 40),
+      ]);
+      const candidates = [
+        ...knowledge.map((r) => ({ type: 'knowledge', id: r.id, title: r.title })),
+        ...learning.map((r) => ({ type: 'learning', id: r.id, title: r.title })),
+        ...decisions.map((r) => ({ type: 'decision', id: r.id, title: r.title || r.decision })),
+      ];
+      const projectList = projects.map((p) => ({ id: p.id, title: p.title }));
+      const prompt = `You triage raw inbox captures in a personal knowledge system. For each capture, suggest ONE action from: keep, knowledge, task, learning, decision, lesson, archive.
+Also suggest: a clean title, up to 4 short tags, an existing project id ONLY from the project list (or empty), up to 3 related existing records ONLY from the candidate list (use exact ids), an optional follow-up task title (or empty), and a one-sentence reason.
+Never invent ids. If nothing fits, leave empty.
+Projects: ${JSON.stringify(projectList)}
+Candidate records: ${JSON.stringify(candidates)}
+Captures: ${JSON.stringify(captures.map((c) => ({ id: c.id, title: c.title, content: (c.content || '').slice(0, 800), type: c.type, tags: c.tags })))}`;
+      const result = await invoke(base44, prompt, {
+        type: 'object',
+        properties: {
+          suggestions: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                action: { type: 'string', enum: ['keep', 'knowledge', 'task', 'learning', 'decision', 'lesson', 'archive'] },
+                title: { type: 'string' },
+                tags: { type: 'array', items: { type: 'string' } },
+                project_id: { type: 'string' },
+                related: { type: 'array', items: { type: 'object', properties: { type: { type: 'string' }, id: { type: 'string' } }, required: ['type', 'id'] } },
+                task_title: { type: 'string' },
+                reason: { type: 'string' },
+              },
+              required: ['id', 'action', 'reason'],
+            },
+          },
+        },
+        required: ['suggestions'],
+      });
+      // Keep only real records: drop invented captures, projects, and related items.
+      const captureIds = new Set(captures.map((c) => c.id));
+      const projectIds = new Set(projects.map((p) => p.id));
+      const candidateMap = new Map(candidates.map((c) => [`${c.type}:${c.id}`, c]));
+      const suggestions = (result.suggestions || [])
+        .filter((s) => captureIds.has(s.id))
+        .map((s) => ({
+          ...s,
+          project_id: projectIds.has(s.project_id) ? s.project_id : '',
+          related: (s.related || []).map((r) => candidateMap.get(`${r.type}:${r.id}`)).filter(Boolean),
+        }));
+      return Response.json({ suggestions, projects: projectList });
+    }
+
     if (action === 'suggest_relationships') {
       const entityName = body.entityType === 'project' ? 'Project' : 'Knowledge';
       const record = await base44.entities[entityName].get(body.id);

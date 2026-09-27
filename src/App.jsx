@@ -29,6 +29,7 @@ import AIWorkspace from '@/pages/AIWorkspace';
 import Settings from '@/pages/Settings';
 import Workspaces from '@/pages/Workspaces';
 import SearchPage from '@/pages/Search';
+import Triage from '@/pages/Triage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -64,6 +65,7 @@ const AuthenticatedApp = () => {
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/capture" element={<Capture />} />
+          <Route path="/triage" element={<Triage />} />
           <Route path="/knowledge" element={<Knowledge />} />
           <Route path="/knowledge-detail" element={<KnowledgeDetail />} />
           <Route path="/projects" element={<Projects />} />
