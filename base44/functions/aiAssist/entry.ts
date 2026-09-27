@@ -142,7 +142,7 @@ export default async function (req) {
     }
 
     if (action === 'summarize_records') {
-      const entityName = body.entityType === 'project' ? 'Project' : body.entityType === 'capture' ? 'Capture' : 'Knowledge';
+      const entityName = body.entityType === 'project' ? 'Project' : body.entityType === 'capture' ? 'Capture' : body.entityType === 'learning' ? 'LearningItem' : 'Knowledge';
       const ids = (body.ids || []).slice(0, 15);
       const records = await Promise.all(ids.map((id) => base44.entities[entityName].get(id).catch(() => null)));
       const valid = records.filter(Boolean);

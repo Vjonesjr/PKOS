@@ -1,24 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { Sparkles, ListChecks, AlertTriangle, Inbox, Wand2 } from "lucide-react";
+import { Sparkles, ListChecks, AlertTriangle, Inbox, Sun, CalendarDays } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import AIActionRunner from "@/components/ai/AIActionRunner";
+import NotesToTasksCard from "@/components/ai/NotesToTasksCard";
+import SuggestRelationshipsCard from "@/components/ai/SuggestRelationshipsCard";
+import CreateFlashcardsCard from "@/components/ai/CreateFlashcardsCard";
+import CompareNotesCard from "@/components/ai/CompareNotesCard";
+import PeriodReviewCard from "@/components/ai/PeriodReviewCard";
 import { useToast } from "@/components/ui/use-toast";
 import { useWorkspace } from "@/lib/WorkspaceContext";
 
 export default function AIWorkspace() {
   const [projects, setProjects] = useState([]);
-  const [knowledge, setKnowledge] = useState([]);
   const [selectedProject, setSelectedProject] = useState("");
-  const [selectedKnowledge, setSelectedKnowledge] = useState("");
   const { toast } = useToast();
   const { workspace } = useWorkspace();
 
   useEffect(() => {
     (async () => {
       setProjects(await base44.entities.Project.filter({ workspace }, "-updated_date", 100));
-      setKnowledge(await base44.entities.Knowledge.filter({ workspace }, "-updated_date", 100));
     })();
   }, [workspace]);
 
@@ -28,7 +30,10 @@ export default function AIWorkspace() {
         <h1 className="text-2xl font-semibold tracking-tight text-foreground flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-primary" /> AI Workspace
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">AI assists your knowledge system. Suggestions are reviewed by you before anything is saved.</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          AI assists your knowledge system — it never edits or deletes anything on its own. Every result below is an AI-generated suggestion, kept separate from your
+          content, and only applied when you click a save/apply/link button.
+        </p>
       </div>
 
       <AIActionRunner
@@ -40,8 +45,10 @@ export default function AIWorkspace() {
         renderResult={(r, clear) => <OrganizeInboxResult result={r} clear={clear} toast={toast} />}
       />
 
+      <NotesToTasksCard />
+
       <div className="rounded-2xl border border-border bg-card/60 p-5">
-        <p className="mb-3 text-sm font-semibold text-foreground/90">Project Status Check</p>
+        <p className="mb-3 text-sm font-semibold text-foreground/90">Project Status & Next Actions</p>
         <Select value={selectedProject} onValueChange={setSelectedProject}>
           <SelectTrigger className="mb-3">
             <SelectValue placeholder="Select a project..." />
@@ -57,7 +64,7 @@ export default function AIWorkspace() {
         {selectedProject && (
           <AIActionRunner
             title="Summarize Project Status"
-            description="Get a status summary and next actions."
+            description="Get a status summary, concrete next actions, and whether it looks stalled."
             icon={ListChecks}
             action="project_status"
             payload={{ projectId: selectedProject, workspace }}
@@ -79,6 +86,8 @@ export default function AIWorkspace() {
           />
         )}
       </div>
+
+      <SuggestRelationshipsCard />
 
       <AIActionRunner
         title="Identify Stalled Projects"
@@ -103,31 +112,25 @@ export default function AIWorkspace() {
         }
       />
 
-      <div className="rounded-2xl border border-border bg-card/60 p-5">
-        <p className="mb-3 text-sm font-semibold text-foreground/90">Create Flashcards from Knowledge</p>
-        <Select value={selectedKnowledge} onValueChange={setSelectedKnowledge}>
-          <SelectTrigger className="mb-3">
-            <SelectValue placeholder="Select a knowledge record..." />
-          </SelectTrigger>
-          <SelectContent>
-            {knowledge.map((k) => (
-              <SelectItem key={k.id} value={k.id}>
-                {k.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {selectedKnowledge && (
-          <AIActionRunner
-            title="Generate Flashcards"
-            description="Turn this note into study flashcards."
-            icon={Wand2}
-            action="create_flashcards"
-            payload={{ entityType: "knowledge", id: selectedKnowledge }}
-            renderResult={(r, clear) => <FlashcardSuggestions result={r} knowledgeId={selectedKnowledge} clear={clear} toast={toast} workspace={workspace} />}
-          />
-        )}
-      </div>
+      <CreateFlashcardsCard />
+
+      <CompareNotesCard />
+
+      <PeriodReviewCard
+        title="Prepare Daily Review"
+        description="Summarize what happened today and what to focus on next."
+        icon={Sun}
+        action="daily_review"
+        workspace={workspace}
+      />
+
+      <PeriodReviewCard
+        title="Prepare Weekly Review"
+        description="Summarize the week's progress, stalled projects, and lessons."
+        icon={CalendarDays}
+        action="weekly_review"
+        workspace={workspace}
+      />
     </div>
   );
 }
@@ -144,7 +147,9 @@ function OrganizeInboxResult({ result, clear, toast }) {
       {result.suggestions.map((s) => (
         <div key={s.id} className="flex items-center justify-between rounded-lg bg-secondary/40 p-2.5">
           <div>
-            <p className="text-xs text-foreground/90">Suggested type: <span className="font-medium capitalize">{s.suggested_type}</span></p>
+            <p className="text-xs text-foreground/90">
+              Suggested type: <span className="font-medium capitalize">{s.suggested_type}</span>
+            </p>
             {s.tags?.length > 0 && <p className="text-xs text-muted-foreground">Tags: {s.tags.join(", ")}</p>}
           </div>
           <Button size="sm" onClick={() => apply(s)}>
@@ -152,28 +157,6 @@ function OrganizeInboxResult({ result, clear, toast }) {
           </Button>
         </div>
       ))}
-    </div>
-  );
-}
-
-function FlashcardSuggestions({ result, knowledgeId, clear, toast, workspace }) {
-  const applyAll = async () => {
-    await base44.entities.Flashcard.bulkCreate(result.flashcards.map((f) => ({ ...f, learning_item_id: null, workspace })));
-    toast({ description: `${result.flashcards.length} flashcards created.` });
-    clear();
-  };
-  if (!result.flashcards?.length) return <p className="text-sm text-foreground/80">No flashcards generated.</p>;
-  return (
-    <div className="space-y-2">
-      {result.flashcards.map((f, i) => (
-        <div key={i} className="rounded-lg bg-secondary/40 p-2.5">
-          <p className="text-xs font-medium text-foreground/90">{f.front}</p>
-          <p className="text-xs text-muted-foreground">{f.back}</p>
-        </div>
-      ))}
-      <Button size="sm" onClick={applyAll} className="w-full">
-        Save all as Flashcards
-      </Button>
     </div>
   );
 }
