@@ -17,11 +17,12 @@ export default function Knowledge() {
   const [tab, setTab] = useState("all");
   const [tagFilter, setTagFilter] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
-  const { workspace } = useWorkspace();
+  const { workspace, isSeeding } = useWorkspace();
 
   const load = useCallback(async () => {
+    if (isSeeding) return;
     setItems(await base44.entities.Knowledge.filter({ workspace }, "-updated_date", 200));
-  }, [workspace]);
+  }, [workspace, isSeeding]);
 
   useEffect(() => {
     load();

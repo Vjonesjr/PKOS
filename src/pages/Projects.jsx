@@ -18,11 +18,12 @@ export default function Projects() {
   const [formOpen, setFormOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
-  const { workspace } = useWorkspace();
+  const { workspace, isSeeding } = useWorkspace();
 
   const load = useCallback(async () => {
+    if (isSeeding) return;
     setProjects(await base44.entities.Project.filter({ workspace }, "-updated_date", 200));
-  }, [workspace]);
+  }, [workspace, isSeeding]);
 
   useEffect(() => {
     load();

@@ -8,9 +8,10 @@ import { useWorkspace } from "@/lib/WorkspaceContext";
 
 export default function Home() {
   const [data, setData] = useState(null);
-  const { workspace } = useWorkspace();
+  const { workspace, isSeeding } = useWorkspace();
 
   const load = useCallback(async () => {
+    if (isSeeding) return;
     const [tasks, projects, captures, knowledge, decisions, flashcards] = await Promise.all([
       base44.entities.Task.filter({ workspace, status: "todo" }, "-updated_date", 30),
       base44.entities.Project.filter({ workspace }, "-updated_date", 30),
@@ -20,7 +21,7 @@ export default function Home() {
       base44.entities.Flashcard.filter({ workspace }, "-last_reviewed", 5),
     ]);
     setData({ tasks, projects, captures, knowledge, decisions, flashcards });
-  }, [workspace]);
+  }, [workspace, isSeeding]);
 
   useEffect(() => {
     load();

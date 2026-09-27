@@ -10,9 +10,10 @@ import { useWorkspace } from "@/lib/WorkspaceContext";
 export default function Review() {
   const [tab, setTab] = useState("timeline");
   const [events, setEvents] = useState([]);
-  const { workspace } = useWorkspace();
+  const { workspace, isSeeding } = useWorkspace();
 
   const load = useCallback(async () => {
+    if (isSeeding) return;
     const [tasks, captures, decisions, lessons, knowledge, projects] = await Promise.all([
       base44.entities.Task.filter({ workspace }, "-updated_date", 40),
       base44.entities.Capture.filter({ workspace }, "-created_date", 40),
@@ -30,7 +31,7 @@ export default function Review() {
       ...projects.map((p) => ({ id: `proj-${p.id}`, date: p.updated_date, label: `Project updated: ${p.title}` })),
     ].sort((a, b) => new Date(b.date) - new Date(a.date));
     setEvents(items.slice(0, 60));
-  }, [workspace]);
+  }, [workspace, isSeeding]);
 
   useEffect(() => {
     load();

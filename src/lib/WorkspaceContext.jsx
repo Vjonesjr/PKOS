@@ -1,4 +1,5 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, { createContext, useState, useContext, useEffect, useRef } from "react";
+import { base44 } from "@/api/base44Client";
 
 const STORAGE_KEY = "pkos_active_workspace";
 
@@ -14,9 +15,26 @@ export function WorkspaceProvider({ children }) {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored && WORKSPACES[stored] ? stored : "personal";
   });
+  const [isSeeding, setIsSeeding] = useState(false);
+  const seedAttempted = useRef(false);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, workspace);
+  }, [workspace]);
+
+  useEffect(() => {
+    if (workspace !== "demo" || seedAttempted.current) return;
+    seedAttempted.current = true;
+    (async () => {
+      try {
+        const existing = await base44.entities.Project.filter({ workspace: "demo" }, "-created_date", 1);
+        if (existing.length > 0) return;
+        setIsSeeding(true);
+        await base44.functions.invoke("seedDemoData", {});
+      } finally {
+        setIsSeeding(false);
+      }
+    })();
   }, [workspace]);
 
   const setWorkspace = (key) => {
@@ -24,7 +42,7 @@ export function WorkspaceProvider({ children }) {
   };
 
   return (
-    <WorkspaceContext.Provider value={{ workspace, setWorkspace, isDemo: workspace === "demo" }}>
+    <WorkspaceContext.Provider value={{ workspace, setWorkspace, isDemo: workspace === "demo", isSeeding }}>
       {children}
     </WorkspaceContext.Provider>
   );

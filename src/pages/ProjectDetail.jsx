@@ -24,9 +24,10 @@ export default function ProjectDetail() {
   const [lessons, setLessons] = useState([]);
   const [notFound, setNotFound] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const { workspace } = useWorkspace();
+  const { workspace, isSeeding } = useWorkspace();
 
   const load = useCallback(async () => {
+    if (isSeeding) return;
     try {
       const [p, t, d, l] = await Promise.all([
         base44.entities.Project.get(id),
@@ -41,7 +42,7 @@ export default function ProjectDetail() {
     } catch {
       setNotFound(true);
     }
-  }, [id, workspace]);
+  }, [id, workspace, isSeeding]);
 
   useEffect(() => {
     load();

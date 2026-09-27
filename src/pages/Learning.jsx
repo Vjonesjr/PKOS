@@ -15,16 +15,17 @@ export default function Learning() {
   const [formOpen, setFormOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const [studying, setStudying] = useState(false);
-  const { workspace } = useWorkspace();
+  const { workspace, isSeeding } = useWorkspace();
 
   const load = useCallback(async () => {
+    if (isSeeding) return;
     const [li, fc] = await Promise.all([
       base44.entities.LearningItem.filter({ workspace }, "-updated_date", 100),
       base44.entities.Flashcard.filter({ workspace }, "-created_date", 300),
     ]);
     setItems(li);
     setFlashcards(fc);
-  }, [workspace]);
+  }, [workspace, isSeeding]);
 
   useEffect(() => {
     load();

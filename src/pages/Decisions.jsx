@@ -17,16 +17,17 @@ export default function Decisions() {
   const [query, setQuery] = useState("");
   const [decisionFormOpen, setDecisionFormOpen] = useState(false);
   const [lessonFormOpen, setLessonFormOpen] = useState(false);
-  const { workspace } = useWorkspace();
+  const { workspace, isSeeding } = useWorkspace();
 
   const load = useCallback(async () => {
+    if (isSeeding) return;
     const [d, l] = await Promise.all([
       base44.entities.Decision.filter({ workspace }, "-date", 200),
       base44.entities.Lesson.filter({ workspace }, "-created_date", 200),
     ]);
     setDecisions(d);
     setLessons(l);
-  }, [workspace]);
+  }, [workspace, isSeeding]);
 
   useEffect(() => {
     load();

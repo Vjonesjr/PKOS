@@ -13,12 +13,13 @@ export default function Capture() {
   const [captures, setCaptures] = useState([]);
   const [tab, setTab] = useState("inbox");
   const [editing, setEditing] = useState(null);
-  const { workspace } = useWorkspace();
+  const { workspace, isSeeding } = useWorkspace();
 
   const load = useCallback(async () => {
+    if (isSeeding) return;
     const items = await base44.entities.Capture.filter({ workspace }, "-created_date", 300);
     setCaptures(items);
-  }, [workspace]);
+  }, [workspace, isSeeding]);
 
   useEffect(() => {
     load();
