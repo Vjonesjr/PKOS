@@ -12,6 +12,7 @@ import ProjectDecisions from "@/components/projects/ProjectDecisions";
 import ProjectLessons from "@/components/projects/ProjectLessons";
 import ProjectReferences from "@/components/projects/ProjectReferences";
 import LinkedItems from "@/components/shared/LinkedItems";
+import ProjectCopilot from "@/components/copilot/ProjectCopilot";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { useWorkspace } from "@/lib/WorkspaceContext";
 
@@ -120,6 +121,8 @@ export default function ProjectDetail() {
           <span className="text-xs text-muted-foreground">%</span>
         </div>
       </div>
+
+      <ProjectCopilot project={project} onChange={load} />
 
       <div className="rounded-2xl border border-border bg-card/60 p-6">
         <p className="mb-3 text-sm font-semibold text-foreground/90">Milestones</p>

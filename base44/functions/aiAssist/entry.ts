@@ -116,6 +116,94 @@ export default async function (req) {
       return Response.json(result);
     }
 
+    if (action === 'project_brief' || action === 'project_chat') {
+      const project = await base44.entities.Project.get(body.projectId);
+      if (!project || project.workspace !== workspace) return Response.json({ error: 'Project not found' }, { status: 404 });
+      const pid = project.id;
+      const [tasks, decisions, lessons, captures, linksOut, linksIn, allKnowledge] = await Promise.all([
+        base44.entities.Task.filter({ project_id: pid, workspace }, '-updated_date', 60),
+        base44.entities.Decision.filter({ project_id: pid, workspace }, '-updated_date', 30),
+        base44.entities.Lesson.filter({ project_id: pid, workspace }, '-created_date', 30),
+        base44.entities.Capture.filter({ project_id: pid, workspace }, '-created_date', 30),
+        base44.entities.Link.filter({ source_type: 'project', source_id: pid, workspace }),
+        base44.entities.Link.filter({ target_type: 'project', target_id: pid, workspace }),
+        base44.entities.Knowledge.filter({ workspace }, '-updated_date', 100),
+      ]);
+      const linkedIds = new Set([
+        ...linksOut.filter((l) => l.target_type === 'knowledge').map((l) => l.target_id),
+        ...linksIn.filter((l) => l.source_type === 'knowledge').map((l) => l.source_id),
+      ]);
+      const linkedKnowledge = allKnowledge.filter((k) => linkedIds.has(k.id) || k.project_id === pid);
+      const otherKnowledge = allKnowledge.filter((k) => !linkedKnowledge.includes(k)).map((k) => ({ id: k.id, title: k.title }));
+      const today = new Date().toISOString().slice(0, 10);
+      const overdue = tasks.filter((t) => t.status !== 'done' && t.due_date && t.due_date < today);
+      const lastActivity = [project.updated_date, ...tasks.map((t) => t.updated_date), ...decisions.map((d) => d.updated_date)].sort().pop();
+      const daysIdle = Math.floor((Date.now() - new Date(lastActivity).getTime()) / 86400000);
+      const signals = [];
+      if (daysIdle >= 14) signals.push(`No activity in ${daysIdle} days`);
+      if (!project.next_action) signals.push('No next action set');
+      if (overdue.length) signals.push(`${overdue.length} overdue task(s)`);
+      if (project.blockers) signals.push('Unresolved blocker');
+      if ((project.milestones || []).some((m) => !m.done && m.due_date && m.due_date < today)) signals.push('Incomplete milestone past due');
+
+      const context = `Today: ${today}
+PROJECT: ${JSON.stringify({ title: project.title, description: project.description, status: project.status, priority: project.priority, next_action: project.next_action, blockers: project.blockers, progress: project.progress, milestones: project.milestones, updated_date: project.updated_date })}
+TASKS: ${JSON.stringify(tasks.map((t) => ({ title: t.title, status: t.status, priority: t.priority, due_date: t.due_date, updated_date: t.updated_date })))}
+DECISIONS: ${JSON.stringify(decisions.map((d) => ({ title: d.title, decision: d.decision, status: d.status, date: d.date, reasoning: d.reasoning, actual_result: d.actual_result })))}
+LESSONS: ${JSON.stringify(lessons.map((l) => ({ title: l.title, learned: l.learned, next_time: l.next_time })))}
+PROJECT NOTES / CAPTURES: ${JSON.stringify(captures.map((c) => ({ title: c.title, content: (c.content || '').slice(0, 300), created_date: c.created_date })))}
+LINKED KNOWLEDGE: ${JSON.stringify(linkedKnowledge.map((k) => ({ id: k.id, title: k.title, content: (k.content || '').slice(0, 400) })))}
+ATTENTION SIGNALS (computed): ${JSON.stringify(signals)}`;
+
+      if (action === 'project_chat') {
+        const question = String(body.question || '').slice(0, 500);
+        const history = (body.history || []).slice(-6).map((m) => `${m.role}: ${String(m.content).slice(0, 500)}`).join('\n');
+        const prompt = `You are a project copilot. Answer ONLY using the records of this single project below. If the records don't contain the answer, say so plainly. Be concise and reference specific records by title. Never describe a project as failed; say it "may need attention" if relevant.\n${context}\n\nConversation so far:\n${history}\n\nUser question: ${question}`;
+        const result = await invoke(base44, prompt, { type: 'object', properties: { answer: { type: 'string' } }, required: ['answer'] });
+        return Response.json(result);
+      }
+
+      const prompt = `You are a project copilot. Produce a briefing for this ONE project using only the records below. Never call the project failed; if attention signals exist, use language like "This project may need attention."
+Also propose up to 6 concrete suggestions. Types: task, milestone, note, research_question, knowledge_link, decision. For knowledge_link, knowledge_id MUST be one of these ids: ${JSON.stringify(otherKnowledge)}. Don't suggest things that already exist.
+${context}`;
+      const list = { type: 'array', items: { type: 'string' } };
+      const result = await invoke(base44, prompt, {
+        type: 'object',
+        properties: {
+          current_state: { type: 'string' },
+          next_best_action: { type: 'string' },
+          blockers: list,
+          unfinished_work: list,
+          recent_progress: list,
+          relevant_knowledge: list,
+          open_decisions: list,
+          risks_questions: list,
+          attention_note: { type: 'string' },
+          suggestions: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                type: { type: 'string', enum: ['task', 'milestone', 'note', 'research_question', 'knowledge_link', 'decision'] },
+                title: { type: 'string' },
+                detail: { type: 'string' },
+                knowledge_id: { type: 'string' },
+                reason: { type: 'string' },
+              },
+              required: ['type', 'title'],
+            },
+          },
+        },
+        required: ['current_state', 'next_best_action', 'suggestions'],
+      });
+      const validK = new Map(otherKnowledge.map((k) => [k.id, k.title]));
+      result.suggestions = (result.suggestions || [])
+        .filter((s) => s.type !== 'knowledge_link' || validK.has(s.knowledge_id))
+        .map((s, i) => ({ ...s, key: `${i}`, ...(s.type === 'knowledge_link' ? { title: validK.get(s.knowledge_id) } : {}) }));
+      result.signals = signals;
+      return Response.json(result);
+    }
+
     if (action === 'triage_inbox') {
       const ids = (body.ids || []).slice(0, 15);
       const captures = (await Promise.all(ids.map((id) => base44.entities.Capture.get(id).catch(() => null)))).filter(
