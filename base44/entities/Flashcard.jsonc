@@ -1,0 +1,40 @@
+{
+  "name": "Flashcard",
+  "type": "object",
+  "properties": {
+    "front": {
+      "type": "string"
+    },
+    "back": {
+      "type": "string"
+    },
+    "learning_item_id": {
+      "type": "string"
+    },
+    "last_reviewed": {
+      "type": "string",
+      "format": "date"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "review_count": {
+      "type": "number",
+      "default": 0
+    },
+    "next_review_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "front",
+    "back"
+  ]
+}

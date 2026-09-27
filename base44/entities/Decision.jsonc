@@ -1,0 +1,43 @@
+{
+  "name": "Decision",
+  "type": "object",
+  "properties": {
+    "decision": {
+      "type": "string"
+    },
+    "context": {
+      "type": "string"
+    },
+    "alternatives": {
+      "type": "string"
+    },
+    "reasoning": {
+      "type": "string"
+    },
+    "expected_result": {
+      "type": "string"
+    },
+    "actual_result": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "made",
+        "reviewed"
+      ],
+      "default": "made"
+    }
+  },
+  "required": [
+    "decision"
+  ]
+}

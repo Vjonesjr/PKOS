@@ -1,0 +1,43 @@
+{
+  "name": "Knowledge",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "note",
+        "concept",
+        "reference",
+        "information",
+        "personal",
+        "structured"
+      ],
+      "default": "note"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "category": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "favorite": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "title"
+  ]
+}

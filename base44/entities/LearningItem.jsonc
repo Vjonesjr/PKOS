@@ -1,0 +1,41 @@
+{
+  "name": "LearningItem",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "course",
+        "topic",
+        "resource",
+        "skill",
+        "certificate"
+      ],
+      "default": "topic"
+    },
+    "title": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "completed"
+      ],
+      "default": "not_started"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "knowledge_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}

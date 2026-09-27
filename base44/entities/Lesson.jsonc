@@ -1,0 +1,36 @@
+{
+  "name": "Lesson",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "what_happened": {
+      "type": "string"
+    },
+    "what_worked": {
+      "type": "string"
+    },
+    "what_didnt": {
+      "type": "string"
+    },
+    "learned": {
+      "type": "string"
+    },
+    "next_time": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "decision_id": {
+      "type": "string"
+    },
+    "knowledge_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "learned"
+  ]
+}

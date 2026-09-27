@@ -1,0 +1,126 @@
+import React, { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import ProjectForm from "@/components/projects/ProjectForm";
+import MilestoneEditor from "@/components/projects/MilestoneEditor";
+import ProjectTasks from "@/components/projects/ProjectTasks";
+import LinkedItems from "@/components/shared/LinkedItems";
+import StatusBadge from "@/components/shared/StatusBadge";
+
+export default function ProjectDetail() {
+  const navigate = useNavigate();
+  const id = new URLSearchParams(window.location.search).get("id");
+  const [project, setProject] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [notFound, setNotFound] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const [p, t] = await Promise.all([base44.entities.Project.get(id), base44.entities.Task.filter({ project_id: id }, "-created_date", 100)]);
+      setProject(p);
+      setTasks(t);
+    } catch {
+      setNotFound(true);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (notFound) return <div className="py-20 text-center text-sm text-muted-foreground">Project not found.</div>;
+  if (!project) return <div className="py-20 text-center text-sm text-muted-foreground">Loading...</div>;
+
+  const update = async (data) => {
+    await base44.entities.Project.update(id, data);
+    setEditOpen(false);
+    load();
+  };
+
+  const remove = async () => {
+    await base44.entities.Project.delete(id);
+    navigate("/projects");
+  };
+
+  const updateProgress = async (val) => {
+    await base44.entities.Project.update(id, { progress: val });
+    load();
+  };
+
+  const doneCount = tasks.filter((t) => t.status === "done").length;
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-6">
+      <button onClick={() => navigate("/projects")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="h-4 w-4" /> Back to Projects
+      </button>
+
+      <div className="rounded-2xl border border-border bg-card/60 p-6">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex gap-2">
+            <StatusBadge value={project.status} />
+            <StatusBadge value={project.priority} />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setEditOpen(true)}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={remove}>
+              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+            </Button>
+          </div>
+        </div>
+        <h1 className="text-xl font-semibold text-foreground">{project.title}</h1>
+
+        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">What is this?</p>
+            <p className="text-sm text-foreground/80">{project.description || "No description yet."}</p>
+          </div>
+          <div>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Current state</p>
+            <p className="text-sm text-foreground/80">
+              {doneCount}/{tasks.length} tasks done · {project.progress || 0}% progress
+            </p>
+            <Progress value={project.progress || 0} className="mt-2 h-1.5" />
+          </div>
+          <div>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Next action</p>
+            <p className="text-sm text-foreground/80">{project.next_action || "Not set"}</p>
+          </div>
+          <div>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">What's blocking progress?</p>
+            <p className="text-sm text-foreground/80">{project.blockers || "Nothing blocking"}</p>
+          </div>
+        </div>
+
+        <div className="mt-5 flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Update progress:</span>
+          <Input type="number" min={0} max={100} defaultValue={project.progress || 0} onBlur={(e) => updateProgress(Number(e.target.value))} className="h-8 w-20" />
+          <span className="text-xs text-muted-foreground">%</span>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card/60 p-6">
+        <p className="mb-3 text-sm font-semibold text-foreground/90">Milestones</p>
+        <MilestoneEditor milestones={project.milestones} onChange={(m) => update({ milestones: m })} />
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card/60 p-6">
+        <p className="mb-3 text-sm font-semibold text-foreground/90">Tasks</p>
+        <ProjectTasks tasks={tasks} projectId={id} onChange={load} />
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card/60 p-6">
+        <LinkedItems recordType="project" recordId={id} />
+      </div>
+
+      <ProjectForm open={editOpen} onOpenChange={setEditOpen} initial={project} onSave={update} />
+    </div>
+  );
+}
