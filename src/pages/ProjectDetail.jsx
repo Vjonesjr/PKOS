@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import ProjectForm from "@/components/projects/ProjectForm";
 import MilestoneEditor from "@/components/projects/MilestoneEditor";
 import ProjectTasks from "@/components/projects/ProjectTasks";
+import ProjectDecisions from "@/components/projects/ProjectDecisions";
+import ProjectLessons from "@/components/projects/ProjectLessons";
+import ProjectReferences from "@/components/projects/ProjectReferences";
 import LinkedItems from "@/components/shared/LinkedItems";
 import StatusBadge from "@/components/shared/StatusBadge";
 
@@ -16,14 +19,23 @@ export default function ProjectDetail() {
   const id = new URLSearchParams(window.location.search).get("id");
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
+  const [decisions, setDecisions] = useState([]);
+  const [lessons, setLessons] = useState([]);
   const [notFound, setNotFound] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const [p, t] = await Promise.all([base44.entities.Project.get(id), base44.entities.Task.filter({ project_id: id }, "-created_date", 100)]);
+      const [p, t, d, l] = await Promise.all([
+        base44.entities.Project.get(id),
+        base44.entities.Task.filter({ project_id: id }, "-created_date", 100),
+        base44.entities.Decision.filter({ project_id: id }, "-date", 100),
+        base44.entities.Lesson.filter({ project_id: id }, "-created_date", 100),
+      ]);
       setProject(p);
       setTasks(t);
+      setDecisions(d);
+      setLessons(l);
     } catch {
       setNotFound(true);
     }
@@ -117,7 +129,23 @@ export default function ProjectDetail() {
       </div>
 
       <div className="rounded-2xl border border-border bg-card/60 p-6">
-        <LinkedItems recordType="project" recordId={id} />
+        <p className="mb-3 text-sm font-semibold text-foreground/90">Knowledge</p>
+        <LinkedItems recordType="project" recordId={id} allowedTypes={["knowledge"]} filterTypes={["knowledge"]} />
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card/60 p-6">
+        <p className="mb-3 text-sm font-semibold text-foreground/90">Decisions</p>
+        <ProjectDecisions decisions={decisions} projectId={id} onChange={load} />
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card/60 p-6">
+        <p className="mb-3 text-sm font-semibold text-foreground/90">Lessons</p>
+        <ProjectLessons lessons={lessons} projectId={id} onChange={load} />
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card/60 p-6">
+        <p className="mb-3 text-sm font-semibold text-foreground/90">Files / References</p>
+        <ProjectReferences references={project.references || []} onChange={(refs) => update({ references: refs })} />
       </div>
 
       <ProjectForm open={editOpen} onOpenChange={setEditOpen} initial={project} onSave={update} />
