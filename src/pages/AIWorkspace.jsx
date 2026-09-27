@@ -10,6 +10,7 @@ import CreateFlashcardsCard from "@/components/ai/CreateFlashcardsCard";
 import CompareNotesCard from "@/components/ai/CompareNotesCard";
 import PeriodReviewCard from "@/components/ai/PeriodReviewCard";
 import { useToast } from "@/components/ui/use-toast";
+import ContextPackChat from "@/components/context/ContextPackChat";
 import { useWorkspace } from "@/lib/WorkspaceContext";
 
 export default function AIWorkspace() {
@@ -35,6 +36,8 @@ export default function AIWorkspace() {
           content, and only applied when you click a save/apply/link button.
         </p>
       </div>
+
+      <ContextPackChat />
 
       <AIActionRunner
         title="Organize Inbox"

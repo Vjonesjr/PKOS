@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Inbox, Library, FolderKanban, GraduationCap, History, Sparkles, Menu, X, Settings, Search } from "lucide-react";
+import { Home, Inbox, Library, FolderKanban, GraduationCap, History, Sparkles, Menu, X, Settings, Search, Layers } from "lucide-react";
 import UniversalSearch from "@/components/shared/UniversalSearch";
 import QuickCapture from "@/components/shared/QuickCapture";
 import WorkspaceSwitcherButton from "@/components/workspace/WorkspaceSwitcherButton";
@@ -17,6 +17,7 @@ const NAV = [
   { to: "/learning", label: "Learning", icon: GraduationCap },
   { to: "/review", label: "Review", icon: History },
   { to: "/ai", label: "AI", icon: Sparkles },
+  { to: "/context-packs", label: "Context Packs", icon: Layers },
 ];
 
 export default function Layout() {

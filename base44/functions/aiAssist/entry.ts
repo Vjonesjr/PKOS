@@ -116,6 +116,59 @@ export default async function (req) {
       return Response.json(result);
     }
 
+    if (action === 'context_chat' || action === 'context_suggest') {
+      const ENT = { capture: 'Capture', knowledge: 'Knowledge', project: 'Project', task: 'Task', decision: 'Decision', lesson: 'Lesson', learning: 'LearningItem' };
+      const pack = await base44.entities.ContextPack.get(body.packId);
+      if (!pack || pack.workspace !== workspace) return Response.json({ error: 'Context pack not found' }, { status: 404 });
+      const items = (pack.items || []).filter((i) => ENT[i.type]).slice(0, 60);
+      const loaded = (
+        await Promise.all(items.map(async (i) => ({ type: i.type, rec: await base44.entities[ENT[i.type]].get(i.id).catch(() => null) })))
+      ).filter((x) => x.rec && x.rec.workspace === workspace);
+      const label = (r) => r.title || r.decision || r.learned || 'Untitled';
+      const summarize = ({ type, rec }) => {
+        const { id, created_by_id, created_by, workspace: _w, ...fields } = rec;
+        return { type, ...fields, content: fields.content ? String(fields.content).slice(0, 1500) : undefined };
+      };
+
+      if (action === 'context_chat') {
+        const question = String(body.question || '').slice(0, 1000);
+        const history = (body.history || []).slice(-6).map((m) => `${m.role}: ${String(m.content).slice(0, 600)}`).join('\n');
+        const prompt = `Answer using ONLY the context pack "${pack.name}" below plus the user's question. If the pack doesn't contain the needed information, say so rather than guessing.\nCONTEXT PACK: ${JSON.stringify(loaded.map(summarize))}\n\nConversation so far:\n${history}\n\nUser: ${question}`;
+        const result = await invoke(base44, prompt, { type: 'object', properties: { answer: { type: 'string' } }, required: ['answer'] });
+        return Response.json(result);
+      }
+
+      // Suggestions: records tied to the pack's projects (deterministic), plus AI-picked knowledge.
+      const included = new Set(items.map((i) => `${i.type}:${i.id}`));
+      const projectIds = loaded.filter((x) => x.type === 'project').map((x) => x.rec.id);
+      const byProject = [];
+      for (const pid of projectIds) {
+        const lists = await Promise.all(
+          ['task', 'decision', 'lesson', 'knowledge', 'learning', 'capture'].map(async (t) => (await base44.entities[ENT[t]].filter({ project_id: pid, workspace }, '-updated_date', 30)).map((rec) => ({ type: t, rec })))
+        );
+        byProject.push(...lists.flat());
+      }
+      const suggestions = new Map();
+      byProject.forEach(({ type, rec }) => {
+        const key = `${type}:${rec.id}`;
+        if (!included.has(key)) suggestions.set(key, { type, id: rec.id, title: label(rec), reason: 'Belongs to a project in this pack' });
+      });
+      const knowledge = (await base44.entities.Knowledge.filter({ workspace }, '-updated_date', 80)).filter((k) => !included.has(`knowledge:${k.id}`) && !suggestions.has(`knowledge:${k.id}`));
+      if (knowledge.length && loaded.length) {
+        const ai = await invoke(
+          base44,
+          `Context pack "${pack.name}" (${pack.description || ''}) contains: ${JSON.stringify(loaded.map((x) => ({ type: x.type, title: label(x.rec) })))}.\nFrom these knowledge candidates, pick up to 6 that are genuinely relevant. Use exact ids: ${JSON.stringify(knowledge.map((k) => ({ id: k.id, title: k.title })))}`,
+          { type: 'object', properties: { picks: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, reason: { type: 'string' } }, required: ['id'] } } }, required: ['picks'] }
+        );
+        const kMap = new Map(knowledge.map((k) => [k.id, k]));
+        (ai.picks || []).forEach((p) => {
+          const k = kMap.get(p.id);
+          if (k) suggestions.set(`knowledge:${k.id}`, { type: 'knowledge', id: k.id, title: k.title, reason: p.reason || 'Related knowledge' });
+        });
+      }
+      return Response.json({ suggestions: [...suggestions.values()].slice(0, 30) });
+    }
+
     if (action === 'project_brief' || action === 'project_chat') {
       const project = await base44.entities.Project.get(body.projectId);
       if (!project || project.workspace !== workspace) return Response.json({ error: 'Project not found' }, { status: 404 });
