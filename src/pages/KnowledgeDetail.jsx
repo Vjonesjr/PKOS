@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import KnowledgeForm from "@/components/knowledge/KnowledgeForm";
 import LinkedItems from "@/components/shared/LinkedItems";
 import StatusBadge from "@/components/shared/StatusBadge";
+import FlashcardCreator from "@/components/learning/FlashcardCreator";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 export default function KnowledgeDetail() {
   const navigate = useNavigate();
@@ -13,15 +15,19 @@ export default function KnowledgeDetail() {
   const [record, setRecord] = useState(null);
   const [notFound, setNotFound] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [flashcards, setFlashcards] = useState([]);
+  const { workspace } = useWorkspace();
 
   const load = useCallback(async () => {
     try {
       const r = await base44.entities.Knowledge.get(id);
       setRecord(r);
+      const fc = await base44.entities.Flashcard.filter({ knowledge_id: id, workspace }, "-created_date", 100);
+      setFlashcards(fc);
     } catch {
       setNotFound(true);
     }
-  }, [id]);
+  }, [id, workspace]);
 
   useEffect(() => {
     load();
@@ -80,6 +86,11 @@ export default function KnowledgeDetail() {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card/60 p-6">
+        <p className="mb-3 text-sm font-semibold text-foreground/90">Flashcards</p>
+        <FlashcardCreator knowledgeId={id} flashcards={flashcards} onChange={load} />
       </div>
 
       <div className="rounded-2xl border border-border bg-card/60 p-6">

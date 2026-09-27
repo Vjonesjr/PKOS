@@ -8,8 +8,12 @@
         "course",
         "topic",
         "resource",
-        "skill",
-        "certificate"
+        "study_note",
+        "practice_session",
+        "flashcard_set",
+        "interview_prep",
+        "certificate",
+        "skill"
       ],
       "default": "topic"
     },

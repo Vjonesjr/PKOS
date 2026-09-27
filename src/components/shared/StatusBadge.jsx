@@ -13,6 +13,8 @@ const STYLES = {
   todo: "bg-slate-500/15 text-slate-300",
   in_progress: "bg-sky-500/15 text-sky-300",
   done: "bg-emerald-500/15 text-emerald-300",
+  not_started: "bg-slate-500/15 text-slate-300",
+  completed: "bg-emerald-500/15 text-emerald-300",
   inbox: "bg-cyan-500/15 text-cyan-300",
   processed: "bg-slate-600/15 text-slate-400",
   // priority
