@@ -116,6 +116,35 @@ export default async function (req) {
       return Response.json(result);
     }
 
+    if (action === 'route_task') {
+      const task = String(body.task || '').slice(0, 1000);
+      const [tools, devices] = await Promise.all([
+        base44.entities.Tool.filter({ workspace }, '-updated_date', 100),
+        base44.entities.Device.filter({ workspace }, '-updated_date', 50),
+      ]);
+      if (!tools.length && !devices.length) return Response.json({ error: 'Add some tools or devices first.' }, { status: 400 });
+      const strip = ({ created_by_id, created_by, created_date, updated_date, workspace: _w, ...r }) => r;
+      const result = await invoke(
+        base44,
+        `Route this task to a workflow using ONLY the user's saved tools and devices below: "${task}".\nNo tool or device is permanently "best" — decide for this task based on saved capabilities, ratings, user notes/experience, cost, privacy, local/cloud, hardware requirements and task type. Every explanation must cite specific saved fields (e.g. "coding ability 5/5", "RAM 32GB", "notes say ..."). If saved info is missing or insufficient, say so. Build 3-6 stages (e.g. PLAN, IMPLEMENT, BUILD, VERIFY, QUICK REVIEW). Each stage uses a tool_id and/or device_id (exact ids) or null. Also give machine_fit for each relevant device: good_for and poor_for for THIS task, based on its hardware.\nTOOLS: ${JSON.stringify(tools.map(strip))}\nDEVICES: ${JSON.stringify(devices.map(strip))}`,
+        {
+          type: 'object',
+          properties: {
+            summary: { type: 'string' },
+            stages: { type: 'array', items: { type: 'object', properties: { stage: { type: 'string' }, tool_id: { type: 'string' }, device_id: { type: 'string' }, action: { type: 'string' }, explanation: { type: 'string' } }, required: ['stage', 'explanation'] } },
+            machine_fit: { type: 'array', items: { type: 'object', properties: { device_id: { type: 'string' }, good_for: { type: 'array', items: { type: 'string' } }, poor_for: { type: 'array', items: { type: 'string' } } }, required: ['device_id'] } },
+            missing_info: { type: 'string' },
+          },
+          required: ['summary', 'stages', 'machine_fit'],
+        }
+      );
+      const tIds = new Set(tools.map((t) => t.id));
+      const dIds = new Set(devices.map((d) => d.id));
+      result.stages = (result.stages || []).map((s) => ({ ...s, tool_id: tIds.has(s.tool_id) ? s.tool_id : null, device_id: dIds.has(s.device_id) ? s.device_id : null }));
+      result.machine_fit = (result.machine_fit || []).filter((m) => dIds.has(m.device_id));
+      return Response.json(result);
+    }
+
     if (action === 'daily_brief') {
       const today = /^\d{4}-\d{2}-\d{2}$/.test(body.today) ? body.today : new Date().toISOString().slice(0, 10);
       const weekAgo = new Date(Date.now() - 7 * 864e5).toISOString();
