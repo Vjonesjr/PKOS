@@ -116,6 +116,59 @@ export default async function (req) {
       return Response.json(result);
     }
 
+    if (action === 'daily_brief') {
+      const today = /^\d{4}-\d{2}-\d{2}$/.test(body.today) ? body.today : new Date().toISOString().slice(0, 10);
+      const weekAgo = new Date(Date.now() - 7 * 864e5).toISOString();
+      const [projects, tasks, captures, cards, learning] = await Promise.all([
+        base44.entities.Project.filter({ workspace, status: 'Active' }, '-updated_date', 50),
+        base44.entities.Task.filter({ workspace }, '-updated_date', 300),
+        base44.entities.Capture.filter({ workspace, status: 'inbox' }, '-created_date', 30),
+        base44.entities.Flashcard.filter({ workspace }, 'next_review_date', 300),
+        base44.entities.LearningItem.filter({ workspace, status: 'in_progress' }, '-updated_date', 20),
+      ]);
+      const open = tasks.filter((t) => t.status !== 'done');
+      const projTitle = Object.fromEntries(projects.map((p) => [p.id, p.title]));
+      // Candidates carry only facts read from records; the AI may only choose among them.
+      const cands = [];
+      open.forEach((t) => {
+        const facts = [`status ${t.status}`, `priority ${t.priority || 'medium'}`];
+        if (t.due_date && t.due_date < today) facts.push(`overdue (due ${t.due_date})`);
+        else if (t.due_date === today) facts.push('due today');
+        else if (t.due_date) facts.push(`due ${t.due_date}`);
+        if (projTitle[t.project_id]) facts.push(`in active project "${projTitle[t.project_id]}"`);
+        if (t.today_date === today) facts.push('already on Today list');
+        cands.push({ key: `task:${t.id}`, type: 'task', id: t.id, title: t.title, priority: t.priority || 'medium', project_id: t.project_id, facts });
+      });
+      projects.forEach((p) => {
+        const overdue = open.filter((t) => t.project_id === p.id && t.due_date && t.due_date < today).length;
+        const facts = [`status Active`, `priority ${p.priority || 'medium'}`];
+        if (p.next_action) facts.push(`next action: "${p.next_action}"`); else facts.push('no next action set');
+        if (p.blockers) facts.push(`blocker: "${p.blockers}"`);
+        if (overdue) facts.push(`${overdue} overdue task(s)`);
+        cands.push({ key: `project:${p.id}`, type: 'project', id: p.id, title: p.title, priority: p.priority || 'medium', facts });
+      });
+      captures.filter((c) => c.created_date >= weekAgo).forEach((c) => cands.push({ key: `capture:${c.id}`, type: 'capture', id: c.id, title: c.title || String(c.content).slice(0, 60), facts: ['unprocessed in inbox', `captured ${c.created_date.slice(0, 10)}`, c.important ? 'marked important' : ''].filter(Boolean) }));
+      const due = cards.filter((c) => !c.next_review_date || c.next_review_date <= today).length;
+      if (due) cands.push({ key: 'review:flashcards', type: 'review', id: 'flashcards', title: `Review ${due} flashcard(s)`, facts: [`${due} flashcard(s) due for review`] });
+      learning.forEach((l) => cands.push({ key: `learning:${l.id}`, type: 'learning', id: l.id, title: l.title, facts: ['learning item in progress'] }));
+
+      if (!cands.length) return Response.json({ sections: {}, candidates: 0 });
+      const byKey = new Map(cands.map((c) => [c.key, c]));
+      const itemSchema = { type: 'array', items: { type: 'object', properties: { key: { type: 'string' }, reason: { type: 'string' } }, required: ['key', 'reason'] } };
+      const secs = ['top_focus', 'secondary_tasks', 'quick_win', 'blocker_to_resolve', 'learning_review', 'optional_items'];
+      const ai = await invoke(
+        base44,
+        `Build a concise TODAY BRIEF for ${today}. Choose ONLY from the candidate keys below. Never invent deadlines, priorities or facts — each reason must cite the listed facts (e.g. "shown because it is Active and has 2 overdue tasks"). Do not repeat a key across sections. top_focus: 1 item. secondary_tasks: up to 4. quick_win: 1 small, easy item. blocker_to_resolve: 0-1 item that has a blocker fact. learning_review: 0-2 review/learning items. optional_items: up to 3.\nCANDIDATES: ${JSON.stringify(cands.map(({ key, title, facts }) => ({ key, title, facts })))}`,
+        { type: 'object', properties: Object.fromEntries(secs.map((s) => [s, itemSchema])), required: secs }
+      );
+      const seen = new Set();
+      const sections = Object.fromEntries(secs.map((s) => [s, (ai[s] || []).filter((i) => byKey.has(i.key) && !seen.has(i.key) && seen.add(i.key)).map((i) => {
+        const { facts, ...c } = byKey.get(i.key);
+        return { ...c, reason: i.reason, facts };
+      })]));
+      return Response.json({ sections, candidates: cands.length });
+    }
+
     if (action === 'context_chat' || action === 'context_suggest') {
       const ENT = { capture: 'Capture', knowledge: 'Knowledge', project: 'Project', task: 'Task', decision: 'Decision', lesson: 'Lesson', learning: 'LearningItem' };
       const pack = await base44.entities.ContextPack.get(body.packId);

@@ -30,6 +30,10 @@
       "type": "string",
       "format": "date"
     },
+    "today_date": {
+      "type": "string",
+      "format": "date"
+    },
     "project_id": {
       "type": "string"
     },

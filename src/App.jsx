@@ -30,6 +30,7 @@ import Settings from '@/pages/Settings';
 import Workspaces from '@/pages/Workspaces';
 import SearchPage from '@/pages/Search';
 import Triage from '@/pages/Triage';
+import Today from '@/pages/Today';
 import ContextPacks from '@/pages/ContextPacks';
 import ContextPackDetail from '@/pages/ContextPackDetail';
 
@@ -68,6 +69,7 @@ const AuthenticatedApp = () => {
           <Route path="/" element={<Home />} />
           <Route path="/capture" element={<Capture />} />
           <Route path="/triage" element={<Triage />} />
+          <Route path="/today" element={<Today />} />
           <Route path="/context-packs" element={<ContextPacks />} />
           <Route path="/context-pack" element={<ContextPackDetail />} />
           <Route path="/knowledge" element={<Knowledge />} />
