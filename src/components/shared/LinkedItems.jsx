@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Link2, Plus, X, ArrowUpRight } from "lucide-react";
 import { Link as RouterLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,18 @@ import { useWorkspace } from "@/lib/WorkspaceContext";
 
 const LINKABLE_TYPES = ["knowledge", "project", "decision", "lesson", "learning", "capture"];
 
+const GROUP_LABELS = {
+  knowledge: "Linked Knowledge",
+  project: "Linked Projects",
+  decision: "Linked Decisions",
+  lesson: "Linked Lessons",
+  learning: "Linked Learning",
+  capture: "Linked Captures",
+  task: "Linked Tasks",
+};
+
 export default function LinkedItems({ recordType, recordId, allowedTypes = LINKABLE_TYPES, filterTypes }) {
-  const [related, setRelated] = useState([]);
-  const [linkedFrom, setLinkedFrom] = useState([]);
+  const [items, setItems] = useState([]);
   const [adding, setAdding] = useState(false);
   const [pickType, setPickType] = useState(allowedTypes[0]);
   const [options, setOptions] = useState([]);
@@ -26,22 +35,38 @@ export default function LinkedItems({ recordType, recordId, allowedTypes = LINKA
     const fwd = await Promise.all(forward.map(async (l) => ({ link: l, record: await fetchRecord(l.target_type, l.target_id), type: l.target_type })));
     const rev = await Promise.all(reverse.map(async (l) => ({ link: l, record: await fetchRecord(l.source_type, l.source_id), type: l.source_type })));
     const passesFilter = (x) => !filterTypes || filterTypes.includes(x.type);
-    setRelated(fwd.filter((x) => x.record && passesFilter(x)));
-    setLinkedFrom(rev.filter((x) => x.record && passesFilter(x)));
+    setItems([...fwd, ...rev].filter((x) => x.record && passesFilter(x)));
   }, [recordType, recordId, filterTypes]);
 
   useEffect(() => {
     load();
   }, [load]);
 
+  // Group linked records by type for clearly labeled sections, deduped by record id.
+  const grouped = useMemo(() => {
+    const byType = {};
+    const seen = new Set();
+    items.forEach((item) => {
+      const key = `${item.type}:${item.record.id}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      (byType[item.type] = byType[item.type] || []).push(item);
+    });
+    return byType;
+  }, [items]);
+
+  const linkedIds = useMemo(() => new Set(items.map((i) => `${i.type}:${i.record.id}`)), [items]);
+
   useEffect(() => {
     if (!adding) return;
     (async () => {
       const cfg = ENTITY_CONFIG[pickType];
       const list = await cfg.entity.filter({ workspace }, "-updated_date", 50);
-      setOptions(list.filter((r) => !(pickType === recordType && r.id === recordId)));
+      setOptions(
+        list.filter((r) => !(pickType === recordType && r.id === recordId) && !linkedIds.has(`${pickType}:${r.id}`))
+      );
     })();
-  }, [adding, pickType, pickType, recordType, recordId, workspace]);
+  }, [adding, pickType, recordType, recordId, workspace, linkedIds]);
 
   const addLink = async () => {
     if (!pickId) return;
@@ -56,10 +81,10 @@ export default function LinkedItems({ recordType, recordId, allowedTypes = LINKA
     load();
   };
 
-  const Row = ({ item, removable }) => {
+  const Row = ({ item }) => {
     const cfg = ENTITY_CONFIG[item.type];
     return (
-      <div key={item.link.id} className="flex items-center justify-between rounded-lg border border-border bg-secondary/40 px-3 py-2">
+      <div className="flex items-center justify-between rounded-lg border border-border bg-secondary/40 px-3 py-2">
         <RouterLink
           to={cfg.route === "/knowledge-detail" || cfg.route === "/project-detail" ? `${cfg.route}?id=${item.record.id}` : cfg.route}
           className="flex items-center gap-2 text-sm text-foreground/90 hover:text-primary"
@@ -68,70 +93,71 @@ export default function LinkedItems({ recordType, recordId, allowedTypes = LINKA
           <span className="truncate">{recordLabel(item.type, item.record)}</span>
           <ArrowUpRight className="h-3 w-3 opacity-50" />
         </RouterLink>
-        {removable && (
-          <button onClick={() => removeLink(item.link.id)} className="text-muted-foreground hover:text-destructive">
-            <X className="h-3.5 w-3.5" />
-          </button>
-        )}
+        <button onClick={() => removeLink(item.link.id)} className="text-muted-foreground hover:text-destructive">
+          <X className="h-3.5 w-3.5" />
+        </button>
       </div>
     );
   };
 
+  const groupTypes = Object.keys(grouped);
+
   return (
     <div className="space-y-4">
-      <div>
-        <div className="mb-2 flex items-center justify-between">
-          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <Link2 className="h-3.5 w-3.5" /> Related Items
-          </p>
-          <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={() => setAdding((v) => !v)}>
-            <Plus className="h-3 w-3" /> Link
+      <div className="mb-2 flex items-center justify-between">
+        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <Link2 className="h-3.5 w-3.5" /> Related Items
+        </p>
+        <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={() => setAdding((v) => !v)}>
+          <Plus className="h-3 w-3" /> Link
+        </Button>
+      </div>
+
+      {adding && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border p-2">
+          <Select value={pickType} onValueChange={setPickType}>
+            <SelectTrigger className="h-8 w-32 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {allowedTypes.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {ENTITY_CONFIG[t].label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={pickId} onValueChange={setPickId}>
+            <SelectTrigger className="h-8 flex-1 min-w-[140px] text-xs">
+              <SelectValue placeholder="Select record..." />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((o) => (
+                <SelectItem key={o.id} value={o.id}>
+                  {recordLabel(pickType, o)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button size="sm" className="h-8" onClick={addLink} disabled={!pickId}>
+            Add
           </Button>
         </div>
-        {adding && (
-          <div className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-border p-2">
-            <Select value={pickType} onValueChange={setPickType}>
-              <SelectTrigger className="h-8 w-32 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {allowedTypes.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {ENTITY_CONFIG[t].label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={pickId} onValueChange={setPickId}>
-              <SelectTrigger className="h-8 flex-1 min-w-[140px] text-xs">
-                <SelectValue placeholder="Select record..." />
-              </SelectTrigger>
-              <SelectContent>
-                {options.map((o) => (
-                  <SelectItem key={o.id} value={o.id}>
-                    {recordLabel(pickType, o)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button size="sm" className="h-8" onClick={addLink} disabled={!pickId}>
-              Add
-            </Button>
+      )}
+
+      {groupTypes.length === 0 ? (
+        <p className="text-xs text-muted-foreground">No related items yet.</p>
+      ) : (
+        groupTypes.map((type) => (
+          <div key={type}>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{GROUP_LABELS[type] || `Linked ${ENTITY_CONFIG[type].label}`}</p>
+            <div className="space-y-1.5">
+              {grouped[type].map((item) => (
+                <Row key={`${item.type}:${item.record.id}`} item={item} />
+              ))}
+            </div>
           </div>
-        )}
-        <div className="space-y-1.5">
-          {related.length === 0 ? <p className="text-xs text-muted-foreground">No related items yet.</p> : related.map((item) => <Row key={item.link.id} item={item} removable />)}
-        </div>
-      </div>
-      {linkedFrom.length > 0 && (
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Linked From</p>
-          <div className="space-y-1.5">
-            {linkedFrom.map((item) => (
-              <Row key={item.link.id} item={item} />
-            ))}
-          </div>
-        </div>
+        ))
       )}
     </div>
   );
