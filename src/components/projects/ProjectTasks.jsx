@@ -6,13 +6,15 @@ import { Plus } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import EmptyState from "@/components/shared/EmptyState";
 import { ListTodo } from "lucide-react";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 export default function ProjectTasks({ tasks, projectId, onChange }) {
   const [newTitle, setNewTitle] = useState("");
+  const { workspace } = useWorkspace();
 
   const add = async () => {
     if (!newTitle.trim()) return;
-    await base44.entities.Task.create({ title: newTitle.trim(), project_id: projectId, status: "todo" });
+    await base44.entities.Task.create({ title: newTitle.trim(), project_id: projectId, status: "todo", workspace });
     setNewTitle("");
     onChange();
   };

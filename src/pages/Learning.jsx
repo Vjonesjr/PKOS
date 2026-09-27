@@ -7,6 +7,7 @@ import FlashcardStudy from "@/components/learning/FlashcardStudy";
 import StatusBadge from "@/components/shared/StatusBadge";
 import EmptyState from "@/components/shared/EmptyState";
 import LinkedItems from "@/components/shared/LinkedItems";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 export default function Learning() {
   const [items, setItems] = useState([]);
@@ -14,19 +15,23 @@ export default function Learning() {
   const [formOpen, setFormOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const [studying, setStudying] = useState(false);
+  const { workspace } = useWorkspace();
 
   const load = useCallback(async () => {
-    const [li, fc] = await Promise.all([base44.entities.LearningItem.list("-updated_date", 100), base44.entities.Flashcard.list("-created_date", 300)]);
+    const [li, fc] = await Promise.all([
+      base44.entities.LearningItem.filter({ workspace }, "-updated_date", 100),
+      base44.entities.Flashcard.filter({ workspace }, "-created_date", 300),
+    ]);
     setItems(li);
     setFlashcards(fc);
-  }, []);
+  }, [workspace]);
 
   useEffect(() => {
     load();
   }, [load]);
 
   const create = async (data) => {
-    await base44.entities.LearningItem.create(data);
+    await base44.entities.LearningItem.create({ ...data, workspace });
     setFormOpen(false);
     load();
   };
@@ -96,10 +101,11 @@ export default function Learning() {
 function FlashcardManager({ learningItem, flashcards, onChange }) {
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
+  const { workspace } = useWorkspace();
 
   const add = async () => {
     if (!front.trim() || !back.trim()) return;
-    await base44.entities.Flashcard.create({ front, back, learning_item_id: learningItem.id });
+    await base44.entities.Flashcard.create({ front, back, learning_item_id: learningItem.id, workspace });
     setFront("");
     setBack("");
     onChange();

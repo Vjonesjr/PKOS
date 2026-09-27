@@ -16,19 +16,19 @@ export default function ConvertMenu({ capture, onConverted }) {
     setLoading(true);
     try {
       if (target === "knowledge") {
-        const rec = await base44.entities.Knowledge.create({ title: capture.title, content: capture.content, tags: capture.tags, project_id: capture.project_id });
+        const rec = await base44.entities.Knowledge.create({ title: capture.title, content: capture.content, tags: capture.tags, project_id: capture.project_id, workspace: capture.workspace });
         await markProcessed("knowledge", rec.id);
       } else if (target === "task") {
-        const rec = await base44.entities.Task.create({ title: capture.title, description: capture.content, project_id: capture.project_id, source_capture_id: capture.id });
+        const rec = await base44.entities.Task.create({ title: capture.title, description: capture.content, project_id: capture.project_id, source_capture_id: capture.id, workspace: capture.workspace });
         await markProcessed("task", rec.id);
       } else if (target === "project") {
-        const rec = await base44.entities.Project.create({ title: capture.title, description: capture.content });
+        const rec = await base44.entities.Project.create({ title: capture.title, description: capture.content, workspace: capture.workspace });
         await markProcessed("project", rec.id);
       } else if (target === "decision") {
-        const rec = await base44.entities.Decision.create({ decision: capture.title, context: capture.content, project_id: capture.project_id });
+        const rec = await base44.entities.Decision.create({ decision: capture.title, context: capture.content, project_id: capture.project_id, workspace: capture.workspace });
         await markProcessed("decision", rec.id);
       } else if (target === "learning") {
-        const rec = await base44.entities.LearningItem.create({ title: capture.title, content: capture.content, project_id: capture.project_id });
+        const rec = await base44.entities.LearningItem.create({ title: capture.title, content: capture.content, project_id: capture.project_id, workspace: capture.workspace });
         await markProcessed("learning", rec.id);
       }
     } finally {

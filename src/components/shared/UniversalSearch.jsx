@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 const TYPE_META = {
   capture: { label: "Captures", route: "/capture" },
@@ -17,15 +18,16 @@ export default function UniversalSearch() {
   const [data, setData] = useState(null);
   const navigate = useNavigate();
   const containerRef = useRef(null);
+  const { workspace } = useWorkspace();
 
   useEffect(() => {
     (async () => {
       const [captures, knowledge, projects, tasks, decisions] = await Promise.all([
-        base44.entities.Capture.list("-created_date", 100),
-        base44.entities.Knowledge.list("-updated_date", 100),
-        base44.entities.Project.list("-updated_date", 60),
-        base44.entities.Task.list("-updated_date", 100),
-        base44.entities.Decision.list("-updated_date", 60),
+        base44.entities.Capture.filter({ workspace }, "-created_date", 100),
+        base44.entities.Knowledge.filter({ workspace }, "-updated_date", 100),
+        base44.entities.Project.filter({ workspace }, "-updated_date", 60),
+        base44.entities.Task.filter({ workspace }, "-updated_date", 100),
+        base44.entities.Decision.filter({ workspace }, "-updated_date", 60),
       ]);
       setData({ capture: captures, knowledge, project: projects, task: tasks, decision: decisions });
     })();
@@ -34,7 +36,7 @@ export default function UniversalSearch() {
     };
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
-  }, []);
+  }, [workspace]);
 
   const q = query.trim().toLowerCase();
   const results =

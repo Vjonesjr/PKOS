@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import LessonForm from "@/components/decisions/LessonForm";
 import EmptyState from "@/components/shared/EmptyState";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 export default function ProjectLessons({ lessons, projectId, onChange }) {
   const [formOpen, setFormOpen] = useState(false);
+  const { workspace } = useWorkspace();
 
   const create = async (data) => {
-    await base44.entities.Lesson.create(data);
+    await base44.entities.Lesson.create({ ...data, workspace });
     setFormOpen(false);
     onChange();
   };

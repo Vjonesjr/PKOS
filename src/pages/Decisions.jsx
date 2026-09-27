@@ -8,6 +8,7 @@ import DecisionForm from "@/components/decisions/DecisionForm";
 import LessonForm from "@/components/decisions/LessonForm";
 import StatusBadge from "@/components/shared/StatusBadge";
 import EmptyState from "@/components/shared/EmptyState";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 export default function Decisions() {
   const [decisions, setDecisions] = useState([]);
@@ -16,24 +17,28 @@ export default function Decisions() {
   const [query, setQuery] = useState("");
   const [decisionFormOpen, setDecisionFormOpen] = useState(false);
   const [lessonFormOpen, setLessonFormOpen] = useState(false);
+  const { workspace } = useWorkspace();
 
   const load = useCallback(async () => {
-    const [d, l] = await Promise.all([base44.entities.Decision.list("-date", 200), base44.entities.Lesson.list("-created_date", 200)]);
+    const [d, l] = await Promise.all([
+      base44.entities.Decision.filter({ workspace }, "-date", 200),
+      base44.entities.Lesson.filter({ workspace }, "-created_date", 200),
+    ]);
     setDecisions(d);
     setLessons(l);
-  }, []);
+  }, [workspace]);
 
   useEffect(() => {
     load();
   }, [load]);
 
   const createDecision = async (data) => {
-    await base44.entities.Decision.create(data);
+    await base44.entities.Decision.create({ ...data, workspace });
     setDecisionFormOpen(false);
     load();
   };
   const createLesson = async (data) => {
-    await base44.entities.Lesson.create(data);
+    await base44.entities.Lesson.create({ ...data, workspace });
     setLessonFormOpen(false);
     load();
   };

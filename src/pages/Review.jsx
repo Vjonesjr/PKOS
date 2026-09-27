@@ -5,19 +5,21 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatusBadge from "@/components/shared/StatusBadge";
 import EmptyState from "@/components/shared/EmptyState";
 import AIActionRunner from "@/components/ai/AIActionRunner";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 export default function Review() {
   const [tab, setTab] = useState("timeline");
   const [events, setEvents] = useState([]);
+  const { workspace } = useWorkspace();
 
   const load = useCallback(async () => {
     const [tasks, captures, decisions, lessons, knowledge, projects] = await Promise.all([
-      base44.entities.Task.list("-updated_date", 40),
-      base44.entities.Capture.list("-created_date", 40),
-      base44.entities.Decision.list("-updated_date", 20),
-      base44.entities.Lesson.list("-created_date", 20),
-      base44.entities.Knowledge.list("-updated_date", 30),
-      base44.entities.Project.list("-updated_date", 30),
+      base44.entities.Task.filter({ workspace }, "-updated_date", 40),
+      base44.entities.Capture.filter({ workspace }, "-created_date", 40),
+      base44.entities.Decision.filter({ workspace }, "-updated_date", 20),
+      base44.entities.Lesson.filter({ workspace }, "-created_date", 20),
+      base44.entities.Knowledge.filter({ workspace }, "-updated_date", 30),
+      base44.entities.Project.filter({ workspace }, "-updated_date", 30),
     ]);
     const items = [
       ...tasks.map((t) => ({ id: `task-${t.id}`, date: t.updated_date, label: t.status === "done" ? `Completed task: ${t.title}` : `Task updated: ${t.title}` })),
@@ -28,7 +30,7 @@ export default function Review() {
       ...projects.map((p) => ({ id: `proj-${p.id}`, date: p.updated_date, label: `Project updated: ${p.title}` })),
     ].sort((a, b) => new Date(b.date) - new Date(a.date));
     setEvents(items.slice(0, 60));
-  }, []);
+  }, [workspace]);
 
   useEffect(() => {
     load();
@@ -69,7 +71,7 @@ export default function Review() {
           description="Summarize what happened today and what to focus on tomorrow."
           icon={Sun}
           action="daily_review"
-          payload={{}}
+          payload={{ workspace }}
           renderResult={(r) => <ReviewResult result={r} />}
         />
       )}
@@ -80,7 +82,7 @@ export default function Review() {
           description="Summarize the week's progress, stalled projects, and lessons."
           icon={CalendarDays}
           action="weekly_review"
-          payload={{}}
+          payload={{ workspace }}
           renderResult={(r) => <ReviewResult result={r} />}
         />
       )}

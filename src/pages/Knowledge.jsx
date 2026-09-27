@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import KnowledgeForm from "@/components/knowledge/KnowledgeForm";
 import StatusBadge from "@/components/shared/StatusBadge";
 import EmptyState from "@/components/shared/EmptyState";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 export default function Knowledge() {
   const [items, setItems] = useState([]);
@@ -16,10 +17,11 @@ export default function Knowledge() {
   const [tab, setTab] = useState("all");
   const [tagFilter, setTagFilter] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
+  const { workspace } = useWorkspace();
 
   const load = useCallback(async () => {
-    setItems(await base44.entities.Knowledge.list("-updated_date", 200));
-  }, []);
+    setItems(await base44.entities.Knowledge.filter({ workspace }, "-updated_date", 200));
+  }, [workspace]);
 
   useEffect(() => {
     load();
@@ -38,7 +40,7 @@ export default function Knowledge() {
     .filter((k) => `${k.title} ${k.content} ${(k.tags || []).join(" ")}`.toLowerCase().includes(query.toLowerCase()));
 
   const create = async (data) => {
-    await base44.entities.Knowledge.create(data);
+    await base44.entities.Knowledge.create({ ...data, workspace });
     setFormOpen(false);
     load();
   };

@@ -46,6 +46,14 @@
         "archived"
       ],
       "default": "active"
+    },
+    "workspace": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "demo"
+      ],
+      "default": "personal"
     }
   },
   "required": [

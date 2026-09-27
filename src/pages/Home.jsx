@@ -4,27 +4,29 @@ import { Lightbulb, ListTodo, FolderKanban, Clock, Library, Scale, GraduationCap
 import { base44 } from "@/api/base44Client";
 import SectionCard from "@/components/home/SectionCard";
 import StatusBadge from "@/components/shared/StatusBadge";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 export default function Home() {
   const [data, setData] = useState(null);
+  const { workspace } = useWorkspace();
 
   const load = useCallback(async () => {
     const [tasks, projects, captures, knowledge, decisions, flashcards] = await Promise.all([
-      base44.entities.Task.filter({ status: "todo" }, "-updated_date", 30),
-      base44.entities.Project.list("-updated_date", 30),
-      base44.entities.Capture.filter({ status: "inbox" }, "-created_date", 10),
-      base44.entities.Knowledge.list("-updated_date", 10),
-      base44.entities.Decision.list("-updated_date", 5),
-      base44.entities.Flashcard.list("-last_reviewed", 5),
+      base44.entities.Task.filter({ workspace, status: "todo" }, "-updated_date", 30),
+      base44.entities.Project.filter({ workspace }, "-updated_date", 30),
+      base44.entities.Capture.filter({ workspace, status: "inbox" }, "-created_date", 10),
+      base44.entities.Knowledge.filter({ workspace }, "-updated_date", 10),
+      base44.entities.Decision.filter({ workspace }, "-updated_date", 5),
+      base44.entities.Flashcard.filter({ workspace }, "-last_reviewed", 5),
     ]);
     setData({ tasks, projects, captures, knowledge, decisions, flashcards });
-  }, []);
+  }, [workspace]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  if (!data) return <div className="py-20 text-center text-sm text-muted-foreground">Loading your workspace...</div>;
+  if (!data) return <div key={workspace} className="py-20 text-center text-sm text-muted-foreground">Loading your workspace...</div>;
 
   const activeProjects = data.projects.filter((p) => p.status === "Active");
   const priorityTasks = [...data.tasks].sort((a, b) => (a.priority === "high" ? -1 : 1)).slice(0, 6);

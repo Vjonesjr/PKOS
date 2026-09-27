@@ -4,6 +4,7 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { WorkspaceProvider } from '@/lib/WorkspaceContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -23,6 +24,7 @@ import Decisions from '@/pages/Decisions';
 import Review from '@/pages/Review';
 import AIWorkspace from '@/pages/AIWorkspace';
 import Settings from '@/pages/Settings';
+import Workspaces from '@/pages/Workspaces';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -67,6 +69,7 @@ const AuthenticatedApp = () => {
           <Route path="/review" element={<Review />} />
           <Route path="/ai" element={<AIWorkspace />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/workspaces" element={<Workspaces />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />
@@ -79,13 +82,15 @@ function App() {
 
   return (
     <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <ScrollToTop />
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
-      </QueryClientProvider>
+      <WorkspaceProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <Router>
+            <ScrollToTop />
+            <AuthenticatedApp />
+          </Router>
+          <Toaster />
+        </QueryClientProvider>
+      </WorkspaceProvider>
     </AuthProvider>
   )
 }

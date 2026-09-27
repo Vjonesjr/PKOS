@@ -35,6 +35,14 @@
         "reviewed"
       ],
       "default": "made"
+    },
+    "workspace": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "demo"
+      ],
+      "default": "personal"
     }
   },
   "required": [

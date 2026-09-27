@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Home, Inbox, Library, FolderKanban, GraduationCap, History, Sparkles, Menu, X, Settings } from "lucide-react";
 import UniversalSearch from "@/components/shared/UniversalSearch";
 import QuickCapture from "@/components/shared/QuickCapture";
+import WorkspaceSwitcherButton from "@/components/workspace/WorkspaceSwitcherButton";
+import DemoBanner from "@/components/workspace/DemoBanner";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 const NAV = [
   { to: "/", label: "Home", icon: Home },
@@ -18,6 +21,7 @@ const NAV = [
 export default function Layout() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { isDemo } = useWorkspace();
 
   const isActive = (to) => (to === "/" ? location.pathname === "/" : location.pathname.startsWith(to));
 
@@ -32,6 +36,7 @@ export default function Layout() {
             </div>
             <span className="font-semibold tracking-tight text-foreground">Smart PKOS</span>
           </div>
+          <WorkspaceSwitcherButton className="mt-4 w-full justify-center" />
         </div>
         <nav className="flex-1 space-y-1">
           {NAV.map((item) => (
@@ -63,7 +68,7 @@ export default function Layout() {
         <button onClick={() => setMobileOpen(true)} className="text-foreground">
           <Menu className="h-5 w-5" />
         </button>
-        <span className="font-semibold text-foreground">Smart PKOS</span>
+        <WorkspaceSwitcherButton />
         <QuickCapture />
       </div>
 
@@ -117,6 +122,7 @@ export default function Layout() {
           <QuickCapture />
         </div>
         <main className="px-4 py-6 lg:px-8 lg:py-8">
+          {isDemo && <DemoBanner />}
           <AnimatePresence mode="wait">
             <motion.div key={location.pathname} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
               <Outlet />

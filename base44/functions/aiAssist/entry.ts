@@ -16,10 +16,12 @@ export default async function (req) {
     const body = await req.json();
     const action = body.action;
 
+    const workspace = body.workspace || 'personal';
+
     if (action === 'project_status') {
       const project = await base44.entities.Project.get(body.projectId);
-      const tasks = await base44.entities.Task.filter({ project_id: body.projectId });
-      const decisions = await base44.entities.Decision.filter({ project_id: body.projectId });
+      const tasks = await base44.entities.Task.filter({ project_id: body.projectId, workspace });
+      const decisions = await base44.entities.Decision.filter({ project_id: body.projectId, workspace });
       const prompt = `You are analyzing a personal project for a knowledge management app.\nProject: ${JSON.stringify(project)}\nTasks: ${JSON.stringify(tasks.slice(0, 30))}\nDecisions: ${JSON.stringify(decisions.slice(0, 10))}\nWrite a short honest status summary (2-3 sentences), then list up to 3 concrete next actions, and state whether the project looks stalled (no clear next action or no recent progress) with a one-sentence reason.`;
       const result = await invoke(base44, prompt, {
         type: 'object',
@@ -38,11 +40,11 @@ export default async function (req) {
       const days = action === 'daily_review' ? 1 : 7;
       const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
       const [tasks, captures, projects, decisions, lessons] = await Promise.all([
-        base44.entities.Task.list('-updated_date', 100),
-        base44.entities.Capture.list('-created_date', 50),
-        base44.entities.Project.list('-updated_date', 50),
-        base44.entities.Decision.list('-updated_date', 20),
-        base44.entities.Lesson.list('-created_date', 20),
+        base44.entities.Task.filter({ workspace }, '-updated_date', 100),
+        base44.entities.Capture.filter({ workspace }, '-created_date', 50),
+        base44.entities.Project.filter({ workspace }, '-updated_date', 50),
+        base44.entities.Decision.filter({ workspace }, '-updated_date', 20),
+        base44.entities.Lesson.filter({ workspace }, '-created_date', 20),
       ]);
       const recentTasks = tasks.filter((t) => t.updated_date >= since);
       const recentCaptures = captures.filter((c) => c.created_date >= since);
@@ -92,7 +94,7 @@ export default async function (req) {
     }
 
     if (action === 'organize_inbox') {
-      const captures = await base44.entities.Capture.filter({ status: 'inbox' }, '-created_date', 25);
+      const captures = await base44.entities.Capture.filter({ status: 'inbox', workspace }, '-created_date', 25);
       if (captures.length === 0) return Response.json({ suggestions: [] });
       const prompt = `For each capture below, suggest the best type from [idea, note, task, question, project_thought, learning_note, decision, lesson, reference, prompt] and up to 3 short tags. Captures: ${JSON.stringify(
         captures.map((c) => ({ id: c.id, title: c.title, content: c.content, current_type: c.type }))
@@ -118,8 +120,8 @@ export default async function (req) {
       const entityName = body.entityType === 'project' ? 'Project' : 'Knowledge';
       const record = await base44.entities[entityName].get(body.id);
       const [knowledge, projects] = await Promise.all([
-        base44.entities.Knowledge.list('-updated_date', 60),
-        base44.entities.Project.list('-updated_date', 40),
+        base44.entities.Knowledge.filter({ workspace }, '-updated_date', 60),
+        base44.entities.Project.filter({ workspace }, '-updated_date', 40),
       ]);
       const candidates = [
         ...knowledge.filter((k) => k.id !== body.id).map((k) => ({ type: 'knowledge', id: k.id, title: k.title })),
@@ -154,7 +156,7 @@ export default async function (req) {
     }
 
     if (action === 'stalled_projects') {
-      const projects = await base44.entities.Project.filter({ status: 'Active' }, '-updated_date', 50);
+      const projects = await base44.entities.Project.filter({ status: 'Active', workspace }, '-updated_date', 50);
       const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
       const flagged = projects.filter((p) => p.updated_date < twoWeeksAgo || !p.next_action);
       const prompt = `These active projects may be stalled (no update in 14+ days, or no next action set): ${JSON.stringify(

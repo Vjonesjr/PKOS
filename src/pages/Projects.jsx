@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import ProjectForm from "@/components/projects/ProjectForm";
 import StatusBadge from "@/components/shared/StatusBadge";
 import EmptyState from "@/components/shared/EmptyState";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 const STATUSES = ["Active", "Planned", "Idea", "Waiting", "Completed", "Archived"];
 const PRIORITIES = ["low", "medium", "high"];
@@ -17,17 +18,18 @@ export default function Projects() {
   const [formOpen, setFormOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+  const { workspace } = useWorkspace();
 
   const load = useCallback(async () => {
-    setProjects(await base44.entities.Project.list("-updated_date", 200));
-  }, []);
+    setProjects(await base44.entities.Project.filter({ workspace }, "-updated_date", 200));
+  }, [workspace]);
 
   useEffect(() => {
     load();
   }, [load]);
 
   const create = async (data) => {
-    const p = await base44.entities.Project.create(data);
+    const p = await base44.entities.Project.create({ ...data, workspace });
     setFormOpen(false);
     load();
     window.location.href = `/project-detail?id=${p.id}`;

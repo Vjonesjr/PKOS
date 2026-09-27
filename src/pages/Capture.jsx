@@ -7,16 +7,18 @@ import ConvertMenu from "@/components/capture/ConvertMenu";
 import CaptureEditDialog from "@/components/capture/CaptureEditDialog";
 import StatusBadge from "@/components/shared/StatusBadge";
 import EmptyState from "@/components/shared/EmptyState";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 export default function Capture() {
   const [captures, setCaptures] = useState([]);
   const [tab, setTab] = useState("inbox");
   const [editing, setEditing] = useState(null);
+  const { workspace } = useWorkspace();
 
   const load = useCallback(async () => {
-    const items = await base44.entities.Capture.list("-created_date", 300);
+    const items = await base44.entities.Capture.filter({ workspace }, "-created_date", 300);
     setCaptures(items);
-  }, []);
+  }, [workspace]);
 
   useEffect(() => {
     load();
@@ -24,6 +26,7 @@ export default function Capture() {
 
   useEffect(() => {
     const unsubscribe = base44.entities.Capture.subscribe((event) => {
+      if (event.data?.workspace !== workspace) return;
       setCaptures((prev) => {
         if (event.type === "create") return [event.data, ...prev];
         if (event.type === "update") return prev.map((c) => (c.id === event.data.id ? event.data : c));
@@ -32,7 +35,7 @@ export default function Capture() {
       });
     });
     return unsubscribe;
-  }, []);
+  }, [workspace]);
 
   const filtered = captures.filter((c) => c.status === tab);
 

@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from "@/api/base44Client";
 import { useToast } from "@/components/ui/use-toast";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 const TYPES = ["idea", "note", "task", "question", "project_thought", "learning_note", "decision", "lesson", "reference", "prompt"];
 
@@ -22,6 +23,7 @@ export default function QuickCapture({ onCaptured }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const { toast } = useToast();
+  const { workspace } = useWorkspace();
 
   const reset = () => {
     setType("idea");
@@ -47,6 +49,7 @@ export default function QuickCapture({ onCaptured }) {
         important,
         due_date: type === "task" && dueDate ? dueDate : undefined,
         status: "inbox",
+        workspace,
       });
       toast({ description: "Captured to your inbox." });
       reset();

@@ -31,6 +31,14 @@
     "next_review_date": {
       "type": "string",
       "format": "date"
+    },
+    "workspace": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "demo"
+      ],
+      "default": "personal"
     }
   },
   "required": [

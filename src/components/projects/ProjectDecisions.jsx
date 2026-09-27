@@ -5,12 +5,14 @@ import { base44 } from "@/api/base44Client";
 import DecisionForm from "@/components/decisions/DecisionForm";
 import StatusBadge from "@/components/shared/StatusBadge";
 import EmptyState from "@/components/shared/EmptyState";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 export default function ProjectDecisions({ decisions, projectId, onChange }) {
   const [formOpen, setFormOpen] = useState(false);
+  const { workspace } = useWorkspace();
 
   const create = async (data) => {
-    await base44.entities.Decision.create(data);
+    await base44.entities.Decision.create({ ...data, workspace });
     setFormOpen(false);
     onChange();
   };

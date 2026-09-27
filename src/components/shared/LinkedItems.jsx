@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from "@/api/base44Client";
 import { ENTITY_CONFIG, fetchRecord, recordLabel } from "@/lib/entityConfig";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 const LINKABLE_TYPES = ["knowledge", "project", "decision", "lesson", "learning", "capture"];
 
@@ -15,6 +16,7 @@ export default function LinkedItems({ recordType, recordId, allowedTypes = LINKA
   const [pickType, setPickType] = useState(allowedTypes[0]);
   const [options, setOptions] = useState([]);
   const [pickId, setPickId] = useState("");
+  const { workspace } = useWorkspace();
 
   const load = useCallback(async () => {
     const [forward, reverse] = await Promise.all([
@@ -36,14 +38,14 @@ export default function LinkedItems({ recordType, recordId, allowedTypes = LINKA
     if (!adding) return;
     (async () => {
       const cfg = ENTITY_CONFIG[pickType];
-      const list = await cfg.entity.list("-updated_date", 50);
+      const list = await cfg.entity.filter({ workspace }, "-updated_date", 50);
       setOptions(list.filter((r) => !(pickType === recordType && r.id === recordId)));
     })();
-  }, [adding, pickType, pickType, recordType, recordId]);
+  }, [adding, pickType, pickType, recordType, recordId, workspace]);
 
   const addLink = async () => {
     if (!pickId) return;
-    await base44.entities.Link.create({ source_type: recordType, source_id: recordId, target_type: pickType, target_id: pickId });
+    await base44.entities.Link.create({ source_type: recordType, source_id: recordId, target_type: pickType, target_id: pickId, workspace });
     setAdding(false);
     setPickId("");
     load();

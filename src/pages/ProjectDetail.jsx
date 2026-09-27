@@ -13,6 +13,7 @@ import ProjectLessons from "@/components/projects/ProjectLessons";
 import ProjectReferences from "@/components/projects/ProjectReferences";
 import LinkedItems from "@/components/shared/LinkedItems";
 import StatusBadge from "@/components/shared/StatusBadge";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 export default function ProjectDetail() {
   const navigate = useNavigate();
@@ -23,14 +24,15 @@ export default function ProjectDetail() {
   const [lessons, setLessons] = useState([]);
   const [notFound, setNotFound] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const { workspace } = useWorkspace();
 
   const load = useCallback(async () => {
     try {
       const [p, t, d, l] = await Promise.all([
         base44.entities.Project.get(id),
-        base44.entities.Task.filter({ project_id: id }, "-created_date", 100),
-        base44.entities.Decision.filter({ project_id: id }, "-date", 100),
-        base44.entities.Lesson.filter({ project_id: id }, "-created_date", 100),
+        base44.entities.Task.filter({ project_id: id, workspace }, "-created_date", 100),
+        base44.entities.Decision.filter({ project_id: id, workspace }, "-date", 100),
+        base44.entities.Lesson.filter({ project_id: id, workspace }, "-created_date", 100),
       ]);
       setProject(p);
       setTasks(t);
@@ -39,7 +41,7 @@ export default function ProjectDetail() {
     } catch {
       setNotFound(true);
     }
-  }, [id]);
+  }, [id, workspace]);
 
   useEffect(() => {
     load();

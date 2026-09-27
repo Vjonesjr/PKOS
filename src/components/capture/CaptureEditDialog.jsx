@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Star } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 const TYPES = ["idea", "note", "task", "question", "project_thought", "learning_note", "decision", "lesson", "reference", "prompt"];
 
@@ -13,6 +14,7 @@ export default function CaptureEditDialog({ capture, onOpenChange, onSave }) {
   const [form, setForm] = useState(null);
   const [projects, setProjects] = useState([]);
   const [knowledge, setKnowledge] = useState([]);
+  const { workspace } = useWorkspace();
 
   useEffect(() => {
     if (!capture) return;
@@ -26,9 +28,9 @@ export default function CaptureEditDialog({ capture, onOpenChange, onSave }) {
       due_date: capture.due_date || "",
       important: !!capture.important,
     });
-    base44.entities.Project.list("-updated_date", 100).then(setProjects);
-    base44.entities.Knowledge.list("-updated_date", 100).then(setKnowledge);
-  }, [capture]);
+    base44.entities.Project.filter({ workspace }, "-updated_date", 100).then(setProjects);
+    base44.entities.Knowledge.filter({ workspace }, "-updated_date", 100).then(setKnowledge);
+  }, [capture, workspace]);
 
   if (!capture || !form) return null;
 

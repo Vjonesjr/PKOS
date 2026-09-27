@@ -35,6 +35,14 @@
     },
     "source_capture_id": {
       "type": "string"
+    },
+    "workspace": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "demo"
+      ],
+      "default": "personal"
     }
   },
   "required": [

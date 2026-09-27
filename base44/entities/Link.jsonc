@@ -16,6 +16,14 @@
     },
     "label": {
       "type": "string"
+    },
+    "workspace": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "demo"
+      ],
+      "default": "personal"
     }
   },
   "required": [

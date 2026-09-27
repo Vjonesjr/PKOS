@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import AIActionRunner from "@/components/ai/AIActionRunner";
 import { useToast } from "@/components/ui/use-toast";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 export default function AIWorkspace() {
   const [projects, setProjects] = useState([]);
@@ -12,13 +13,14 @@ export default function AIWorkspace() {
   const [selectedProject, setSelectedProject] = useState("");
   const [selectedKnowledge, setSelectedKnowledge] = useState("");
   const { toast } = useToast();
+  const { workspace } = useWorkspace();
 
   useEffect(() => {
     (async () => {
-      setProjects(await base44.entities.Project.list("-updated_date", 100));
-      setKnowledge(await base44.entities.Knowledge.list("-updated_date", 100));
+      setProjects(await base44.entities.Project.filter({ workspace }, "-updated_date", 100));
+      setKnowledge(await base44.entities.Knowledge.filter({ workspace }, "-updated_date", 100));
     })();
-  }, []);
+  }, [workspace]);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -34,7 +36,7 @@ export default function AIWorkspace() {
         description="Suggest a type and tags for your unprocessed captures."
         icon={Inbox}
         action="organize_inbox"
-        payload={{}}
+        payload={{ workspace }}
         renderResult={(r, clear) => <OrganizeInboxResult result={r} clear={clear} toast={toast} />}
       />
 
@@ -58,7 +60,7 @@ export default function AIWorkspace() {
             description="Get a status summary and next actions."
             icon={ListChecks}
             action="project_status"
-            payload={{ projectId: selectedProject }}
+            payload={{ projectId: selectedProject, workspace }}
             renderResult={(r) => (
               <div>
                 <p className="text-sm text-foreground/80">{r.summary}</p>
@@ -83,7 +85,7 @@ export default function AIWorkspace() {
         description="Flag active projects with no recent progress."
         icon={AlertTriangle}
         action="stalled_projects"
-        payload={{}}
+        payload={{ workspace }}
         renderResult={(r) =>
           r.stalled.length === 0 ? (
             <p className="text-sm text-foreground/80">No stalled projects found.</p>
@@ -122,7 +124,7 @@ export default function AIWorkspace() {
             icon={Wand2}
             action="create_flashcards"
             payload={{ entityType: "knowledge", id: selectedKnowledge }}
-            renderResult={(r, clear) => <FlashcardSuggestions result={r} knowledgeId={selectedKnowledge} clear={clear} toast={toast} />}
+            renderResult={(r, clear) => <FlashcardSuggestions result={r} knowledgeId={selectedKnowledge} clear={clear} toast={toast} workspace={workspace} />}
           />
         )}
       </div>
@@ -154,9 +156,9 @@ function OrganizeInboxResult({ result, clear, toast }) {
   );
 }
 
-function FlashcardSuggestions({ result, knowledgeId, clear, toast }) {
+function FlashcardSuggestions({ result, knowledgeId, clear, toast, workspace }) {
   const applyAll = async () => {
-    await base44.entities.Flashcard.bulkCreate(result.flashcards.map((f) => ({ ...f, learning_item_id: null })));
+    await base44.entities.Flashcard.bulkCreate(result.flashcards.map((f) => ({ ...f, learning_item_id: null, workspace })));
     toast({ description: `${result.flashcards.length} flashcards created.` });
     clear();
   };
