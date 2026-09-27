@@ -439,6 +439,35 @@ Captures: ${JSON.stringify(captures.map((c) => ({ id: c.id, title: c.title, cont
       return Response.json(result);
     }
 
+    if (action === 'automation_draft') {
+      const request = String(body.request || '').slice(0, 1000);
+      if (!request.trim()) return Response.json({ error: 'Empty request' }, { status: 400 });
+      const catalog = body.catalog || {};
+      const [projects, learning, knowledge] = await Promise.all([
+        base44.entities.Project.filter({ workspace }, '-updated_date', 50),
+        base44.entities.LearningItem.filter({ workspace }, '-updated_date', 50),
+        base44.entities.Knowledge.filter({ workspace }, '-updated_date', 50),
+      ]);
+      const targets = [...learning.map((l) => ({ id: l.id, title: l.title, type: 'learning' })), ...knowledge.map((k) => ({ id: k.id, title: k.title, type: 'knowledge' }))];
+      const prompt = `Turn the user's request into ONE simple automation rule for a personal knowledge app.\nRequest: "${request}"\nAvailable triggers: ${JSON.stringify(catalog.triggers)}\nAvailable conditions (field keys; value is a string, empty for no-value conditions): ${JSON.stringify(catalog.conditions)}\nAvailable actions (with required params): ${JSON.stringify(catalog.actions)}\nProjects: ${JSON.stringify(projects.map((p) => ({ id: p.id, title: p.title })))}\nLearning/knowledge targets: ${JSON.stringify(targets)}\nUse only the keys and ids listed. For "project" params set action_params.project_id. For "target" params set action_params.target_id and target_type. For "tag"/"text" set those. Pick the closest match; prefer the "text" condition for topics. Give a short name, a one-sentence description, and a one-sentence explanation.`;
+      const d = await invoke(base44, prompt, {
+        type: 'object',
+        properties: {
+          name: { type: 'string' }, description: { type: 'string' }, explanation: { type: 'string' },
+          trigger: { type: 'string' }, action: { type: 'string' },
+          conditions: { type: 'array', items: { type: 'object', properties: { field: { type: 'string' }, value: { type: 'string' } } } },
+          action_params: { type: 'object', properties: { tag: { type: 'string' }, text: { type: 'string' }, project_id: { type: 'string' }, target_id: { type: 'string' }, target_type: { type: 'string' } } },
+        },
+        required: ['name', 'trigger', 'action'],
+      });
+      const p = d.action_params || {};
+      const proj = projects.find((x) => x.id === p.project_id);
+      const tgt = targets.find((x) => x.id === p.target_id);
+      d.action_params = { tag: p.tag || '', text: p.text || '', ...(proj ? { project_id: proj.id, target_label: proj.title } : {}), ...(tgt ? { target_id: tgt.id, target_type: tgt.type, target_label: tgt.title } : {}) };
+      if (d.explanation) d.description = d.description || d.explanation;
+      return Response.json(d);
+    }
+
     if (action === 'stalled_projects') {
       const projects = await base44.entities.Project.filter({ status: 'Active', workspace }, '-updated_date', 50);
       const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();

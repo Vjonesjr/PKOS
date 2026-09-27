@@ -6,6 +6,7 @@ import EmptyState from "@/components/shared/EmptyState";
 import ReviewSection from "@/components/review/ReviewSection";
 import { useWorkspace } from "@/lib/WorkspaceContext";
 import { buildTimeline, buildDailyReview, buildWeeklyReview } from "@/lib/reviewData";
+import AutomationFlags from "@/components/automations/AutomationFlags";
 
 export default function Review() {
   const [tab, setTab] = useState("timeline");
@@ -32,6 +33,8 @@ export default function Review() {
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Review</h1>
         <p className="text-sm text-muted-foreground mt-1">See how your ideas and projects developed over time.</p>
       </div>
+
+      <AutomationFlags flags={["review", "prompt", "attention"]} title="Flagged for review" />
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>

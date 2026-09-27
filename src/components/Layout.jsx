@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Inbox, Library, FolderKanban, GraduationCap, History, Sparkles, Menu, X, Settings, Search, Layers, Sun, Cpu } from "lucide-react";
+import { Home, Inbox, Library, FolderKanban, GraduationCap, History, Sparkles, Menu, X, Settings, Search, Layers, Sun, Cpu, Zap } from "lucide-react";
+import useAutomationEngine from "@/hooks/useAutomationEngine";
 import UniversalSearch from "@/components/shared/UniversalSearch";
 import QuickCapture from "@/components/shared/QuickCapture";
 import CommandLauncher from "@/components/command/CommandLauncher";
@@ -21,12 +22,14 @@ const NAV = [
   { to: "/ai", label: "AI", icon: Sparkles },
   { to: "/context-packs", label: "Context Packs", icon: Layers },
   { to: "/router", label: "Tool Router", icon: Cpu },
+  { to: "/automations", label: "Automations", icon: Zap },
 ];
 
 export default function Layout() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { isDemo } = useWorkspace();
+  const { isDemo, workspace } = useWorkspace();
+  useAutomationEngine(workspace);
 
   const isActive = (to) => (to === "/" ? location.pathname === "/" : location.pathname.startsWith(to));
 
