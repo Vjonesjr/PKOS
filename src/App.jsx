@@ -22,6 +22,7 @@ import Learning from '@/pages/Learning';
 import Decisions from '@/pages/Decisions';
 import Review from '@/pages/Review';
 import AIWorkspace from '@/pages/AIWorkspace';
+import Settings from '@/pages/Settings';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -65,6 +66,7 @@ const AuthenticatedApp = () => {
           <Route path="/decisions" element={<Decisions />} />
           <Route path="/review" element={<Review />} />
           <Route path="/ai" element={<AIWorkspace />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

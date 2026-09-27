@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Inbox, Library, FolderKanban, GraduationCap, History, Sparkles, Menu, X } from "lucide-react";
+import { Home, Inbox, Library, FolderKanban, GraduationCap, History, Sparkles, Menu, X, Settings } from "lucide-react";
 import UniversalSearch from "@/components/shared/UniversalSearch";
 import QuickCapture from "@/components/shared/QuickCapture";
 
@@ -48,9 +48,12 @@ export default function Layout() {
             </Link>
           ))}
         </nav>
-        <div className="space-y-3 border-t border-border pt-4">
+        <div className="space-y-2 border-t border-border pt-4">
           <Link to="/decisions" className="block px-3 text-xs text-muted-foreground transition-colors hover:text-primary">
             Decisions & Lessons
+          </Link>
+          <Link to="/settings" className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-primary">
+            <Settings className="h-3.5 w-3.5" /> Settings
           </Link>
         </div>
       </aside>
@@ -97,6 +100,9 @@ export default function Layout() {
                 ))}
                 <Link to="/decisions" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm text-muted-foreground">
                   Decisions & Lessons
+                </Link>
+                <Link to="/settings" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
+                  <Settings className="h-4 w-4" /> Settings
                 </Link>
               </nav>
             </motion.aside>
