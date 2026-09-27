@@ -25,6 +25,7 @@ import Review from '@/pages/Review';
 import AIWorkspace from '@/pages/AIWorkspace';
 import Settings from '@/pages/Settings';
 import Workspaces from '@/pages/Workspaces';
+import SearchPage from '@/pages/Search';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -68,6 +69,7 @@ const AuthenticatedApp = () => {
           <Route path="/decisions" element={<Decisions />} />
           <Route path="/review" element={<Review />} />
           <Route path="/ai" element={<AIWorkspace />} />
+          <Route path="/search" element={<SearchPage />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/workspaces" element={<Workspaces />} />
         </Route>
