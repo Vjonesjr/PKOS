@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sparkles, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,11 @@ export default function ProjectCopilot({ project, onChange }) {
     setBrief(res.data);
     setStatus({});
   };
+
+  // Opened via "Generate Project Brief" command (?brief=1)
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("brief") === "1") generate();
+  }, [project.id]);
 
   const apply = async (s) => {
     await applyCopilotSuggestion(project, s);

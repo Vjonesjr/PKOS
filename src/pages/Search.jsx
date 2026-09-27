@@ -10,7 +10,7 @@ import EmptyState from "@/components/shared/EmptyState";
 export default function SearchPage() {
   const { workspace, isSeeding } = useWorkspace();
   const [data, setData] = useState(null);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(() => new URLSearchParams(window.location.search).get("q") || "");
   const [activeTypes, setActiveTypes] = useState(SEARCH_TYPES);
   const [projectFilter, setProjectFilter] = useState("all");
   const [tagFilter, setTagFilter] = useState("all");

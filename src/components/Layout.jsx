@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Home, Inbox, Library, FolderKanban, GraduationCap, History, Sparkles, Menu, X, Settings, Search, Layers, Sun, Cpu } from "lucide-react";
 import UniversalSearch from "@/components/shared/UniversalSearch";
 import QuickCapture from "@/components/shared/QuickCapture";
+import CommandLauncher from "@/components/command/CommandLauncher";
 import WorkspaceSwitcherButton from "@/components/workspace/WorkspaceSwitcherButton";
 import DemoBanner from "@/components/workspace/DemoBanner";
 import { useWorkspace } from "@/lib/WorkspaceContext";
@@ -129,7 +130,10 @@ export default function Layout() {
       <div className="lg:pl-60">
         <div className="hidden items-center justify-between gap-4 border-b border-border px-8 py-4 lg:flex">
           <UniversalSearch />
-          <QuickCapture />
+          <div className="flex items-center gap-3">
+            <CommandLauncher />
+            <QuickCapture />
+          </div>
         </div>
         <main className="px-4 py-6 lg:px-8 lg:py-8">
           {isDemo && <DemoBanner />}
