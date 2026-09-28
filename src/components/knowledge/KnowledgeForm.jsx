@@ -46,7 +46,7 @@ export default function KnowledgeForm({ open, onOpenChange, initial, onSave }) {
         <div className="space-y-3">
           <Input placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
           <Textarea placeholder="Content" rows={6} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
               <SelectTrigger>
                 <SelectValue />
