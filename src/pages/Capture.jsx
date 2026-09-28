@@ -9,6 +9,7 @@ import CaptureEditDialog from "@/components/capture/CaptureEditDialog";
 import StatusBadge from "@/components/shared/StatusBadge";
 import EmptyState from "@/components/shared/EmptyState";
 import { useWorkspace } from "@/lib/WorkspaceContext";
+import { getRoute } from "@/lib/searchConfig";
 
 export default function Capture() {
   const [captures, setCaptures] = useState([]);
@@ -91,7 +92,15 @@ export default function Capture() {
                   <div className="mb-1 flex items-center gap-2">
                     <StatusBadge value={c.type} />
                     {c.important && <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />}
-                    {c.status === "processed" && <span className="text-xs text-muted-foreground">→ {c.converted_to_type}</span>}
+                    {c.status === "processed" && c.converted_to_type && c.converted_to_id && (
+                      <Link
+                        to={getRoute(c.converted_to_type, { id: c.converted_to_id })}
+                        className="text-xs text-primary hover:underline"
+                        title="Open converted record"
+                      >
+                        → {c.converted_to_type.replace(/_/g, " ")}
+                      </Link>
+                    )}
                   </div>
                   {c.title && <p className="text-sm font-medium text-foreground/90">{c.title}</p>}
                   {c.content && <p className="mt-1 text-sm text-muted-foreground line-clamp-2 whitespace-pre-wrap">{c.content}</p>}
