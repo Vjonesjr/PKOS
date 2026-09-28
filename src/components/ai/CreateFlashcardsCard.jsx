@@ -15,6 +15,7 @@ export default function CreateFlashcardsCard() {
   const { workspace } = useWorkspace();
 
   useEffect(() => {
+    setSelected("");
     (async () => {
       setKnowledge(await base44.entities.Knowledge.filter({ workspace }, "-updated_date", 60));
       setLearningItems(await base44.entities.LearningItem.filter({ workspace }, "-updated_date", 60));
@@ -49,7 +50,7 @@ export default function CreateFlashcardsCard() {
           description="Turn this material into study flashcards."
           icon={Wand2}
           action="create_flashcards"
-          payload={{ entityType, id }}
+          payload={{ entityType, id, workspace }}
           renderResult={(r, clear) => (
             <FlashcardSuggestions flashcards={r.flashcards} entityType={entityType} id={id} workspace={workspace} clear={clear} toast={toast} />
           )}
