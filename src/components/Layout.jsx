@@ -36,7 +36,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-background">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-border bg-card/40 px-4 py-6 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col overflow-y-auto border-r border-border bg-card/40 px-4 py-6 lg:flex">
         <div className="mb-8 px-2">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent shadow-[0_0_16px_-2px_hsl(var(--primary))]">
@@ -92,7 +92,7 @@ export default function Layout() {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-card p-5"
+              className="fixed inset-y-0 left-0 z-50 w-64 overflow-y-auto border-r border-border bg-card p-5"
             >
               <div className="mb-6 flex items-center justify-between">
                 <span className="font-semibold text-foreground">Smart PKOS</span>
