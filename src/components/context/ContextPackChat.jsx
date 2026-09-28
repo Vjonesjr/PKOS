@@ -28,7 +28,7 @@ export default function ContextPackChat({ fixedPack }) {
     setMessages([...history, { role: "user", content: input }]);
     setInput("");
     setLoading(true);
-    const res = await base44.functions.invoke("aiAssist", { action: "context_chat", packId, workspace, question: input, history }).catch(() => null);
+    const res = await base44.functions.invoke("aiAssist", { action: "context_chat", packId, workspace: pack.workspace, question: input, history }).catch(() => null);
     setMessages((m) => [...m, { role: "assistant", content: res?.data?.answer || "Sorry, I couldn't answer that. Please try again." }]);
     setLoading(false);
   };
