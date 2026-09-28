@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
 import StatusBadge from "@/components/shared/StatusBadge";
 
@@ -13,7 +14,7 @@ export default function TodayList({ tasks, onToggle, onRemove }) {
           {tasks.map((t) => (
             <div key={t.id} className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-secondary/40">
               <Checkbox checked={t.status === "done"} onCheckedChange={() => onToggle(t)} aria-label="Mark done" />
-              <span className={`flex-1 text-sm ${t.status === "done" ? "text-muted-foreground line-through" : "text-foreground/90"}`}>{t.title}</span>
+              <Link to={`/task-detail?id=${t.id}`} className={`flex-1 text-sm hover:text-primary ${t.status === "done" ? "text-muted-foreground line-through" : "text-foreground/90"}`}>{t.title}</Link>
               <StatusBadge value={t.priority} />
               <button onClick={() => onRemove(t)} className="text-xs text-muted-foreground hover:text-foreground">Remove</button>
             </div>
