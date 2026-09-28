@@ -47,7 +47,7 @@ export async function buildTimeline(workspace) {
         type: "Task",
         date: t.updated_date,
         label: `Completed task: ${t.title}`,
-        link: projectLink(t.project_id),
+        link: `/task-detail?id=${t.id}`,
       })),
     ...projects.map((p) => ({
       id: `project-${p.id}`,
