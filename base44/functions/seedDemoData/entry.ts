@@ -19,6 +19,11 @@ export default async function (req) {
       base44.entities.Flashcard.deleteMany({ workspace: W }),
       base44.entities.ReviewEntry.deleteMany({ workspace: W }),
       base44.entities.Link.deleteMany({ workspace: W }),
+      base44.entities.ContextPack.deleteMany({ workspace: W }),
+      base44.entities.Tool.deleteMany({ workspace: W }),
+      base44.entities.Device.deleteMany({ workspace: W }),
+      base44.entities.AutomationRun.deleteMany({ workspace: W }),
+      base44.entities.AutomationRecipe.deleteMany({ workspace: W }),
     ]);
 
     // ---------- Projects ----------
@@ -382,6 +387,145 @@ export default async function (req) {
 
     await base44.entities.Link.bulkCreate(links);
 
+    // ---------- Tool / Device Router demo records ----------
+    const demoTools = await base44.entities.Tool.bulkCreate([
+      {
+        name: 'General AI Assistant', provider: 'Cloud provider', category: 'Chat / reasoning',
+        strengths: 'Planning, explanation, synthesis, prompt design', weaknesses: 'Not the final authority for code or factual verification',
+        best_uses: 'Architecture, research synthesis, planning, review', poor_uses: 'Deterministic build verification',
+        cost: 'Subscription or usage based', speed: 'fast', privacy: 'medium', deployment: 'cloud',
+        coding_ability: 4, reasoning_ability: 5, automation_ability: 3, visual_ability: 4, user_rating: 5,
+        notes: 'Use strong reasoning for difficult planning; verify final outputs with tools.', workspace: W,
+      },
+      {
+        name: 'Coding Agent', provider: 'Developer tool', category: 'Coding agent',
+        strengths: 'Repository edits, debugging, targeted implementation', weaknesses: 'Can over-edit if scope is vague',
+        best_uses: 'Bounded code changes and debugging', poor_uses: 'Open-ended product strategy without constraints',
+        cost: 'Subscription or usage based', speed: 'medium', privacy: 'medium', deployment: 'cloud',
+        coding_ability: 5, reasoning_ability: 4, automation_ability: 4, visual_ability: 2, user_rating: 5,
+        notes: 'Best with exact files, acceptance checks, and stop conditions.', workspace: W,
+      },
+      {
+        name: 'Rapid App Builder', provider: 'App builder', category: 'Full-stack app builder',
+        strengths: 'Fast UI, CRUD, entities, working prototypes', weaknesses: 'Large vague prompts can create inconsistent architecture',
+        best_uses: 'Rapid product prototypes and iterative UI work', poor_uses: 'Low-level platform-specific debugging',
+        cost: 'Credit based', speed: 'fast', privacy: 'medium', deployment: 'cloud',
+        coding_ability: 4, reasoning_ability: 3, automation_ability: 4, visual_ability: 4, user_rating: 4,
+        notes: 'Build in stages and validate each stage before adding more.', workspace: W,
+      },
+      {
+        name: 'Small Local Model', provider: 'Local runtime', category: 'Local AI',
+        strengths: 'Private, offline, low marginal cost', weaknesses: 'Lower capability and slower on modest hardware',
+        best_uses: 'Drafting, classification, summaries, simple review', poor_uses: 'Large complex coding or multimodal jobs',
+        cost: 'Local compute', speed: 'slow', privacy: 'high', deployment: 'local',
+        coding_ability: 2, reasoning_ability: 2, automation_ability: 3, visual_ability: 1, user_rating: 3,
+        notes: 'Useful when privacy or cost matters more than maximum capability.', workspace: W,
+      },
+    ]);
+
+    const demoDevices = await base44.entities.Device.bulkCreate([
+      {
+        name: 'Windows Development PC', device_type: 'Laptop / Desktop', operating_system: 'Windows',
+        ram: '16 GB', storage: 'SSD', cpu: 'Modern multi-core CPU', gpu: 'Integrated graphics',
+        development_tools: 'IDE, Node.js, Git, Android tooling', local_ai_capability: 'Small quantized models; CPU-first',
+        mobile_capability: 'Limited', voice_capability: 'Microphone available', automation_capability: 'Strong desktop automation',
+        good_for: 'Coding, builds, file-heavy work, dashboards, Android development', poor_for: 'Large GPU-heavy local models',
+        notes: 'Primary build and validation machine.', workspace: W,
+      },
+      {
+        name: 'Android Phone', device_type: 'Phone', operating_system: 'Android',
+        ram: 'Mobile memory', storage: 'Mobile storage', cpu: 'Mobile SoC', gpu: 'Mobile GPU',
+        development_tools: 'Testing and browser tools', local_ai_capability: 'Small on-device models where supported',
+        mobile_capability: 'Excellent', voice_capability: 'Excellent', automation_capability: 'Good for quick actions and capture',
+        good_for: 'Quick capture, mobile QA, reminders, voice notes, lightweight review', poor_for: 'Large builds and repository work',
+        notes: 'Use for real-world mobile testing and capture.', workspace: W,
+      },
+      {
+        name: 'Voice Assistant Device', device_type: 'Dedicated assistant', operating_system: 'Embedded / custom',
+        ram: 'Limited', storage: 'Limited', cpu: 'Mobile-class', gpu: 'Limited',
+        development_tools: 'Command / automation interface', local_ai_capability: 'Limited',
+        mobile_capability: 'Portable', voice_capability: 'Primary interaction', automation_capability: 'Good trigger / command surface',
+        good_for: 'Voice capture, quick commands, automation triggers', poor_for: 'Coding, large local inference, long-form editing',
+        notes: 'Best used as an input and orchestration surface.', workspace: W,
+      },
+    ]);
+
+    // ---------- Context Pack demo ----------
+    const demoPacks = await base44.entities.ContextPack.bulkCreate([
+      {
+        name: 'PKOS Architecture',
+        description: 'Focused context for thinking about the personal knowledge system without unrelated records.',
+        items: [
+          { type: 'project', id: proj['Personal Knowledge System Research'] },
+          { type: 'knowledge', id: know['AI Model Routing'] },
+          { type: 'knowledge', id: know['Local vs Cloud AI'] },
+          { type: 'knowledge', id: know['Search UX Principles'] },
+        ],
+        workspace: W,
+      },
+    ]);
+
+    // ---------- Automation Recipe demos ----------
+    const demoRecipes = await base44.entities.AutomationRecipe.bulkCreate([
+      {
+        name: 'High priority task watch',
+        description: 'Overdue high-priority tasks show up in Today.',
+        enabled: true,
+        trigger: 'task_overdue',
+        conditions: [{ field: 'priority', value: 'high' }],
+        action: 'surface_today',
+        action_params: {},
+        workspace: W,
+      },
+      {
+        name: 'Project completion review',
+        description: 'Reflect when a project is completed.',
+        enabled: true,
+        trigger: 'project_status_changed',
+        conditions: [{ field: 'status', value: 'Completed' }],
+        action: 'review_prompt',
+        action_params: { text: 'What did you learn from {title}?' },
+        workspace: W,
+      },
+      {
+        name: 'Stalled project watch',
+        description: 'Projects without a next action go to Review.',
+        enabled: true,
+        trigger: 'project_updated',
+        conditions: [{ field: 'no_next_action', value: '' }],
+        action: 'add_review',
+        action_params: {},
+        workspace: W,
+      },
+      {
+        name: 'Process interview captures',
+        description: 'Connect Interview captures to the job-search project after approval.',
+        enabled: false,
+        trigger: 'capture_created',
+        conditions: [{ field: 'tag', value: 'Interview' }],
+        action: 'connect_project',
+        action_params: {
+          project_id: proj['Data Analytics Job Search'],
+          target_label: 'Data Analytics Job Search',
+        },
+        workspace: W,
+      },
+      {
+        name: 'Learning organizer',
+        description: 'Suggest a useful knowledge link for Python-related knowledge.',
+        enabled: false,
+        trigger: 'knowledge_created',
+        conditions: [{ field: 'tag', value: 'Python' }],
+        action: 'suggest_link',
+        action_params: {
+          target_id: know['Retrieval Practice'],
+          target_type: 'knowledge',
+          target_label: 'Retrieval Practice',
+        },
+        workspace: W,
+      },
+    ]);
+
     return Response.json({
       success: true,
       counts: {
@@ -395,6 +539,10 @@ export default async function (req) {
         flashcards: flashcardsData.length,
         reviewEntries: reviewData.length,
         links: links.length,
+        tools: demoTools.length,
+        devices: demoDevices.length,
+        contextPacks: demoPacks.length,
+        automationRecipes: demoRecipes.length,
       },
     });
   } catch (error) {
