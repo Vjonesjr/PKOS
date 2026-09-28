@@ -3,9 +3,9 @@ import { TRIGGERS, TYPES, matchesTrigger, matchesConditions, recordTitle } from 
 import { ACTIONS, actionApplies } from "@/lib/automation/actions";
 
 // Loop protection:
-// 1) each recipe runs at most once per record (keyed recipe:record),
+// 1) callers provide a stable key for scan events or an event-specific key for live changes,
 // 2) records changed/created by an automation are ignored for a short window,
-// so an automation can never keep re-triggering itself or another automation.
+// so automations do not recursively trigger themselves while legitimate later user edits can still run.
 export const touched = new Set();
 const touch = (id) => { if (!id) return; touched.add(id); setTimeout(() => touched.delete(id), 15000); };
 
@@ -20,8 +20,8 @@ export async function applyAction(recipe, type, record) {
   return res;
 }
 
-export async function processRecord(recipe, type, record, runKeys) {
-  const key = `${recipe.id}:${record.id}`;
+export async function processRecord(recipe, type, record, runKeys, explicitKey) {
+  const key = explicitKey || `${recipe.id}:${record.id}`;
   if (runKeys.has(key)) return;
   runKeys.add(key);
   const action = ACTIONS[recipe.action];
@@ -40,6 +40,8 @@ export async function processRecord(recipe, type, record, runKeys) {
     await base44.entities.AutomationRun.create({ ...base, status: "success", message: res.message, flag: res.flag || "none", flag_open: !!res.flag });
     await bumpRecipe(recipe, "success");
   } catch (e) {
+    // A transient failure should be eligible for retry instead of being suppressed for the rest of the session.
+    runKeys.delete(key);
     await base44.entities.AutomationRun.create({ ...base, status: "failed", message: e.message || "Unknown error" });
     await bumpRecipe(recipe, "failed");
   }
