@@ -44,6 +44,7 @@ export default function ContextPackDetail() {
 
   // Deletes only the pack itself; source records are untouched.
   const deletePack = async () => {
+    if (!window.confirm(`Delete context pack “${pack.name}”? The records inside it will not be deleted.`)) return;
     await base44.entities.ContextPack.delete(pack.id);
     navigate("/context-packs");
   };
