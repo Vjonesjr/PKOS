@@ -21,6 +21,8 @@ export default function KnowledgeDetail() {
   const load = useCallback(async () => {
     try {
       const r = await base44.entities.Knowledge.get(id);
+      if (!r || r.workspace !== workspace) throw new Error("Knowledge record not found");
+      setNotFound(false);
       setRecord(r);
       const fc = await base44.entities.Flashcard.filter({ knowledge_id: id, workspace }, "-created_date", 100);
       setFlashcards(fc);
