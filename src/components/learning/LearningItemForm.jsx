@@ -57,8 +57,8 @@ export default function LearningItemForm({ open, onOpenChange, onSave, initial }
     onSave({
       ...form,
       title: form.title.trim(),
-      knowledge_id: form.knowledge_id || null,
-      project_id: form.project_id || null,
+      knowledge_id: form.knowledge_id || "",
+      project_id: form.project_id || "",
     });
   };
 
