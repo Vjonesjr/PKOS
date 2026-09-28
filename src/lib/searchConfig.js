@@ -68,8 +68,9 @@ export function getRoute(type, record) {
     case "learning":
       return "/learning";
     case "decision":
+      return `/decision-detail?id=${record.id}`;
     case "lesson":
-      return "/decisions";
+      return `/lesson-detail?id=${record.id}`;
     case "capture":
     default:
       return "/capture";
