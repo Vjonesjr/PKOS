@@ -3,14 +3,7 @@ import { Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useWorkspace } from "@/lib/WorkspaceContext";
-
-const TYPE_META = {
-  capture: { label: "Captures", route: "/capture" },
-  knowledge: { label: "Knowledge", route: "/knowledge-detail" },
-  project: { label: "Projects", route: "/project-detail" },
-  task: { label: "Tasks", route: "/projects" },
-  decision: { label: "Decisions", route: "/decisions" },
-};
+import { SEARCH_TYPE_LABELS, getSearchText, getTitle, getRoute } from "@/lib/searchConfig";
 
 export default function UniversalSearch() {
   const [query, setQuery] = useState("");
@@ -22,14 +15,16 @@ export default function UniversalSearch() {
 
   useEffect(() => {
     (async () => {
-      const [captures, knowledge, projects, tasks, decisions] = await Promise.all([
+      const [captures, knowledge, projects, tasks, learning, decisions, lessons] = await Promise.all([
         base44.entities.Capture.filter({ workspace }, "-created_date", 100),
         base44.entities.Knowledge.filter({ workspace }, "-updated_date", 100),
         base44.entities.Project.filter({ workspace }, "-updated_date", 60),
         base44.entities.Task.filter({ workspace }, "-updated_date", 100),
+        base44.entities.LearningItem.filter({ workspace }, "-updated_date", 100),
         base44.entities.Decision.filter({ workspace }, "-updated_date", 60),
+        base44.entities.Lesson.filter({ workspace }, "-created_date", 60),
       ]);
-      setData({ capture: captures, knowledge, project: projects, task: tasks, decision: decisions });
+      setData({ capture: captures, knowledge, project: projects, task: tasks, learning, decision: decisions, lesson: lessons });
     })();
     const onClick = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) setFocused(false);
@@ -42,10 +37,7 @@ export default function UniversalSearch() {
   const results =
     q.length > 0 && data
       ? Object.entries(data).reduce((acc, [type, records]) => {
-          const matches = records.filter((r) => {
-            const text = `${r.title || ""} ${r.decision || ""} ${r.content || ""} ${(r.tags || []).join(" ")}`.toLowerCase();
-            return text.includes(q);
-          });
+          const matches = records.filter((r) => getSearchText(type, r).toLowerCase().includes(q));
           if (matches.length) acc[type] = matches.slice(0, 5);
           return acc;
         }, {})
@@ -66,12 +58,7 @@ export default function UniversalSearch() {
   };
 
   const goTo = (type, record) => {
-    const meta = TYPE_META[type];
-    if (type === "knowledge" || type === "project") {
-      navigate(`${meta.route}?id=${record.id}`);
-    } else {
-      navigate(meta.route);
-    }
+    navigate(getRoute(type, record));
     setFocused(false);
     setQuery("");
   };
@@ -98,14 +85,14 @@ export default function UniversalSearch() {
           {!hasResults && <p className="px-3 py-4 text-center text-sm text-muted-foreground">No matches for "{query}"</p>}
           {Object.entries(results).map(([type, records]) => (
             <div key={type} className="mb-1">
-              <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{TYPE_META[type].label}</p>
+              <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{SEARCH_TYPE_LABELS[type]}</p>
               {records.map((r) => (
                 <button
                   key={r.id}
                   onClick={() => goTo(type, r)}
                   className="block w-full rounded-lg px-3 py-2 text-left text-sm text-foreground/90 transition-colors hover:bg-secondary"
                 >
-                  {highlight(r.title || r.decision || "Untitled")}
+                  {highlight(getTitle(type, r))}
                 </button>
               ))}
             </div>
