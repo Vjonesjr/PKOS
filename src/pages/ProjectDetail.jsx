@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Archive } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -60,8 +60,8 @@ export default function ProjectDetail() {
     load();
   };
 
-  const remove = async () => {
-    await base44.entities.Project.delete(id);
+  const archiveProject = async () => {
+    await base44.entities.Project.update(id, { status: "Archived" });
     navigate("/projects");
   };
 
@@ -88,8 +88,8 @@ export default function ProjectDetail() {
             <Button size="sm" variant="ghost" onClick={() => setEditOpen(true)} aria-label="Edit project">
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-            <Button size="sm" variant="ghost" onClick={remove} aria-label="Delete project">
-              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+            <Button size="sm" variant="ghost" onClick={archiveProject} aria-label="Archive project" title="Archive project">
+              <Archive className="h-3.5 w-3.5 text-muted-foreground" />
             </Button>
           </div>
         </div>
