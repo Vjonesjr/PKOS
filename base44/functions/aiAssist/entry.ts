@@ -20,6 +20,7 @@ export default async function (req) {
 
     if (action === 'project_status') {
       const project = await base44.entities.Project.get(body.projectId);
+      if (!project || project.workspace !== workspace) return Response.json({ error: 'Project not found' }, { status: 404 });
       const tasks = await base44.entities.Task.filter({ project_id: body.projectId, workspace });
       const decisions = await base44.entities.Decision.filter({ project_id: body.projectId, workspace });
       const prompt = `You are analyzing a personal project for a knowledge management app.\nProject: ${JSON.stringify(project)}\nTasks: ${JSON.stringify(tasks.slice(0, 30))}\nDecisions: ${JSON.stringify(decisions.slice(0, 10))}\nWrite a short honest status summary (2-3 sentences), then list up to 3 concrete next actions, and state whether the project looks stalled (no clear next action or no recent progress) with a one-sentence reason.`;
@@ -67,6 +68,7 @@ export default async function (req) {
 
     if (action === 'notes_to_tasks') {
       const record = await base44.entities[body.entityType === 'capture' ? 'Capture' : 'Knowledge'].get(body.id);
+      if (!record || record.workspace !== workspace) return Response.json({ error: 'Record not found' }, { status: 404 });
       const prompt = `Extract concrete, actionable tasks from this note. Only include real action items, not general statements.\nTitle: ${record.title}\nContent: ${record.content || ''}`;
       const result = await invoke(base44, prompt, {
         type: 'object',
@@ -79,6 +81,7 @@ export default async function (req) {
     if (action === 'create_flashcards') {
       const entityName = body.entityType === 'learning' ? 'LearningItem' : 'Knowledge';
       const record = await base44.entities[entityName].get(body.id);
+      if (!record || record.workspace !== workspace) return Response.json({ error: 'Record not found' }, { status: 404 });
       const prompt = `Create up to 8 flashcards (front = question/prompt, back = concise answer) from this material, useful for spaced-repetition review.\nTitle: ${record.title}\nContent: ${record.content || ''}`;
       const result = await invoke(base44, prompt, {
         type: 'object',
@@ -403,6 +406,7 @@ Captures: ${JSON.stringify(captures.map((c) => ({ id: c.id, title: c.title, cont
     if (action === 'suggest_relationships') {
       const entityName = body.entityType === 'project' ? 'Project' : 'Knowledge';
       const record = await base44.entities[entityName].get(body.id);
+      if (!record || record.workspace !== workspace) return Response.json({ error: 'Record not found' }, { status: 404 });
       const [knowledge, projects] = await Promise.all([
         base44.entities.Knowledge.filter({ workspace }, '-updated_date', 60),
         base44.entities.Project.filter({ workspace }, '-updated_date', 40),
@@ -429,7 +433,7 @@ Captures: ${JSON.stringify(captures.map((c) => ({ id: c.id, title: c.title, cont
       const entityName = body.entityType === 'project' ? 'Project' : body.entityType === 'capture' ? 'Capture' : body.entityType === 'learning' ? 'LearningItem' : 'Knowledge';
       const ids = (body.ids || []).slice(0, 15);
       const records = await Promise.all(ids.map((id) => base44.entities[entityName].get(id).catch(() => null)));
-      const valid = records.filter(Boolean);
+      const valid = records.filter((r) => r && r.workspace === workspace);
       const prompt = `Summarize the key points and any common themes across these records:\n${JSON.stringify(valid.map((r) => ({ title: r.title, content: r.content || r.description })))}`;
       const result = await invoke(base44, prompt, {
         type: 'object',
