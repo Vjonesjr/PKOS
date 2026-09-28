@@ -8,7 +8,7 @@ export const ENTITY_CONFIG = {
   task: { label: "Task", entity: base44.entities.Task, color: "text-emerald-400", bg: "bg-emerald-400/10", route: "/task-detail", detail: true },
   decision: { label: "Decision", entity: base44.entities.Decision, color: "text-amber-400", bg: "bg-amber-400/10", route: "/decision-detail", detail: true },
   lesson: { label: "Lesson", entity: base44.entities.Lesson, color: "text-rose-400", bg: "bg-rose-400/10", route: "/lesson-detail", detail: true },
-  learning: { label: "Learning", entity: base44.entities.LearningItem, color: "text-pink-400", bg: "bg-pink-400/10", route: "/learning" },
+  learning: { label: "Learning", entity: base44.entities.LearningItem, color: "text-pink-400", bg: "bg-pink-400/10", route: "/learning", detail: true },
 };
 
 export function titleField(type) {
