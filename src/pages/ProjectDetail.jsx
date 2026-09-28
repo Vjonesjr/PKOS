@@ -30,12 +30,14 @@ export default function ProjectDetail() {
   const load = useCallback(async () => {
     if (isSeeding) return;
     try {
-      const [p, t, d, l] = await Promise.all([
-        base44.entities.Project.get(id),
+      const p = await base44.entities.Project.get(id);
+      if (!p || p.workspace !== workspace) throw new Error("Project not found");
+      const [t, d, l] = await Promise.all([
         base44.entities.Task.filter({ project_id: id, workspace }, "-created_date", 100),
         base44.entities.Decision.filter({ project_id: id, workspace }, "-date", 100),
         base44.entities.Lesson.filter({ project_id: id, workspace }, "-created_date", 100),
       ]);
+      setNotFound(false);
       setProject(p);
       setTasks(t);
       setDecisions(d);
