@@ -87,6 +87,13 @@ export default function TaskDetail() {
 
   const remove = async () => {
     if (!window.confirm(`Delete task “${task.title}”? This cannot be undone.`)) return;
+    if (sourceCapture?.converted_to_type === "task" && sourceCapture.converted_to_id === id) {
+      await base44.entities.Capture.update(sourceCapture.id, {
+        status: "inbox",
+        converted_to_type: "",
+        converted_to_id: "",
+      });
+    }
     await base44.entities.Task.delete(id);
     navigate(-1);
   };
