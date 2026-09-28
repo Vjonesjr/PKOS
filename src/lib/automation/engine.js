@@ -49,10 +49,10 @@ export async function processRecord(recipe, type, record, runKeys, explicitKey) 
 
 // Approve (or retry) a run that needs the user's go-ahead. Source data is only touched by the single action.
 export async function approveRun(run) {
-  const [recipe] = await base44.entities.AutomationRecipe.filter({ id: run.recipe_id });
+  const [recipe] = await base44.entities.AutomationRecipe.filter({ id: run.recipe_id, workspace: run.workspace });
   if (!recipe) return base44.entities.AutomationRun.update(run.id, { status: "failed", message: "The recipe was deleted" });
   const record = await TYPES[run.record_type].entity.get(run.record_id).catch(() => null);
-  if (!record) return base44.entities.AutomationRun.update(run.id, { status: "failed", message: "The record no longer exists" });
+  if (!record || record.workspace !== run.workspace) return base44.entities.AutomationRun.update(run.id, { status: "failed", message: "The record no longer exists in this workspace" });
   try {
     const res = await applyAction(recipe, run.record_type, record);
     await base44.entities.AutomationRun.update(run.id, { status: "success", message: res.message, flag: res.flag || "none", flag_open: !!res.flag });
