@@ -11,6 +11,7 @@ export default function CompareNotesCard() {
   const { workspace } = useWorkspace();
 
   useEffect(() => {
+    setSelectedIds([]);
     (async () => {
       setKnowledge(await base44.entities.Knowledge.filter({ workspace }, "-updated_date", 60));
     })();
@@ -42,7 +43,7 @@ export default function CompareNotesCard() {
           description={`Summarize ${selectedIds.length} selected notes and highlight shared themes.`}
           icon={Layers}
           action="summarize_records"
-          payload={{ entityType: "knowledge", ids: selectedIds }}
+          payload={{ entityType: "knowledge", ids: selectedIds, workspace }}
           renderResult={(r) => (
             <div>
               <p className="text-sm text-foreground/80">{r.summary}</p>
