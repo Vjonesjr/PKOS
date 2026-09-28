@@ -61,6 +61,8 @@ export default function LessonDetail() {
 
   const remove = async () => {
     if (!window.confirm("Delete this lesson? This cannot be undone.")) return;
+    const sourceCaptures = await base44.entities.Capture.filter({ workspace, converted_to_type: "lesson", converted_to_id: id }, "-created_date", 100);
+    await Promise.all(sourceCaptures.map((capture) => base44.entities.Capture.update(capture.id, { status: "inbox", converted_to_type: "", converted_to_id: "" })));
     await base44.entities.Lesson.delete(id);
     navigate("/lessons");
   };
