@@ -16,7 +16,11 @@ export default function RecordList({ entity, fields, noun, records, workspace, o
     onChange();
   };
 
-  const remove = async (r) => { await entity.delete(r.id); onChange(); };
+  const remove = async (r) => {
+    if (!window.confirm(`Delete ${noun.toLowerCase()} “${r.name}”? This cannot be undone.`)) return;
+    await entity.delete(r.id);
+    onChange();
+  };
 
   return (
     <div className="space-y-4">
