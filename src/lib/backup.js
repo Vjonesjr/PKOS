@@ -1,6 +1,9 @@
 import { base44 } from "@/api/base44Client";
 
-const ENTITY_ORDER = ["Project", "Knowledge", "Decision", "Capture", "LearningItem", "Lesson", "Task", "Flashcard", "Link", "ReviewEntry"];
+const ENTITY_ORDER = [
+  "Project", "Knowledge", "Decision", "Capture", "LearningItem", "Lesson", "Task", "Flashcard",
+  "Link", "ReviewEntry", "ContextPack", "Tool", "Device", "AutomationRecipe", "AutomationRun",
+];
 
 export async function buildBackup(workspace) {
   const data = {};
@@ -73,6 +76,7 @@ const LINK_TYPE_TO_ENTITY = {
   decision: "Decision",
   lesson: "Lesson",
   learning: "LearningItem",
+  review: "ReviewEntry",
 };
 
 // Order that respects foreign-key dependencies (referenced entities created first).
@@ -127,12 +131,89 @@ export async function restoreBackup(backup, targetWorkspace) {
   summary.Link = linkCount;
 
   const reviewEntries = data.ReviewEntry || [];
+  idMaps.ReviewEntry = {};
   for (const entry of reviewEntries) {
     const clean = stripBuiltins(entry);
     clean.workspace = targetWorkspace;
-    await base44.entities.ReviewEntry.create(clean);
+    const created = await base44.entities.ReviewEntry.create(clean);
+    idMaps.ReviewEntry[entry.id] = created.id;
   }
   summary.ReviewEntry = reviewEntries.length;
+
+  // Newer PKOS systems are also part of a "full backup".
+  for (const entityName of ["Tool", "Device"]) {
+    const records = data[entityName] || [];
+    idMaps[entityName] = {};
+    for (const record of records) {
+      const clean = stripBuiltins(record);
+      clean.workspace = targetWorkspace;
+      const created = await base44.entities[entityName].create(clean);
+      idMaps[entityName][record.id] = created.id;
+    }
+    summary[entityName] = records.length;
+  }
+
+  const packs = data.ContextPack || [];
+  idMaps.ContextPack = {};
+  for (const pack of packs) {
+    const clean = stripBuiltins(pack);
+    clean.workspace = targetWorkspace;
+    clean.items = (clean.items || [])
+      .map((item) => {
+        const entityName = LINK_TYPE_TO_ENTITY[item.type];
+        const mappedId = entityName ? idMaps[entityName]?.[item.id] : null;
+        return mappedId ? { ...item, id: mappedId } : null;
+      })
+      .filter(Boolean);
+    const created = await base44.entities.ContextPack.create(clean);
+    idMaps.ContextPack[pack.id] = created.id;
+  }
+  summary.ContextPack = packs.length;
+
+  const recipes = data.AutomationRecipe || [];
+  idMaps.AutomationRecipe = {};
+  for (const recipe of recipes) {
+    const clean = stripBuiltins(recipe);
+    clean.workspace = targetWorkspace;
+    clean.conditions = (clean.conditions || []).map((condition) =>
+      condition.field === "project" && condition.value
+        ? { ...condition, value: idMaps.Project?.[condition.value] || condition.value }
+        : condition
+    );
+    if (clean.action_params?.project_id) {
+      clean.action_params = {
+        ...clean.action_params,
+        project_id: idMaps.Project?.[clean.action_params.project_id] || clean.action_params.project_id,
+      };
+    }
+    if (clean.action_params?.target_id && clean.action_params?.target_type) {
+      const targetEntity = LINK_TYPE_TO_ENTITY[clean.action_params.target_type];
+      clean.action_params = {
+        ...clean.action_params,
+        target_id: targetEntity ? idMaps[targetEntity]?.[clean.action_params.target_id] || clean.action_params.target_id : clean.action_params.target_id,
+      };
+    }
+    const created = await base44.entities.AutomationRecipe.create(clean);
+    idMaps.AutomationRecipe[recipe.id] = created.id;
+  }
+  summary.AutomationRecipe = recipes.length;
+
+  const runs = data.AutomationRun || [];
+  let restoredRuns = 0;
+  for (const run of runs) {
+    const recipeId = idMaps.AutomationRecipe?.[run.recipe_id];
+    if (!recipeId) continue;
+    const clean = stripBuiltins(run);
+    clean.workspace = targetWorkspace;
+    clean.recipe_id = recipeId;
+    const recordEntity = LINK_TYPE_TO_ENTITY[clean.record_type];
+    if (clean.record_id && recordEntity) {
+      clean.record_id = idMaps[recordEntity]?.[clean.record_id] || clean.record_id;
+    }
+    await base44.entities.AutomationRun.create(clean);
+    restoredRuns++;
+  }
+  summary.AutomationRun = restoredRuns;
 
   return summary;
 }
