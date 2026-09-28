@@ -15,6 +15,7 @@ export default function SuggestRelationshipsCard() {
   const { workspace } = useWorkspace();
 
   useEffect(() => {
+    setSelected("");
     (async () => {
       setProjects(await base44.entities.Project.filter({ workspace }, "-updated_date", 60));
       setKnowledge(await base44.entities.Knowledge.filter({ workspace }, "-updated_date", 60));
@@ -49,18 +50,18 @@ export default function SuggestRelationshipsCard() {
           description="Suggest genuinely related projects and notes."
           icon={Link2}
           action="suggest_relationships"
-          payload={{ entityType, id }}
-          renderResult={(r, clear) => <RelatedSuggestions related={r.related} sourceType={entityType} sourceId={id} clear={clear} toast={toast} />}
+          payload={{ entityType, id, workspace }}
+          renderResult={(r, clear) => <RelatedSuggestions related={r.related} sourceType={entityType} sourceId={id} workspace={workspace} clear={clear} toast={toast} />}
         />
       )}
     </div>
   );
 }
 
-function RelatedSuggestions({ related, sourceType, sourceId, toast }) {
+function RelatedSuggestions({ related, sourceType, sourceId, workspace, toast }) {
   if (!related?.length) return <p className="text-sm text-foreground/80">No related records found.</p>;
   const link = async (item) => {
-    await base44.entities.Link.create({ source_type: sourceType, source_id: sourceId, target_type: item.type, target_id: item.id });
+    await base44.entities.Link.create({ source_type: sourceType, source_id: sourceId, target_type: item.type, target_id: item.id, workspace });
     toast({ description: `Linked to ${item.title}.` });
   };
   return (
