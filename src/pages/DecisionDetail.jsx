@@ -51,6 +51,8 @@ export default function DecisionDetail() {
   };
 
   const remove = async () => {
+    if (!window.confirm("Delete this decision? Linked lessons will be kept but disconnected from it.")) return;
+    await Promise.all(lessons.map((lesson) => base44.entities.Lesson.update(lesson.id, { decision_id: "" })));
     await base44.entities.Decision.delete(id);
     navigate("/decisions");
   };
