@@ -60,6 +60,7 @@ export default function LessonDetail() {
   };
 
   const remove = async () => {
+    if (!window.confirm("Delete this lesson? This cannot be undone.")) return;
     await base44.entities.Lesson.delete(id);
     navigate("/lessons");
   };
