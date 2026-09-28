@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useWorkspace } from "@/lib/WorkspaceContext";
 
@@ -7,6 +8,12 @@ export default function FlashcardCreator({ learningItemId, knowledgeId, flashcar
   const [front, setFront] = useState("");
   const [back, setBack] = useState("");
   const { workspace } = useWorkspace();
+
+  const remove = async (card) => {
+    if (!window.confirm("Delete this flashcard? This cannot be undone.")) return;
+    await base44.entities.Flashcard.delete(card.id);
+    onChange?.();
+  };
 
   const add = async () => {
     if (!front.trim() || !back.trim()) return;
@@ -27,9 +34,14 @@ export default function FlashcardCreator({ learningItemId, knowledgeId, flashcar
       {flashcards.length > 0 && (
         <div className="space-y-1.5 max-h-48 overflow-y-auto">
           {flashcards.map((f) => (
-            <div key={f.id} className="rounded-lg border border-border bg-secondary/40 px-3 py-2">
-              <p className="text-xs font-medium text-foreground/80">{f.front}</p>
-              <p className="text-xs text-muted-foreground">{f.back}</p>
+            <div key={f.id} className="flex items-start gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-foreground/80">{f.front}</p>
+                <p className="text-xs text-muted-foreground">{f.back}</p>
+              </div>
+              <button onClick={() => remove(f)} className="shrink-0 text-muted-foreground hover:text-destructive" aria-label="Delete flashcard" title="Delete flashcard">
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
             </div>
           ))}
         </div>
