@@ -74,7 +74,7 @@ export const ACTIONS = {
     label: "Link to a learning or knowledge item", level: "review", params: ["target"],
     describe: (p) => `Link to “${p.target_label || "?"}”`,
     run: async (type, r, p, ws) => {
-      const existing = await base44.entities.Link.filter({ source_type: type, source_id: r.id, target_id: p.target_id });
+      const existing = await base44.entities.Link.filter({ source_type: type, source_id: r.id, target_id: p.target_id, workspace });
       if (existing.length) return { message: "Already linked" };
       await base44.entities.Link.create({ source_type: type, source_id: r.id, target_type: p.target_type, target_id: p.target_id, workspace: ws });
       return { message: `Linked to ${p.target_label}` };
