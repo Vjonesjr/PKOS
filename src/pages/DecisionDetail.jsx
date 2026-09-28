@@ -21,10 +21,13 @@ export default function DecisionDetail() {
   const load = useCallback(async () => {
     try {
       const d = await base44.entities.Decision.get(id);
+      if (!d || d.workspace !== workspace) throw new Error("Decision not found");
+      setNotFound(false);
       setDecision(d);
       const ls = await base44.entities.Lesson.filter({ decision_id: id, workspace }, "-created_date", 100);
       setLessons(ls);
-      setProject(d.project_id ? await base44.entities.Project.get(d.project_id).catch(() => null) : null);
+      const linkedProject = d.project_id ? await base44.entities.Project.get(d.project_id).catch(() => null) : null;
+      setProject(linkedProject?.workspace === workspace ? linkedProject : null);
     } catch {
       setNotFound(true);
     }
