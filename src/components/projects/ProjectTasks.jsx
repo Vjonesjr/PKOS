@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,7 @@ export default function ProjectTasks({ tasks, projectId, onChange }) {
         tasks.map((t) => (
           <div key={t.id} className="flex items-center gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2">
             <Checkbox checked={t.status === "done"} onCheckedChange={() => toggleDone(t)} />
-            <span className={`flex-1 text-sm ${t.status === "done" ? "text-muted-foreground line-through" : "text-foreground/90"}`}>{t.title}</span>
+            <Link to={`/task-detail?id=${t.id}`} className={`flex-1 text-sm hover:text-primary ${t.status === "done" ? "text-muted-foreground line-through" : "text-foreground/90"}`}>{t.title}</Link>
           </div>
         ))
       )}
