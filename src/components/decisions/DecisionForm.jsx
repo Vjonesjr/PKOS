@@ -64,7 +64,7 @@ export default function DecisionForm({ open, onOpenChange, onSave, projectId, pr
           <Textarea placeholder="Reasoning" rows={2} value={form.reasoning} onChange={(e) => setForm({ ...form, reasoning: e.target.value })} />
           <Textarea placeholder="Expected outcome" rows={2} value={form.expected_result} onChange={(e) => setForm({ ...form, expected_result: e.target.value })} />
           <Textarea placeholder="Actual outcome" rows={2} value={form.actual_result} onChange={(e) => setForm({ ...form, actual_result: e.target.value })} />
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
             <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
               <SelectTrigger>
                 <SelectValue />
