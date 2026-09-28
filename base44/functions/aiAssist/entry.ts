@@ -116,6 +116,15 @@ export default async function (req) {
         },
         required: ['suggestions'],
       });
+      const captureIds = new Set(captures.map((c) => c.id));
+      const allowedTypes = new Set(['idea', 'note', 'task', 'question', 'project_thought', 'learning_note', 'decision', 'lesson', 'reference', 'prompt']);
+      result.suggestions = (result.suggestions || [])
+        .filter((s) => captureIds.has(s.id) && allowedTypes.has(s.suggested_type))
+        .map((s) => ({
+          id: s.id,
+          suggested_type: s.suggested_type,
+          tags: (s.tags || []).filter((tag) => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 3),
+        }));
       return Response.json(result);
     }
 
@@ -426,6 +435,13 @@ Captures: ${JSON.stringify(captures.map((c) => ({ id: c.id, title: c.title, cont
         },
         required: ['related'],
       });
+      const candidateMap = new Map(candidates.map((candidate) => [`${candidate.type}:${candidate.id}`, candidate]));
+      result.related = (result.related || [])
+        .map((item) => {
+          const candidate = candidateMap.get(`${item.type}:${item.id}`);
+          return candidate ? { ...candidate, reason: item.reason || 'Related record' } : null;
+        })
+        .filter(Boolean);
       return Response.json(result);
     }
 
@@ -490,6 +506,13 @@ Captures: ${JSON.stringify(captures.map((c) => ({ id: c.id, title: c.title, cont
         },
         required: ['stalled'],
       });
+      const flaggedMap = new Map(flagged.map((project) => [project.id, project]));
+      result.stalled = (result.stalled || [])
+        .map((item) => {
+          const project = flaggedMap.get(item.id);
+          return project ? { ...item, title: project.title } : null;
+        })
+        .filter(Boolean);
       return Response.json(result);
     }
 
