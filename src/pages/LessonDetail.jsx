@@ -23,19 +23,21 @@ export default function LessonDetail() {
   const load = useCallback(async () => {
     try {
       const l = await base44.entities.Lesson.get(id);
+      if (!l || l.workspace !== workspace) throw new Error("Lesson not found");
+      setNotFound(false);
       setLesson(l);
       const [p, d, k] = await Promise.all([
         l.project_id ? base44.entities.Project.get(l.project_id).catch(() => null) : Promise.resolve(null),
         l.decision_id ? base44.entities.Decision.get(l.decision_id).catch(() => null) : Promise.resolve(null),
         l.knowledge_id ? base44.entities.Knowledge.get(l.knowledge_id).catch(() => null) : Promise.resolve(null),
       ]);
-      setProject(p);
-      setDecision(d);
-      setKnowledge(k);
+      setProject(p?.workspace === workspace ? p : null);
+      setDecision(d?.workspace === workspace ? d : null);
+      setKnowledge(k?.workspace === workspace ? k : null);
     } catch {
       setNotFound(true);
     }
-  }, [id]);
+  }, [id, workspace]);
 
   useEffect(() => {
     load();
