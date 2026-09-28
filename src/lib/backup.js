@@ -12,7 +12,7 @@ export async function buildBackup(workspace) {
   }
   return {
     app: "Smart PKOS",
-    version: 1,
+    version: 2,
     exported_at: new Date().toISOString(),
     workspace,
     data,
