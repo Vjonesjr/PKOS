@@ -15,6 +15,7 @@ export default function NotesToTasksCard() {
   const { workspace } = useWorkspace();
 
   useEffect(() => {
+    setSelected("");
     (async () => {
       setCaptures(await base44.entities.Capture.filter({ workspace }, "-created_date", 60));
       setKnowledge(await base44.entities.Knowledge.filter({ workspace }, "-updated_date", 60));
@@ -56,7 +57,7 @@ export default function NotesToTasksCard() {
           description="Pull concrete action items out of this note."
           icon={ListTodo}
           action="notes_to_tasks"
-          payload={{ entityType, id }}
+          payload={{ entityType, id, workspace }}
           renderResult={(r, clear) => (
             <ExtractedTasks tasks={r.tasks} entityType={entityType} id={id} workspace={workspace} clear={clear} toast={toast} />
           )}
