@@ -40,7 +40,7 @@ export default function ProjectForm({ open, onOpenChange, initial, onSave }) {
         <div className="space-y-3">
           <Input placeholder="Project title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
           <Textarea placeholder="What is this project?" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
               <SelectTrigger>
                 <SelectValue />
