@@ -64,7 +64,7 @@ export function getRoute(type, record) {
     case "project":
       return `/project-detail?id=${record.id}`;
     case "task":
-      return "/projects";
+      return `/task-detail?id=${record.id}`;
     case "learning":
       return "/learning";
     case "decision":
