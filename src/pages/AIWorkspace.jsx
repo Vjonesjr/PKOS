@@ -20,6 +20,7 @@ export default function AIWorkspace() {
   const { workspace } = useWorkspace();
 
   useEffect(() => {
+    setSelectedProject("");
     (async () => {
       setProjects(await base44.entities.Project.filter({ workspace }, "-updated_date", 100));
     })();
@@ -151,7 +152,7 @@ function OrganizeInboxResult({ result, clear, toast }) {
         <div key={s.id} className="flex items-center justify-between rounded-lg bg-secondary/40 p-2.5">
           <div>
             <p className="text-xs text-foreground/90">
-              Suggested type: <span className="font-medium capitalize">{s.suggested_type}</span>
+              Suggested type: <span className="font-medium capitalize">{s.suggested_type.replace(/_/g, " ")}</span>
             </p>
             {s.tags?.length > 0 && <p className="text-xs text-muted-foreground">Tags: {s.tags.join(", ")}</p>}
           </div>
