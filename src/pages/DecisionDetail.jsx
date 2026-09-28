@@ -53,6 +53,8 @@ export default function DecisionDetail() {
   const remove = async () => {
     if (!window.confirm("Delete this decision? Linked lessons will be kept but disconnected from it.")) return;
     await Promise.all(lessons.map((lesson) => base44.entities.Lesson.update(lesson.id, { decision_id: "" })));
+    const sourceCaptures = await base44.entities.Capture.filter({ workspace, converted_to_type: "decision", converted_to_id: id }, "-created_date", 100);
+    await Promise.all(sourceCaptures.map((capture) => base44.entities.Capture.update(capture.id, { status: "inbox", converted_to_type: "", converted_to_id: "" })));
     await base44.entities.Decision.delete(id);
     navigate("/decisions");
   };
