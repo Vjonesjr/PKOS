@@ -19,6 +19,7 @@ import Knowledge from '@/pages/Knowledge';
 import KnowledgeDetail from '@/pages/KnowledgeDetail';
 import Projects from '@/pages/Projects';
 import ProjectDetail from '@/pages/ProjectDetail';
+import TaskDetail from '@/pages/TaskDetail';
 import Learning from '@/pages/Learning';
 import Decisions from '@/pages/Decisions';
 import DecisionDetail from '@/pages/DecisionDetail';
@@ -80,6 +81,7 @@ const AuthenticatedApp = () => {
           <Route path="/knowledge-detail" element={<KnowledgeDetail />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/project-detail" element={<ProjectDetail />} />
+          <Route path="/task-detail" element={<TaskDetail />} />
           <Route path="/learning" element={<Learning />} />
           <Route path="/decisions" element={<Decisions />} />
           <Route path="/decision-detail" element={<DecisionDetail />} />
