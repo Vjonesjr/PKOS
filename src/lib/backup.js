@@ -177,20 +177,20 @@ export async function restoreBackup(backup, targetWorkspace) {
     clean.workspace = targetWorkspace;
     clean.conditions = (clean.conditions || []).map((condition) =>
       condition.field === "project" && condition.value
-        ? { ...condition, value: idMaps.Project?.[condition.value] || condition.value }
+        ? { ...condition, value: idMaps.Project?.[condition.value] || "" }
         : condition
     );
     if (clean.action_params?.project_id) {
       clean.action_params = {
         ...clean.action_params,
-        project_id: idMaps.Project?.[clean.action_params.project_id] || clean.action_params.project_id,
+        project_id: idMaps.Project?.[clean.action_params.project_id] || "",
       };
     }
     if (clean.action_params?.target_id && clean.action_params?.target_type) {
       const targetEntity = LINK_TYPE_TO_ENTITY[clean.action_params.target_type];
       clean.action_params = {
         ...clean.action_params,
-        target_id: targetEntity ? idMaps[targetEntity]?.[clean.action_params.target_id] || clean.action_params.target_id : clean.action_params.target_id,
+        target_id: targetEntity ? idMaps[targetEntity]?.[clean.action_params.target_id] || "" : "",
       };
     }
     const created = await base44.entities.AutomationRecipe.create(clean);
@@ -208,7 +208,7 @@ export async function restoreBackup(backup, targetWorkspace) {
     clean.recipe_id = recipeId;
     const recordEntity = LINK_TYPE_TO_ENTITY[clean.record_type];
     if (clean.record_id && recordEntity) {
-      clean.record_id = idMaps[recordEntity]?.[clean.record_id] || clean.record_id;
+      clean.record_id = idMaps[recordEntity]?.[clean.record_id] || "";
     }
     await base44.entities.AutomationRun.create(clean);
     restoredRuns++;
