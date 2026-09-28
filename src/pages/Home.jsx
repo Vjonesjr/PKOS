@@ -13,7 +13,7 @@ export default function Home() {
   const load = useCallback(async () => {
     if (isSeeding) return;
     const [tasks, projects, captures, knowledge, decisions, flashcards] = await Promise.all([
-      base44.entities.Task.filter({ workspace, status: "todo" }, "-updated_date", 30),
+      base44.entities.Task.filter({ workspace }, "-updated_date", 60),
       base44.entities.Project.filter({ workspace }, "-updated_date", 30),
       base44.entities.Capture.filter({ workspace, status: "inbox" }, "-created_date", 10),
       base44.entities.Knowledge.filter({ workspace }, "-updated_date", 10),
@@ -30,8 +30,12 @@ export default function Home() {
   if (!data) return <div key={workspace} className="py-20 text-center text-sm text-muted-foreground">Loading your workspace...</div>;
 
   const activeProjects = data.projects.filter((p) => p.status === "Active");
-  const priorityTasks = [...data.tasks].sort((a, b) => (a.priority === "high" ? -1 : 1)).slice(0, 6);
-  const upcomingTasks = data.tasks.filter((t) => t.due_date).sort((a, b) => new Date(a.due_date) - new Date(b.due_date)).slice(0, 6);
+  const openTasks = data.tasks.filter((t) => t.status !== "done");
+  const priorityRank = { high: 0, medium: 1, low: 2 };
+  const priorityTasks = [...openTasks]
+    .sort((a, b) => (priorityRank[a.priority] ?? 1) - (priorityRank[b.priority] ?? 1) || (a.due_date || "9999-12-31").localeCompare(b.due_date || "9999-12-31"))
+    .slice(0, 6);
+  const upcomingTasks = openTasks.filter((t) => t.due_date).sort((a, b) => new Date(a.due_date) - new Date(b.due_date)).slice(0, 6);
   const needsReview = data.projects.filter((p) => p.status === "Active" && (!p.next_action || new Date(p.updated_date) < new Date(Date.now() - 14 * 86400000)));
 
   return (
@@ -64,10 +68,10 @@ export default function Home() {
           emptyIcon={ListTodo}
           emptyText="No open tasks"
           renderItem={(t) => (
-            <div key={t.id} className="flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-secondary/50">
+            <Link key={t.id} to={`/task-detail?id=${t.id}`} className="flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-secondary/50">
               <span className="text-sm text-foreground/90 truncate">{t.title}</span>
               <StatusBadge value={t.priority} />
-            </div>
+            </Link>
           )}
         />
         <SectionCard
@@ -106,10 +110,10 @@ export default function Home() {
           emptyIcon={Clock}
           emptyText="Nothing due soon"
           renderItem={(t) => (
-            <div key={t.id} className="flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-secondary/50">
+            <Link key={t.id} to={`/task-detail?id=${t.id}`} className="flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-secondary/50">
               <span className="text-sm text-foreground/90 truncate">{t.title}</span>
               <span className="text-xs text-muted-foreground">{t.due_date}</span>
-            </div>
+            </Link>
           )}
         />
         <SectionCard
@@ -147,9 +151,9 @@ export default function Home() {
           emptyIcon={Scale}
           emptyText="No decisions logged"
           renderItem={(d) => (
-            <div key={d.id} className="flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-secondary/50">
+            <Link key={d.id} to={`/decision-detail?id=${d.id}`} className="flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-secondary/50">
               <span className="text-sm text-foreground/90 truncate">{d.decision}</span>
-            </div>
+            </Link>
           )}
         />
         <SectionCard
