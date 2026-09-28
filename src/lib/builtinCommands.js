@@ -8,7 +8,7 @@ const BUILTINS = [
   { id: "capture-idea", label: "Capture Idea", icon: Lightbulb, kind: "input", placeholder: "What's the idea?", keywords: ["capture", "inbox", "note"],
     run: async (ctx, text) => { await base44.entities.Capture.create({ type: "idea", title: text.slice(0, 80), content: text, workspace: ctx.workspace }); created(ctx, "Idea captured —"); } },
   { id: "create-task", label: "Create Task", icon: CheckSquare, kind: "input", placeholder: "Task title", keywords: ["todo"],
-    run: async (ctx, text) => { await base44.entities.Task.create({ title: text, workspace: ctx.workspace }); created(ctx, "Task"); } },
+    run: async (ctx, text) => { const task = await base44.entities.Task.create({ title: text, workspace: ctx.workspace }); created(ctx, "Task"); ctx.navigate(`/task-detail?id=${task.id}`); } },
   { id: "create-project", label: "Create Project", icon: FolderPlus, kind: "input", placeholder: "Project name",
     run: async (ctx, text) => { const p = await base44.entities.Project.create({ title: text, workspace: ctx.workspace }); ctx.navigate(`/project-detail?id=${p.id}`); } },
   { id: "add-knowledge", label: "Add Knowledge", icon: BookPlus, kind: "input", placeholder: "Knowledge title", keywords: ["note", "vault"],
