@@ -94,13 +94,13 @@ export async function buildDailyReview(workspace) {
 
   const completedToday = tasks
     .filter((t) => t.status === "done" && isToday(t.updated_date))
-    .map((t) => ({ id: t.id, label: t.title, link: projectLink(t.project_id) }));
+    .map((t) => ({ id: t.id, label: t.title, link: `/task-detail?id=${t.id}` }));
 
   const unfinished = tasks
     .filter((t) => t.status !== "done")
     .sort((a, b) => (a.priority === "high" ? -1 : b.priority === "high" ? 1 : 0))
     .slice(0, 10)
-    .map((t) => ({ id: t.id, label: t.title, link: projectLink(t.project_id) }));
+    .map((t) => ({ id: t.id, label: t.title, link: `/task-detail?id=${t.id}` }));
 
   const newCaptures = captures
     .filter((c) => isToday(c.created_date))
@@ -125,12 +125,12 @@ export async function buildWeeklyReview(workspace) {
 
   const completedWork = tasks
     .filter((t) => t.status === "done" && withinDays(t.updated_date, 7))
-    .map((t) => ({ id: t.id, label: t.title, link: projectLink(t.project_id) }));
+    .map((t) => ({ id: t.id, label: t.title, link: `/task-detail?id=${t.id}` }));
 
   const unfinished = tasks
     .filter((t) => t.status !== "done" && t.priority === "high")
     .slice(0, 10)
-    .map((t) => ({ id: t.id, label: t.title, link: projectLink(t.project_id) }));
+    .map((t) => ({ id: t.id, label: t.title, link: `/task-detail?id=${t.id}` }));
 
   const activeProjects = projects.filter((p) => p.status === "Active");
 
