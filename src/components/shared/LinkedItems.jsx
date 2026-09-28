@@ -29,14 +29,14 @@ export default function LinkedItems({ recordType, recordId, allowedTypes = LINKA
 
   const load = useCallback(async () => {
     const [forward, reverse] = await Promise.all([
-      base44.entities.Link.filter({ source_type: recordType, source_id: recordId }),
-      base44.entities.Link.filter({ target_type: recordType, target_id: recordId }),
+      base44.entities.Link.filter({ source_type: recordType, source_id: recordId, workspace }),
+      base44.entities.Link.filter({ target_type: recordType, target_id: recordId, workspace }),
     ]);
     const fwd = await Promise.all(forward.map(async (l) => ({ link: l, record: await fetchRecord(l.target_type, l.target_id), type: l.target_type })));
     const rev = await Promise.all(reverse.map(async (l) => ({ link: l, record: await fetchRecord(l.source_type, l.source_id), type: l.source_type })));
     const passesFilter = (x) => !filterTypes || filterTypes.includes(x.type);
-    setItems([...fwd, ...rev].filter((x) => x.record && passesFilter(x)));
-  }, [recordType, recordId, filterTypes]);
+    setItems([...fwd, ...rev].filter((x) => x.record && x.record.workspace === workspace && passesFilter(x)));
+  }, [recordType, recordId, filterTypes, workspace]);
 
   useEffect(() => {
     load();
