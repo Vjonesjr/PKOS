@@ -21,7 +21,7 @@ export default function RestorePanel() {
     try {
       const text = await file.text();
       const parsed = JSON.parse(text);
-      if (!parsed?.data) throw new Error("not a backup file");
+      if (parsed?.app !== "Smart PKOS" || !parsed?.data || typeof parsed.data !== "object") throw new Error("not a backup file");
       const c = {};
       for (const [entity, records] of Object.entries(parsed.data)) {
         c[entity] = Array.isArray(records) ? records.length : 0;
@@ -49,6 +49,7 @@ export default function RestorePanel() {
   };
 
   const totalIncoming = counts ? Object.values(counts).reduce((a, b) => a + b, 0) : 0;
+  const humanize = (name) => name.replace(/([a-z0-9])([A-Z])/g, "$1 $2");
 
   return (
     <div className="space-y-3 rounded-2xl border border-border bg-card/60 p-6">
@@ -77,7 +78,7 @@ export default function RestorePanel() {
                   .filter(([, n]) => n > 0)
                   .map(([entity, n]) => (
                     <li key={entity}>
-                      {entity}: {n}
+                      {humanize(entity)}: {n}
                     </li>
                   ))}
             </ul>
