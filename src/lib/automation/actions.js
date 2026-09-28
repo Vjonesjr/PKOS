@@ -48,10 +48,12 @@ export const ACTIONS = {
   connect_project: {
     label: "Connect to a project", level: "review", params: ["project"], types: ["capture", "knowledge", "task", "decision", "lesson", "learning"],
     describe: (p) => `Connect to project “${p.target_label || "?"}”`,
-    run: async (type, r, p) => {
+    run: async (type, r, p, ws) => {
+      const project = p.project_id ? await base44.entities.Project.get(p.project_id).catch(() => null) : null;
+      if (!project || project.workspace !== ws) throw new Error("The selected project is not available in this workspace");
       if (r.project_id && r.project_id !== p.project_id) throw new Error("Already belongs to another project — left unchanged");
       await TYPES[type].entity.update(r.id, { project_id: p.project_id });
-      return { message: `Connected to ${p.target_label}` };
+      return { message: `Connected to ${project.title}` };
     },
   },
   create_task: {
@@ -74,10 +76,13 @@ export const ACTIONS = {
     label: "Link to a learning or knowledge item", level: "review", params: ["target"],
     describe: (p) => `Link to “${p.target_label || "?"}”`,
     run: async (type, r, p, ws) => {
-      const existing = await base44.entities.Link.filter({ source_type: type, source_id: r.id, target_id: p.target_id, workspace: ws });
+      if (!["learning", "knowledge"].includes(p.target_type) || !p.target_id) throw new Error("Choose a valid learning or knowledge target");
+      const target = await TYPES[p.target_type].entity.get(p.target_id).catch(() => null);
+      if (!target || target.workspace !== ws) throw new Error("The selected target is not available in this workspace");
+      const existing = await base44.entities.Link.filter({ source_type: type, source_id: r.id, target_type: p.target_type, target_id: p.target_id, workspace: ws });
       if (existing.length) return { message: "Already linked" };
       await base44.entities.Link.create({ source_type: type, source_id: r.id, target_type: p.target_type, target_id: p.target_id, workspace: ws });
-      return { message: `Linked to ${p.target_label}` };
+      return { message: `Linked to ${target.title || p.target_label}` };
     },
   },
 };
