@@ -9,6 +9,7 @@ import PackAddRecords from "@/components/context/PackAddRecords";
 import PackSuggestions from "@/components/context/PackSuggestions";
 import ContextPackChat from "@/components/context/ContextPackChat";
 import usePackRecords from "@/hooks/usePackRecords";
+import { useWorkspace } from "@/lib/WorkspaceContext";
 
 export default function ContextPackDetail() {
   const navigate = useNavigate();
@@ -17,13 +18,19 @@ export default function ContextPackDetail() {
   const [notFound, setNotFound] = useState(false);
   const [projects, setProjects] = useState([]);
   const records = usePackRecords(pack);
+  const { workspace } = useWorkspace();
 
   const load = useCallback(async () => {
     const p = await base44.entities.ContextPack.get(id).catch(() => null);
-    if (!p) return setNotFound(true);
+    if (!p || p.workspace !== workspace) {
+      setPack(null);
+      setNotFound(true);
+      return;
+    }
+    setNotFound(false);
     setPack(p);
     setProjects(await base44.entities.Project.filter({ workspace: p.workspace }, "-updated_date", 200));
-  }, [id]);
+  }, [id, workspace]);
 
   useEffect(() => { load(); }, [load]);
 
