@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Search as SearchIcon, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useWorkspace } from "@/lib/WorkspaceContext";
@@ -11,6 +11,7 @@ import EmptyState from "@/components/shared/EmptyState";
 export default function SearchPage() {
   const { workspace, isSeeding } = useWorkspace();
   const [data, setData] = useState(null);
+  const requestVersion = useRef(0);
   const [query, setQuery] = useState(() => new URLSearchParams(window.location.search).get("q") || "");
   const [activeTypes, setActiveTypes] = useState(SEARCH_TYPES);
   const [projectFilter, setProjectFilter] = useState("all");
@@ -19,6 +20,7 @@ export default function SearchPage() {
   const [dateFilter, setDateFilter] = useState("all");
 
   const load = useCallback(async () => {
+    const version = ++requestVersion.current;
     if (isSeeding) return;
     const [captures, knowledge, projects, tasks, learning, decisions, lessons] = await Promise.all([
       base44.entities.Capture.filter({ workspace }, "-created_date", 300),
@@ -29,11 +31,13 @@ export default function SearchPage() {
       base44.entities.Decision.filter({ workspace }, "-updated_date", 200),
       base44.entities.Lesson.filter({ workspace }, "-created_date", 200),
     ]);
+    if (version !== requestVersion.current) return;
     setData({ workspace, capture: captures, knowledge, project: projects, task: tasks, learning, decision: decisions, lesson: lessons });
   }, [workspace, isSeeding]);
 
   useEffect(() => {
     load();
+    return () => { requestVersion.current++; };
   }, [load]);
 
   const projects = data?.project || [];
