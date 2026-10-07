@@ -40,6 +40,12 @@
     "source_capture_id": {
       "type": "string"
     },
+    "calendar_event_id": {
+      "type": "string"
+    },
+    "scheduled_time": {
+      "type": "string"
+    },
     "workspace": {
       "type": "string",
       "enum": [

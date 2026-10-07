@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useWorkspace } from "@/lib/WorkspaceContext";
 import BriefItem from "@/components/today/BriefItem";
 import TodayList from "@/components/today/TodayList";
+import CalendarSyncButton from "@/components/today/CalendarSyncButton";
 import AutomationFlags from "@/components/automations/AutomationFlags";
 
 const SECTIONS = [
@@ -67,9 +68,12 @@ export default function Today() {
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Today Brief</h1>
           <p className="mt-1 text-sm text-muted-foreground">{format(new Date(), "EEEE, MMMM d")} · built only from your actual records</p>
         </div>
-        <Button onClick={generate} disabled={loading} className="gap-1.5">
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} {brief ? "Regenerate" : "Generate Today Brief"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <CalendarSyncButton workspace={workspace} today={today} onDone={loadToday} />
+          <Button onClick={generate} disabled={loading} className="gap-1.5">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} {brief ? "Regenerate" : "Generate Today Brief"}
+          </Button>
+        </div>
       </div>
 
       <AutomationFlags flags={["today", "attention"]} title="From your automations" />
