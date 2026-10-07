@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useWorkspace } from "@/lib/WorkspaceContext";
 import { SEARCH_TYPES, getSearchText } from "@/lib/searchConfig";
 import SearchFilters from "@/components/search/SearchFilters";
+import MeaningSearch from "@/components/search/MeaningSearch";
 import SearchResultGroup from "@/components/search/SearchResultGroup";
 import EmptyState from "@/components/shared/EmptyState";
 
@@ -28,7 +29,7 @@ export default function SearchPage() {
       base44.entities.Decision.filter({ workspace }, "-updated_date", 200),
       base44.entities.Lesson.filter({ workspace }, "-created_date", 200),
     ]);
-    setData({ capture: captures, knowledge, project: projects, task: tasks, learning, decision: decisions, lesson: lessons });
+    setData({ workspace, capture: captures, knowledge, project: projects, task: tasks, learning, decision: decisions, lesson: lessons });
   }, [workspace, isSeeding]);
 
   useEffect(() => {
@@ -45,14 +46,14 @@ export default function SearchPage() {
   const statuses = useMemo(() => {
     if (!data) return [];
     const set = new Set();
-    Object.values(data).forEach((records) => records.forEach((r) => r.status && set.add(r.status)));
+    Object.values(data).filter(Array.isArray).forEach((records) => records.forEach((r) => r.status && set.add(r.status)));
     return [...set].sort();
   }, [data]);
 
   const isDefaultFilters = projectFilter === "all" && tagFilter === "all" && statusFilter === "all" && dateFilter === "all" && activeTypes.length === SEARCH_TYPES.length;
   const q = query.trim().toLowerCase();
 
-  const groupedResults = useMemo(() => {
+  const filteredRecords = useMemo(() => {
     if (!data) return {};
     const dateCutoff = () => {
       const now = new Date();
@@ -80,14 +81,20 @@ export default function SearchPage() {
       if (cutoff) {
         records = records.filter((r) => r.created_date && new Date(r.created_date) >= cutoff);
       }
-      if (q) {
-        records = records.filter((r) => getSearchText(type, r).toLowerCase().includes(q));
-      }
 
       if (records.length) result[type] = records;
     });
     return result;
-  }, [data, activeTypes, projectFilter, tagFilter, statusFilter, dateFilter, q]);
+  }, [data, activeTypes, projectFilter, tagFilter, statusFilter, dateFilter]);
+
+  const groupedResults = useMemo(() => Object.fromEntries(
+    Object.entries(filteredRecords).map(([type, records]) => [type, q ? records.filter(r => getSearchText(type, r).toLowerCase().includes(q)) : records])
+      .filter(([, records]) => records.length)
+  ), [filteredRecords, q]);
+  const candidates = useMemo(() => Object.entries(filteredRecords).flatMap(([type, records]) => records.map(record => ({ type, record })))
+    .sort((a, b) => (b.record.updated_date || b.record.created_date || "").localeCompare(a.record.updated_date || a.record.created_date || ""))
+    .slice(0, 120), [filteredRecords]);
+  const meaningKey = workspace + ":" + query + ":" + candidates.map(x => x.type + x.record.id).join(",");
 
   const totalResults = Object.values(groupedResults).reduce((sum, r) => sum + r.length, 0);
   const showResults = q.length > 0 || !isDefaultFilters;
@@ -104,6 +111,8 @@ export default function SearchPage() {
     setStatusFilter("all");
     setDateFilter("all");
   };
+
+  if (!data || data.workspace !== workspace || isSeeding) return <p className="py-10 text-center text-sm text-muted-foreground">Loading workspace search…</p>;
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -151,7 +160,7 @@ export default function SearchPage() {
         )}
       </div>
 
-      {!data && <p className="py-10 text-center text-sm text-muted-foreground">Loading...</p>}
+      <MeaningSearch key={meaningKey} workspace={workspace} query={query} candidates={candidates} />
 
       {data && !showResults && (
         <EmptyState icon={SearchIcon} title="Start typing to search" description="Or use the filters above to browse by project, tag, status, or date." />
