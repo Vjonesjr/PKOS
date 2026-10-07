@@ -16,7 +16,7 @@ export default function ConversationDistiller({ workspace, onSaved }) {
   const lock = useRef(false);
   const sourceRef = useRef(null);
   const alive = useRef(true);
-  React.useEffect(() => () => { alive.current = false; }, []);
+  React.useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const importFile = async e => {
     const file = e.target.files?.[0];
     if (!file) return;
