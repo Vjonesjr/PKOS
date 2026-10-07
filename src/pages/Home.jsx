@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Lightbulb, ListTodo, FolderKanban, Clock, Library, Scale, GraduationCap, Inbox } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import SectionCard from "@/components/home/SectionCard";
+import SmartBoyBrain from "@/components/home/SmartBoyBrain";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { useWorkspace } from "@/lib/WorkspaceContext";
 
@@ -20,14 +21,14 @@ export default function Home() {
       base44.entities.Decision.filter({ workspace }, "-updated_date", 5),
       base44.entities.Flashcard.filter({ workspace }, "-last_reviewed", 5),
     ]);
-    setData({ tasks, projects, captures, knowledge, decisions, flashcards });
+    setData({ workspace, tasks, projects, captures, knowledge, decisions, flashcards });
   }, [workspace, isSeeding]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  if (!data) return <div key={workspace} className="py-20 text-center text-sm text-muted-foreground">Loading your workspace...</div>;
+  if (!data || data.workspace !== workspace || isSeeding) return <div key={workspace} className="py-20 text-center text-sm text-muted-foreground">Loading your workspace...</div>;
 
   const activeProjects = data.projects.filter((p) => p.status === "Active");
   const openTasks = data.tasks.filter((t) => t.status !== "done");
@@ -44,6 +45,8 @@ export default function Home() {
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Command Center</h1>
         <p className="text-sm text-muted-foreground mt-1">What matters right now.</p>
       </div>
+
+      <SmartBoyBrain key={workspace} data={data} workspace={workspace} />
 
       {activeProjects.length > 0 && (
         <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5">
