@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import ConvertMenu from "@/components/capture/ConvertMenu";
+import ConversationDistiller from "@/components/capture/ConversationDistiller";
 import CaptureEditDialog from "@/components/capture/CaptureEditDialog";
 import StatusBadge from "@/components/shared/StatusBadge";
 import EmptyState from "@/components/shared/EmptyState";
@@ -72,6 +73,8 @@ export default function Capture() {
           <Button variant="outline" className="gap-1.5"><Sparkles className="h-4 w-4 text-accent" /> AI Triage</Button>
         </Link>
       </div>
+
+      {!isSeeding && <ConversationDistiller key={workspace} workspace={workspace} onSaved={load} />}
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
