@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 const ENTITY_ORDER = [
   "Project", "Knowledge", "Decision", "Capture", "LearningItem", "Lesson", "Task", "Flashcard",
   "Link", "ReviewEntry", "ContextPack", "Tool", "Device", "AutomationRecipe", "AutomationRun",
-  "Goal", "Habit", "HabitLog",
+  "Goal", "Habit", "HabitLog", "GoalCheckin",
 ];
 
 export async function buildBackup(workspace) {
@@ -54,6 +54,7 @@ const FK_FIELDS = {
   Project: ["goal_id"],
   Habit: ["goal_id"],
   HabitLog: ["habit_id"],
+  GoalCheckin: ["goal_id"],
   Knowledge: ["project_id"],
   Decision: ["project_id"],
   Capture: ["project_id", "knowledge_id"],
@@ -86,7 +87,7 @@ const LINK_TYPE_TO_ENTITY = {
 };
 
 // Order that respects foreign-key dependencies (referenced entities created first).
-const RESTORE_ORDER = ["Goal", "Project", "Knowledge", "Decision", "Capture", "LearningItem", "Lesson", "Task", "Flashcard", "Habit", "HabitLog"];
+const RESTORE_ORDER = ["Goal", "Project", "Knowledge", "Decision", "Capture", "LearningItem", "Lesson", "Task", "Flashcard", "Habit", "HabitLog", "GoalCheckin"];
 
 function stripBuiltins(record) {
   const { id, created_date, updated_date, created_by_id, ...rest } = record;

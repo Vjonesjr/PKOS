@@ -9,6 +9,7 @@ import TodayList from "@/components/today/TodayList";
 import CalendarSyncButton from "@/components/today/CalendarSyncButton";
 import AutomationFlags from "@/components/automations/AutomationFlags";
 import TodayHabits from "@/components/habits/TodayHabits";
+import CheckinNudge from "@/components/review/CheckinNudge";
 
 const SECTIONS = [
   ["top_focus", "Top Focus"],
@@ -77,6 +78,7 @@ export default function Today() {
         </div>
       </div>
 
+      {!isSeeding && <CheckinNudge key={`nudge-${workspace}`} workspace={workspace} />}
       {!isSeeding && <TodayHabits key={workspace} workspace={workspace} />}
 
       <AutomationFlags flags={["today", "attention"]} title="From your automations" />

@@ -516,6 +516,99 @@ Captures: ${JSON.stringify(captures.map((c) => ({ id: c.id, title: c.title, cont
       return Response.json(result);
     }
 
+    if (action === 'draft_goal') {
+      // Inputs are bounded; context is titles/ids only so cost stays flat as data grows.
+      const text = String(body.text || '').slice(0, 1000).trim();
+      const answer = String(body.answer || '').slice(0, 500).trim();
+      if (!text) return Response.json({ error: 'Describe the goal first' }, { status: 400 });
+      const today = /^\d{4}-\d{2}-\d{2}$/.test(body.today || '') ? body.today : new Date().toISOString().slice(0, 10);
+
+      const [goals, projects, habits] = await Promise.all([
+        base44.entities.Goal.filter({ workspace, status: { $in: ['Active', 'Draft', 'Paused'] } }, '-updated_date', 15),
+        base44.entities.Project.filter({ workspace, goal_id: null, status: { $in: ['Idea', 'Planned', 'Active'] } }, '-updated_date', 30),
+        base44.entities.Habit.filter({ workspace, active: true, goal_id: null }, '-created_date', 30),
+      ]);
+      const ctx = {
+        existing_goals: goals.map((g) => ({ id: g.id, title: g.title, area: g.area })),
+        unlinked_projects: projects.map((p) => ({ id: p.id, title: p.title, status: p.status })),
+        unlinked_habits: habits.map((h) => ({ id: h.id, title: h.title })),
+      };
+      const prompt = `You are a pragmatic goal coach inside a personal productivity app. Today is ${today}.
+Turn the user's intent into ONE well-formed outcome goal (not an activity), with 1-4 measurable key results (each with a numeric target and a unit; current starts at 0).
+Rules:
+- If the intent is too vague to define a measurable outcome, set clarity="vague" and ask exactly one short clarifying_question; still return your best-guess draft.
+- target_date must be in the future (yyyy-MM-dd). If the user's timeline looks unrealistic, keep it but add a warning.
+- Only link projects/habits from the provided lists, using their exact ids, and only when clearly relevant. Never invent ids.
+- Suggest at most 3 new projects and 3 new habits, only if they materially help.
+- If an existing goal overlaps, list it in overlaps with a short note.
+- Answer in the user's language.
+Hints: area=${body.area || 'none'}, target_date=${body.target_date || 'none'}
+User intent: """${text}"""${answer ? `\nAnswer to your clarifying question: """${answer}"""` : ''}
+Workspace context: ${JSON.stringify(ctx)}`;
+      const r = await invoke(base44, prompt, {
+        type: 'object',
+        properties: {
+          clarity: { type: 'string', enum: ['clear', 'vague'] },
+          clarifying_question: { type: 'string' },
+          goal: { type: 'object', properties: { title: { type: 'string' }, why: { type: 'string' }, area: { type: 'string' }, target_date: { type: 'string' } } },
+          key_results: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, target: { type: 'number' }, unit: { type: 'string' } } } },
+          link_projects: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, reason: { type: 'string' } } } },
+          new_projects: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, next_action: { type: 'string' } } } },
+          link_habits: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, reason: { type: 'string' } } } },
+          new_habits: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, schedule_type: { type: 'string', enum: ['daily', 'weekdays', 'per_week'] }, per_week_target: { type: 'number' } } } },
+          overlaps: { type: 'array', items: { type: 'object', properties: { goal_id: { type: 'string' }, note: { type: 'string' } } } },
+          warnings: { type: 'array', items: { type: 'string' } },
+        },
+        required: ['clarity', 'goal', 'key_results'],
+      });
+
+      // Validate everything against real records before returning.
+      const AREAS = ['Career', 'Health', 'Learning', 'Finance', 'Relationships', 'Personal', 'Other'];
+      const byId = (list) => new Map(list.map((x) => [x.id, x]));
+      const pMap = byId(ctx.unlinked_projects), hMap = byId(ctx.unlinked_habits), gMap = byId(ctx.existing_goals);
+      const g = r.goal || {};
+      return Response.json({
+        clarity: r.clarity,
+        clarifying_question: r.clarity === 'vague' ? r.clarifying_question || '' : '',
+        goal: {
+          title: String(g.title || text).slice(0, 200),
+          why: String(g.why || '').slice(0, 1000),
+          area: AREAS.includes(g.area) ? g.area : 'Personal',
+          target_date: /^\d{4}-\d{2}-\d{2}$/.test(g.target_date || '') && g.target_date > today ? g.target_date : '',
+        },
+        key_results: (r.key_results || []).slice(0, 4).filter((k) => k.title && k.target > 0).map((k) => ({ title: k.title, current: 0, target: k.target, unit: k.unit || '' })),
+        link_projects: (r.link_projects || []).filter((x) => pMap.has(x.id)).map((x) => ({ ...x, title: pMap.get(x.id).title })),
+        new_projects: (r.new_projects || []).slice(0, 3).filter((x) => x.title),
+        link_habits: (r.link_habits || []).filter((x) => hMap.has(x.id)).map((x) => ({ ...x, title: hMap.get(x.id).title })),
+        new_habits: (r.new_habits || []).slice(0, 3).filter((x) => x.title),
+        overlaps: (r.overlaps || []).filter((x) => gMap.has(x.goal_id)).map((x) => ({ ...x, title: gMap.get(x.goal_id).title })),
+        warnings: (r.warnings || []).slice(0, 3),
+      });
+    }
+
+    if (action === 'weekly_goal_summary') {
+      const week = /^\d{4}-\d{2}-\d{2}$/.test(body.week_start || '') ? body.week_start : null;
+      if (!week) return Response.json({ error: 'week_start required' }, { status: 400 });
+      const [checkins, goals, doneCount] = await Promise.all([
+        base44.entities.GoalCheckin.filter({ workspace, week_start: week }, '-updated_date', 20),
+        base44.entities.Goal.filter({ workspace, status: 'Active' }, '-updated_date', 20),
+        base44.entities.Task.count({ workspace, status: 'done', updated_date: { $gte: `${week}T00:00:00` } }),
+      ]);
+      const titles = new Map(goals.map((g) => [g.id, g.title]));
+      const data = checkins.map((c) => ({ goal: titles.get(c.goal_id) || 'Goal', status: c.status, progress: c.progress_snapshot, note: c.note || '' }));
+      const prompt = `You are reviewing a user's week in a personal productivity app. Be encouraging but honest ("progress over judgment").
+Goal check-ins this week: ${JSON.stringify(data)}
+Active goals without a check-in: ${JSON.stringify(goals.filter((g) => !checkins.some((c) => c.goal_id === g.id)).map((g) => g.title))}
+Tasks completed this week: ${doneCount}
+Return 3-5 short, specific insights and one suggested focus for next week (one sentence).`;
+      const r = await invoke(base44, prompt, {
+        type: 'object',
+        properties: { insights: { type: 'array', items: { type: 'string' } }, focus: { type: 'string' } },
+        required: ['insights', 'focus'],
+      });
+      return Response.json({ insights: (r.insights || []).slice(0, 5), focus: r.focus || '' });
+    }
+
     return Response.json({ error: 'Unknown action' }, { status: 400 });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

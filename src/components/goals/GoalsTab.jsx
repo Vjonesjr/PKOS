@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Plus, Target } from "lucide-react";
+import { Plus, Target, Sparkles } from "lucide-react";
+import GoalDraftDialog from "@/components/goals/GoalDraftDialog";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import EmptyState from "@/components/shared/EmptyState";
@@ -11,6 +12,7 @@ export default function GoalsTab() {
   const { workspace } = useWorkspace();
   const [data, setData] = useState(null);
   const [editing, setEditing] = useState(null); // null = closed, {} = new
+  const [drafting, setDrafting] = useState(false);
 
   const load = useCallback(async () => {
     const [goals, projects, habits] = await Promise.all([
@@ -37,7 +39,10 @@ export default function GoalsTab() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">{activeCount} active</p>
-        <Button size="sm" onClick={() => setEditing({})} className="gap-1.5"><Plus className="h-4 w-4" /> New goal</Button>
+        <div className="flex gap-1.5">
+          <Button size="sm" variant="outline" onClick={() => setDrafting(true)} className="gap-1.5"><Sparkles className="h-4 w-4" /> Draft with AI</Button>
+          <Button size="sm" onClick={() => setEditing({})} className="gap-1.5"><Plus className="h-4 w-4" /> New</Button>
+        </div>
       </div>
       {activeCount > 5 && (
         <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
@@ -54,6 +59,7 @@ export default function GoalsTab() {
           ))}
         </div>
       )}
+      <GoalDraftDialog open={drafting} onOpenChange={setDrafting} onCreated={load} />
       <GoalForm open={!!editing} onOpenChange={(o) => !o && setEditing(null)} initial={editing?.id ? editing : null} onSave={save} />
     </div>
   );

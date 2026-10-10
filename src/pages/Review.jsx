@@ -7,6 +7,7 @@ import ReviewSection from "@/components/review/ReviewSection";
 import { useWorkspace } from "@/lib/WorkspaceContext";
 import { buildTimeline, buildDailyReview, buildWeeklyReview } from "@/lib/reviewData";
 import AutomationFlags from "@/components/automations/AutomationFlags";
+import GoalCheckinSection from "@/components/review/GoalCheckinSection";
 
 export default function Review() {
   const [tab, setTab] = useState("timeline");
@@ -77,6 +78,7 @@ export default function Review() {
 
       {tab === "weekly" && weekly && (
         <div className="space-y-3">
+          <GoalCheckinSection key={workspace} workspace={workspace} />
           <div className="rounded-xl border border-border bg-card/60 p-4">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Progress</p>
             <p className="text-sm text-foreground/85">
