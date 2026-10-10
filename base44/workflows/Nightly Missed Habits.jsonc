@@ -1,0 +1,45 @@
+{
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "30 0 * * *",
+      "one_time_date": null,
+      "timezone": "America/New_York",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "nightly_missed_habits",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "mark_missed": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "markMissedHabits",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Mark missed habits",
+            "description": "Yesterday, NY time"
+          }
+        }
+      }
+    ]
+  },
+  "name": "Nightly Missed Habits",
+  "description": "Every night at 00:30, logs yesterday's due habits with no check-in as missed so consistency stats stay accurate."
+}

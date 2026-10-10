@@ -39,6 +39,9 @@
       "type": "number",
       "default": 0
     },
+    "goal_id": {
+      "type": "string"
+    },
     "milestones": {
       "type": "array",
       "items": {

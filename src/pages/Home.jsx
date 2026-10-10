@@ -4,6 +4,7 @@ import { Lightbulb, ListTodo, FolderKanban, Clock, Library, Scale, GraduationCap
 import { base44 } from "@/api/base44Client";
 import SectionCard from "@/components/home/SectionCard";
 import SmartBoyBrain from "@/components/home/SmartBoyBrain";
+import ProductivityDashboard from "@/components/dashboard/ProductivityDashboard";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { useWorkspace } from "@/lib/WorkspaceContext";
 
@@ -45,6 +46,8 @@ export default function Home() {
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Command Center</h1>
         <p className="text-sm text-muted-foreground mt-1">What matters right now.</p>
       </div>
+
+      <ProductivityDashboard key={`dash-${workspace}`} workspace={workspace} />
 
       <SmartBoyBrain key={workspace} data={data} workspace={workspace} />
 

@@ -8,6 +8,7 @@ import BriefItem from "@/components/today/BriefItem";
 import TodayList from "@/components/today/TodayList";
 import CalendarSyncButton from "@/components/today/CalendarSyncButton";
 import AutomationFlags from "@/components/automations/AutomationFlags";
+import TodayHabits from "@/components/habits/TodayHabits";
 
 const SECTIONS = [
   ["top_focus", "Top Focus"],
@@ -75,6 +76,8 @@ export default function Today() {
           </Button>
         </div>
       </div>
+
+      {!isSeeding && <TodayHabits key={workspace} workspace={workspace} />}
 
       <AutomationFlags flags={["today", "attention"]} title="From your automations" />
 

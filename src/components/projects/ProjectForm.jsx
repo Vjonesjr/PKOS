@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import GoalPicker from "@/components/goals/GoalPicker";
 
 const STATUSES = ["Idea", "Planned", "Active", "Waiting", "Completed", "Archived"];
 const PRIORITIES = ["low", "medium", "high"];
@@ -20,15 +21,16 @@ export default function ProjectForm({ open, onOpenChange, initial, onSave }) {
         priority: initial.priority || "medium",
         next_action: initial.next_action || "",
         blockers: initial.blockers || "",
+        goal_id: initial.goal_id || "",
       });
     } else {
-      setForm({ title: "", description: "", status: "Idea", priority: "medium", next_action: "", blockers: "" });
+      setForm({ title: "", description: "", status: "Idea", priority: "medium", next_action: "", blockers: "", goal_id: "" });
     }
   }, [initial, open]);
 
   const submit = () => {
     if (!form.title.trim()) return;
-    onSave(form);
+    onSave({ ...form, goal_id: form.goal_id || null });
   };
 
   return (
@@ -68,6 +70,7 @@ export default function ProjectForm({ open, onOpenChange, initial, onSave }) {
           </div>
           <Input placeholder="Next action" value={form.next_action} onChange={(e) => setForm({ ...form, next_action: e.target.value })} />
           <Input placeholder="Blockers (if any)" value={form.blockers} onChange={(e) => setForm({ ...form, blockers: e.target.value })} />
+          <GoalPicker value={form.goal_id} onChange={(goal_id) => setForm({ ...form, goal_id })} />
           <Button onClick={submit} disabled={!form.title.trim()} className="w-full">
             Save
           </Button>

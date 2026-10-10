@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Inbox, Library, FolderKanban, GraduationCap, History, Sparkles, Menu, X, Settings, Search, Layers, Sun, Cpu, Zap } from "lucide-react";
+import { Home, Inbox, Library, FolderKanban, GraduationCap, History, Sparkles, Menu, X, Settings, Search, Layers, Sun, Cpu, Zap, Target } from "lucide-react";
 import useAutomationEngine from "@/hooks/useAutomationEngine";
 import UniversalSearch from "@/components/shared/UniversalSearch";
 import QuickCapture from "@/components/shared/QuickCapture";
@@ -16,6 +16,7 @@ const NAV = [
   { to: "/search", label: "Search", icon: Search },
   { to: "/capture", label: "Capture", icon: Inbox },
   { to: "/knowledge", label: "Knowledge", icon: Library },
+  { to: "/goals", label: "Goals", icon: Target },
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/learning", label: "Learning", icon: GraduationCap },
   { to: "/review", label: "Review", icon: History },

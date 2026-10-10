@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 const ENTITY_ORDER = [
   "Project", "Knowledge", "Decision", "Capture", "LearningItem", "Lesson", "Task", "Flashcard",
   "Link", "ReviewEntry", "ContextPack", "Tool", "Device", "AutomationRecipe", "AutomationRun",
+  "Goal", "Habit", "HabitLog",
 ];
 
 export async function buildBackup(workspace) {
@@ -50,6 +51,9 @@ function triggerDownload(blob, filename) {
 
 // Foreign-key fields per entity, and which entity each field references.
 const FK_FIELDS = {
+  Project: ["goal_id"],
+  Habit: ["goal_id"],
+  HabitLog: ["habit_id"],
   Knowledge: ["project_id"],
   Decision: ["project_id"],
   Capture: ["project_id", "knowledge_id"],
@@ -65,6 +69,8 @@ const FK_TARGET_ENTITY = {
   decision_id: "Decision",
   source_capture_id: "Capture",
   learning_item_id: "LearningItem",
+  goal_id: "Goal",
+  habit_id: "Habit",
 };
 
 // Link.source_type / target_type values used across the app -> entity name.
@@ -80,7 +86,7 @@ const LINK_TYPE_TO_ENTITY = {
 };
 
 // Order that respects foreign-key dependencies (referenced entities created first).
-const RESTORE_ORDER = ["Project", "Knowledge", "Decision", "Capture", "LearningItem", "Lesson", "Task", "Flashcard"];
+const RESTORE_ORDER = ["Goal", "Project", "Knowledge", "Decision", "Capture", "LearningItem", "Lesson", "Task", "Flashcard", "Habit", "HabitLog"];
 
 function stripBuiltins(record) {
   const { id, created_date, updated_date, created_by_id, ...rest } = record;

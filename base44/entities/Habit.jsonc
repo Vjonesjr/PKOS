@@ -1,0 +1,104 @@
+{
+  "name": "Habit",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "goal_id": {
+      "type": "string"
+    },
+    "schedule_type": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekdays",
+        "per_week"
+      ],
+      "default": "daily"
+    },
+    "weekdays": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "per_week_target": {
+      "type": "number",
+      "default": 3
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "best_streak": {
+      "type": "number",
+      "default": 0
+    },
+    "workspace": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "demo"
+      ],
+      "default": "personal"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
