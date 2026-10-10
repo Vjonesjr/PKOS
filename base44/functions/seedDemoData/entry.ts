@@ -8,7 +8,21 @@ export default async function (req) {
 
     const W = 'demo';
 
+    // Dates: the demo story was authored around ANCHOR; shift every date so it stays
+    // relative to "today" (user timezone) and the demo never looks stale.
+    const TZ = 'America/New_York';
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date());
+    const DAY = 864e5;
+    const addDays = (s, n) => new Date(Date.parse(`${s}T12:00:00Z`) + n * DAY).toISOString().slice(0, 10);
+    const ANCHOR = '2026-09-28';
+    const offset = Math.round((Date.parse(`${today}T12:00:00Z`) - Date.parse(`${ANCHOR}T12:00:00Z`)) / DAY);
+    const shift = (s) => (s ? addDays(s, offset) : s);
+
     await Promise.all([
+      base44.entities.Goal.deleteMany({ workspace: W }),
+      base44.entities.Habit.deleteMany({ workspace: W }),
+      base44.entities.HabitLog.deleteMany({ workspace: W }),
+      base44.entities.GoalCheckin.deleteMany({ workspace: W }),
       base44.entities.Capture.deleteMany({ workspace: W }),
       base44.entities.Knowledge.deleteMany({ workspace: W }),
       base44.entities.Project.deleteMany({ workspace: W }),
@@ -130,6 +144,35 @@ export default async function (req) {
           { title: 'Wireframes sketched', done: false },
         ],
       },
+      {
+        title: '10K Training Plan',
+        description: 'Eight-week plan to go from 5K to a comfortable 10K.',
+        status: 'Active',
+        priority: 'medium',
+        progress: 50,
+        next_action: 'Run the 7.5 km long run on Sunday',
+        blockers: '',
+        milestones: [
+          { title: 'Run 5K without stopping', done: true },
+          { title: 'Long run of 7 km', done: true },
+          { title: 'Long run of 9 km', done: false },
+          { title: 'Race day', done: false },
+        ],
+      },
+      {
+        title: 'Resume & LinkedIn Refresh',
+        description: 'Rewrite resume and LinkedIn profile around data analytics outcomes.',
+        status: 'Completed',
+        priority: 'high',
+        progress: 100,
+        next_action: '',
+        blockers: '',
+        milestones: [
+          { title: 'Resume rewritten', done: true },
+          { title: 'LinkedIn headline and about updated', done: true },
+          { title: 'Reviewed by 2 mentors', done: true },
+        ],
+      },
     ];
     const projects = await base44.entities.Project.bulkCreate(projectsData.map((p) => ({ ...p, workspace: W })));
     const proj = {};
@@ -158,11 +201,12 @@ export default async function (req) {
       { title: 'Second Brain Methodology', type: 'concept', tags: ['pkm', 'project', 'dashboard'], category: 'PKM', favorite: true, content: 'CODE — Capture, Organize, Distill, Express — describes the lifecycle of a personal knowledge system: gather raw material, file it usefully, compress it to its essence, and ship it as output.', project: 'Personal Knowledge System Research' },
       { title: 'Zettelkasten Method', type: 'concept', tags: ['pkm', 'learning'], category: 'PKM', content: 'Each note stands alone with a single idea, links explicitly to related notes, and gets an identifier rather than a folder. The network of links becomes more valuable than any single note.', project: 'Personal Knowledge System Research' },
       { title: 'Spaced Repetition Science', type: 'concept', tags: ['learning', 'memory'], category: 'Learning Science', content: "Reviewing material at increasing intervals — right before you'd otherwise forget it — is dramatically more efficient than cramming. The forgetting curve flattens with each successful review." },
+      { title: 'Scanned Article Notes: Deep Work', type: 'reference', tags: ['focus', 'productivity', 'scanned'], category: 'Productivity', source: 'Scanned PDF (OCR)', content: "Key points extracted from a scanned article: deep work is focused, distraction-free effort that pushes cognitive limits. Schedule it in fixed blocks, batch shallow work, and track deep hours weekly. Rule of thumb: 90-minute blocks, phone in another room." },
       { title: 'Data Visualization Principles', type: 'reference', tags: ['analytics', 'dashboard', 'design'], category: 'Data', favorite: true, content: "Use position and length before color and area — they're perceived most accurately. Start bar charts at zero. Remove any element that doesn't help answer the chart's question.", project: 'Personal Portfolio Website' },
     ];
     const knowledge = await base44.entities.Knowledge.bulkCreate(
       knowledgeData.map((k) => ({
-        title: k.title, content: k.content, type: k.type, tags: k.tags, category: k.category,
+        title: k.title, content: k.content, type: k.type, tags: k.tags, category: k.category, source: k.source,
         favorite: !!k.favorite, status: k.status || 'active',
         project_id: k.project ? proj[k.project] : undefined,
         workspace: W,
@@ -203,9 +247,20 @@ export default async function (req) {
       { title: 'Talk to 3 people about habit tracking pain points', status: 'todo', priority: 'medium', due_date: '2026-10-20', project: 'Mobile App Prototype' },
       { title: 'Renew passport', status: 'todo', priority: 'medium', due_date: '2026-11-01' },
       { title: 'Schedule annual physical', status: 'todo', priority: 'low', due_date: '2026-09-22' },
+      { title: 'Easy 5 km recovery run', status: 'todo', priority: 'medium', due_date: ANCHOR, project: '10K Training Plan', today: true },
+      { title: 'Buy proper running shoes', status: 'done', priority: 'medium', project: '10K Training Plan' },
+      { title: 'Long run: 7 km', status: 'done', priority: 'high', project: '10K Training Plan' },
+      { title: 'Rewrite resume bullets with outcomes', status: 'done', priority: 'high', project: 'Resume & LinkedIn Refresh' },
+      { title: 'Ask two mentors for resume feedback', status: 'done', priority: 'medium', project: 'Resume & LinkedIn Refresh' },
     ];
+    // A few tasks are pinned to Today so the Today page has work on first open.
+    const TODAY_TASKS = new Set(['Write case study for analytics dashboard project', 'Follow up with recruiters from networking event', 'Easy 5 km recovery run']);
     await base44.entities.Task.bulkCreate(
-      tasksData.map((t) => ({ title: t.title, status: t.status, priority: t.priority, due_date: t.due_date, project_id: t.project ? proj[t.project] : undefined, workspace: W }))
+      tasksData.map((t) => ({
+        title: t.title, status: t.status, priority: t.priority, due_date: shift(t.due_date),
+        today_date: TODAY_TASKS.has(t.title) ? today : undefined,
+        project_id: t.project ? proj[t.project] : undefined, workspace: W,
+      }))
     );
 
     // ---------- Captures ----------
@@ -238,11 +293,12 @@ export default async function (req) {
       { type: 'learning_note', title: 'Groupby + agg with a dict applies different functions per column', content: "e.g. {'sales':'sum','date':'max'} — saves a lot of chained calls.", tags: ['python', 'analytics'], status: 'processed', converted_to_type: 'knowledge' },
       { type: 'reference', title: "Book: 'Building a Second Brain' by Tiago Forte", content: 'Source for the CODE framework (Capture, Organize, Distill, Express).', tags: ['pkm', 'project'], status: 'inbox', project: 'Personal Knowledge System Research' },
       { type: 'idea', title: 'Dashboard widget for flashcards due today', content: 'Would make the review habit more visible on the home screen.', tags: ['dashboard', 'learning'], status: 'inbox', important: true },
+      { type: 'idea', title: 'Run a 10K before winter', content: 'Turned into a goal with key results and a training project.', tags: ['health'], status: 'processed', converted_to_type: 'goal' },
     ];
     await base44.entities.Capture.bulkCreate(
       capturesData.map((c) => ({
         type: c.type, title: c.title, content: c.content, tags: c.tags, status: c.status,
-        important: !!c.important, due_date: c.due_date, converted_to_type: c.converted_to_type,
+        important: !!c.important, due_date: shift(c.due_date), converted_to_type: c.converted_to_type,
         project_id: c.project ? proj[c.project] : undefined,
         workspace: W,
       }))
@@ -261,7 +317,7 @@ export default async function (req) {
       { decision: 'Route simple classification tasks to a cheaper model', context: 'AI costs were climbing as usage grew across features.', alternatives: 'Use one premium model everywhere; route by task complexity', reasoning: "Most classification tasks don't need premium reasoning quality.", expected_result: 'Lower per-request cost without a quality drop on simple tasks.', actual_result: 'Costs dropped noticeably with no complaints about quality.', date: '2026-06-25', status: 'reviewed' },
     ];
     const decisions = await base44.entities.Decision.bulkCreate(
-      decisionsData.map((d) => ({ ...d, project: undefined, project_id: d.project ? proj[d.project] : undefined, workspace: W }))
+      decisionsData.map((d) => ({ ...d, project: undefined, date: shift(d.date), project_id: d.project ? proj[d.project] : undefined, workspace: W }))
     );
     const dec = {};
     decisions.forEach((d, i) => { dec[decisionsData[i].decision] = d.id; });
@@ -276,9 +332,11 @@ export default async function (req) {
       { title: 'Full Zettelkasten was more setup than needed at first', project: 'Personal Knowledge System Research', decisionKey: 'Adopt a lightweight Zettelkasten instead of a full folder system', what_happened: 'Tried to set up the complete ID-and-link system before writing any real notes.', what_worked: "Starting with just 'one idea per note, always link something' was enough to get value.", what_didnt: 'Spent a full weekend on ID schemes instead of capturing actual ideas.', learned: 'Start with the core principle, add structure only once needed.', next_time: 'Begin any new system with the minimum viable version.' },
       { title: 'React Native prototype found UX issues early', project: 'Mobile App Prototype', what_happened: 'Built a rough clickable prototype in a weekend to test the core habit-tracking flow.', what_worked: 'Testing with 3 people surfaced a confusing onboarding step immediately.', what_didnt: 'Polishing visuals before testing the flow would have wasted time.', learned: 'Test the core flow before investing in visual polish.', next_time: 'Get a clickable version in front of people within the first weekend.' },
       { title: 'Case study depth mattered more than portfolio breadth', project: 'Personal Portfolio Website', decisionKey: 'Prioritize case studies over adding more portfolio projects', what_happened: 'Portfolio had 6 shallow projects; feedback consistently asked for more depth on fewer.', what_worked: 'Rewriting the dashboard case study with real decision points got noticeably better feedback.', what_didnt: 'Adding a 7th project instead of deepening existing ones would have repeated the mistake.', learned: 'Depth of thinking shown beats sheer project count.', next_time: 'Cap the portfolio at 3-4 projects with full case studies.' },
+      { title: 'Outcome bullets got 3x more recruiter replies', project: 'Resume & LinkedIn Refresh', what_happened: 'Rewrote every resume bullet to lead with a measurable result, then re-applied to similar roles.', what_worked: 'Quantified bullets and a focused headline.', what_didnt: 'The old task-list style resume was invisible to recruiters.', learned: 'Lead with outcomes; numbers make experience legible.', next_time: 'Keep a running "wins log" so numbers are ready when needed.' },
+      { title: 'Too many goals at once diluted everything', what_happened: 'Added "Learn Mandarin basics" on top of the job search, consulting launch and PKM work. Practice stopped within three weeks.', what_worked: 'Dropping it explicitly freed real time for the job search.', what_didnt: 'Hoping willpower would cover a fifth active goal.', learned: 'Three or four active goals is the realistic ceiling; drop goals deliberately instead of letting them rot.', next_time: 'Before adding a goal, pause or drop one.' },
       { title: 'Cheap model routing needed monitoring, not just setup', what_happened: 'Set up cost-based routing and assumed it was done.', what_worked: 'Cost dropped as expected in the first week.', what_didnt: 'A model version update silently degraded quality on one route for two weeks before anyone noticed.', learned: 'Routing rules need ongoing quality monitoring, not just initial setup.', next_time: 'Add a weekly spot-check on output quality per route.' },
     ];
-    await base44.entities.Lesson.bulkCreate(
+    const lessons = await base44.entities.Lesson.bulkCreate(
       lessonsData.map((l) => ({
         title: l.title, what_happened: l.what_happened, what_worked: l.what_worked, what_didnt: l.what_didnt,
         learned: l.learned, next_time: l.next_time,
@@ -341,7 +399,7 @@ export default async function (req) {
     await base44.entities.Flashcard.bulkCreate(
       flashcardsData.map((f) => ({
         front: f.front, back: f.back, confidence: f.confidence, review_count: f.review_count,
-        last_reviewed: f.last_reviewed, next_review_date: f.next_review_date,
+        last_reviewed: shift(f.last_reviewed), next_review_date: shift(f.next_review_date),
         learning_item_id: f.learn ? learn[f.learn] : undefined,
         workspace: W,
       }))
@@ -361,7 +419,7 @@ export default async function (req) {
       { type: 'weekly', date: '2026-09-21', summary: 'Week 3: Learning systems focus.', content: 'Made strong progress on Pandas and DAX. Started the PKM research project. LLC filing submitted.' },
       { type: 'weekly', date: '2026-09-27', summary: 'Week 4: Steady across the board.', content: 'No single project dominated — portfolio, job search, and PKM research all moved forward incrementally. Home office upgrade still waiting on budget.' },
     ];
-    await base44.entities.ReviewEntry.bulkCreate(reviewData.map((r) => ({ ...r, workspace: W })));
+    await base44.entities.ReviewEntry.bulkCreate(reviewData.map((r) => ({ ...r, date: shift(r.date), workspace: W })));
 
     // ---------- Links (knowledge<->knowledge backlinks) ----------
     const kkPairs = [
@@ -373,6 +431,8 @@ export default async function (req) {
       ['Data Visualization Principles', 'Dashboard Design Principles'],
       ['Prompt Engineering Patterns', 'AI Agents Architecture'],
       ['Portfolio Case Study Structure', 'Dashboard Design Principles'],
+      ['Scanned Article Notes: Deep Work', 'Second Brain Methodology'],
+      ['Scanned Article Notes: Deep Work', 'Spaced Repetition Science'],
     ];
     const links = kkPairs.map(([a, b]) => ({
       source_type: 'knowledge', source_id: know[a], target_type: 'knowledge', target_id: know[b], workspace: W,
@@ -526,9 +586,15 @@ export default async function (req) {
       },
     ]);
 
+    const goalCounts = await seedGoalsAndHabits(base44, {
+      W, today, addDays, ownerId: user.id, proj,
+      lessonIds: { achieved: lessons.find((l) => l.title.startsWith('Outcome bullets'))?.id, dropped: lessons.find((l) => l.title.startsWith('Too many goals'))?.id },
+    });
+
     return Response.json({
       success: true,
       counts: {
+        ...goalCounts,
         projects: projects.length,
         knowledge: knowledge.length,
         tasks: tasksData.length,
@@ -548,4 +614,94 @@ export default async function (req) {
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
+}
+
+/**
+ * Goals, habits, ~6 weeks of habit history and 4 weeks of goal check-ins.
+ * History is deterministic (pattern-based), relative to today, and leaves
+ * today + the current week open so Today check-ins and the weekly check-in
+ * are immediately actionable.
+ */
+async function seedGoalsAndHabits(base44, { W, today, addDays, ownerId, proj, lessonIds }) {
+  const E = base44.entities;
+  const goalsData = [
+    { key: 'role', title: 'Land a Data Analyst Role', why: 'Move into work that uses analysis daily, with a clear growth path.', area: 'Career', target_date: addDays(today, 75), status: 'Active', progress_mode: 'key_results',
+      key_results: [{ title: 'Tailored applications', current: 14, target: 25, unit: 'apps' }, { title: 'Interviews', current: 2, target: 5, unit: 'interviews' }, { title: 'Offer accepted', current: 0, target: 1, unit: 'offer' }] },
+    { key: 'consult', title: 'Launch Freelance Data Consulting', why: 'Build an income stream that compounds independent of one employer.', area: 'Finance', target_date: addDays(today, 120), status: 'Active', progress_mode: 'rollup' },
+    { key: 'pkm', title: 'Build a Personal Knowledge System', why: 'Stop losing good ideas; turn notes into output.', area: 'Learning', target_date: addDays(today, 45), status: 'Active', progress_mode: 'manual', manual_progress: 60 },
+    { key: 'run', title: 'Run a 10K', why: 'Energy and focus for everything else.', area: 'Health', target_date: addDays(today, 35), status: 'Active', progress_mode: 'key_results',
+      key_results: [{ title: 'Longest run', current: 7, target: 10, unit: 'km' }, { title: 'Training runs', current: 18, target: 30, unit: 'runs' }] },
+    { key: 'resume', title: 'Rebuild Resume & LinkedIn', why: 'A strong profile is the entry ticket for the job search.', area: 'Career', target_date: addDays(today, -30), status: 'Achieved', progress_mode: 'rollup' },
+    { key: 'mandarin', title: 'Learn Mandarin Basics', why: 'Curiosity, and travel someday.', area: 'Personal', target_date: addDays(today, 90), status: 'Dropped', progress_mode: 'manual', manual_progress: 10 },
+  ];
+  const goals = await E.Goal.bulkCreate(goalsData.map(({ key, ...g }) => ({ ...g, workspace: W })));
+  const gid = Object.fromEntries(goals.map((g, i) => [goalsData[i].key, g.id]));
+
+  // One goal per project.
+  const projectGoal = {
+    'Data Analytics Job Search': 'role', 'Learn Python for Data Analysis': 'role', 'Personal Portfolio Website': 'role',
+    'Small Business Launch': 'consult', 'Home Office Upgrade': 'consult',
+    'Personal Knowledge System Research': 'pkm', 'Mobile App Prototype': 'pkm',
+    '10K Training Plan': 'run', 'Resume & LinkedIn Refresh': 'resume',
+  };
+  await E.Project.bulkUpdate(Object.entries(projectGoal).filter(([t]) => proj[t]).map(([t, k]) => ({ id: proj[t], goal_id: gid[k] })));
+
+  // Lessons tied to the achieved and dropped goals.
+  await E.Link.bulkCreate([
+    lessonIds.achieved && { source_type: 'goal', source_id: gid.resume, target_type: 'lesson', target_id: lessonIds.achieved, label: 'lesson', workspace: W },
+    lessonIds.dropped && { source_type: 'goal', source_id: gid.mandarin, target_type: 'lesson', target_id: lessonIds.dropped, label: 'lesson', workspace: W },
+  ].filter(Boolean));
+
+  // Habits. `pattern(i)` returns the status i days ago (i >= 1), or null for no log.
+  const start = addDays(today, -45);
+  const habitsData = [
+    { title: 'Deep Work 90 min', goal: 'role', schedule_type: 'weekdays', weekdays: [1, 2, 3, 4, 5], pattern: () => 'done' }, // unbroken streak
+    { title: 'SQL practice 20 min', goal: 'role', schedule_type: 'daily', pattern: (i) => (i <= 2 ? 'missed' : 'done') }, // streak just broke
+    { title: 'Read 20 pages', goal: 'pkm', schedule_type: 'daily', pattern: (i) => (i % 5 === 1 ? 'missed' : 'done') }, // recent misses, still going
+    { title: 'Client outreach', goal: 'consult', schedule_type: 'weekdays', weekdays: [1, 3, 5], pattern: (i) => (i === 3 || i === 12 ? 'skipped' : 'done') }, // skips keep streak
+    { title: 'Run', goal: 'run', schedule_type: 'per_week', per_week_target: 3, pattern: (i) => (i % 7 === 1 || i % 7 === 3 || i % 7 === 5 ? 'done' : null) },
+  ];
+  const habits = await E.Habit.bulkCreate(habitsData.map((h) => ({
+    title: h.title, goal_id: gid[h.goal], schedule_type: h.schedule_type, weekdays: h.weekdays || [], per_week_target: h.per_week_target || 3,
+    active: true, start_date: start, best_streak: 0, workspace: W,
+  })));
+
+  const weekday = (s) => new Date(`${s}T12:00:00Z`).getUTCDay();
+  const logs = [];
+  habits.forEach((habit, idx) => {
+    const h = habitsData[idx];
+    for (let i = 1; i <= 42; i++) {
+      const date = addDays(today, -i);
+      if (h.schedule_type === 'weekdays' && !h.weekdays.includes(weekday(date))) continue;
+      const status = h.pattern(i);
+      if (status) logs.push({ habit_id: habit.id, date, status, owner_id: ownerId, workspace: W });
+    }
+  });
+  await E.HabitLog.bulkCreate(logs);
+
+  // Goal check-ins for the previous 4 ISO weeks (current week left open).
+  const dow = weekday(today) || 7;
+  const thisMonday = addDays(today, 1 - dow);
+  const history = {
+    role: [['on_track', 30, 'Resume live, first applications out'], ['on_track', 38, 'Two recruiter calls'], ['at_risk', 41, 'Slow week, few applications'], ['on_track', 48, 'Second interview booked']],
+    consult: [['on_track', 20, 'Business plan done'], ['on_track', 26, 'LLC filed'], ['at_risk', 28, 'State backlog on LLC'], ['at_risk', 30, 'Still waiting; drafting site in parallel']],
+    pkm: [['on_track', 40, 'Tool survey done'], ['on_track', 48, 'Zettelkasten notes'], ['on_track', 55, 'Linked old notes'], ['on_track', 60, 'Methodology draft started']],
+    run: [['on_track', 25, 'Ran 5K non-stop'], ['on_track', 35, 'Long run 6 km'], ['at_risk', 38, 'Missed two runs, sore knee'], ['at_risk', 47, 'Back on track, 7 km long run']],
+  };
+  const checkins = [];
+  Object.entries(history).forEach(([key, weeks]) => {
+    weeks.forEach(([status, progress, note], w) => {
+      checkins.push({ goal_id: gid[key], week_start: addDays(thisMonday, -7 * (4 - w)), status, progress_snapshot: progress, note, workspace: W });
+    });
+  });
+  await E.GoalCheckin.bulkCreate(checkins);
+
+  // Last week's saved AI-style summary for the Weekly Review.
+  await E.ReviewEntry.create({
+    type: 'weekly', date: addDays(thisMonday, -7), workspace: W,
+    summary: 'Protect two deep-work blocks for applications, and keep the consulting site moving while the LLC is pending.',
+    content: '- Job search rebounded: a second interview is booked.\n- Consulting has been "at risk" two weeks running, blocked by paperwork you do not control.\n- Knowledge system is steadily on track.\n- 10K training recovered after a sore-knee week.',
+  });
+
+  return { goals: goals.length, habits: habits.length, habitLogs: logs.length, goalCheckins: checkins.length };
 }
