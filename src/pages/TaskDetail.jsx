@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, CalendarDays, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { taskStatusPatch } from "@/lib/taskStatus";
 import { useWorkspace } from "@/lib/WorkspaceContext";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -76,7 +77,7 @@ export default function TaskDetail() {
     await base44.entities.Task.update(id, {
       title: form.title.trim(),
       description: form.description.trim(),
-      status: form.status,
+      ...taskStatusPatch(task, form.status),
       priority: form.priority,
       due_date: form.due_date || null,
       project_id: form.project_id || null,
@@ -171,6 +172,7 @@ export default function TaskDetail() {
           </div>
         </div>
 
+        {task.completed_date && <p className="text-xs text-emerald-400">Completed on {task.completed_date}</p>}
         {task.today_date && (
           <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-foreground/80">
             <CalendarDays className="h-3.5 w-3.5 text-primary" />

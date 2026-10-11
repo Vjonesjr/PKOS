@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { taskStatusPatch } from "@/lib/taskStatus";
 import EmptyState from "@/components/shared/EmptyState";
 import { ListTodo } from "lucide-react";
 import { useWorkspace } from "@/lib/WorkspaceContext";
@@ -21,7 +22,7 @@ export default function ProjectTasks({ tasks, projectId, onChange }) {
   };
 
   const toggleDone = async (task) => {
-    await base44.entities.Task.update(task.id, { status: task.status === "done" ? "todo" : "done" });
+    await base44.entities.Task.update(task.id, taskStatusPatch(task, task.status === "done" ? "todo" : "done"));
     onChange();
   };
 

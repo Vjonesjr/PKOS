@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { format } from "date-fns";
 import { Sparkles, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { taskStatusPatch } from "@/lib/taskStatus";
 import { Button } from "@/components/ui/button";
 import { useWorkspace } from "@/lib/WorkspaceContext";
 import BriefItem from "@/components/today/BriefItem";
@@ -85,7 +86,7 @@ export default function Today() {
 
       <TodayList
         tasks={todayTasks}
-        onToggle={async (t) => { await base44.entities.Task.update(t.id, { status: t.status === "done" ? "todo" : "done" }); loadToday(); }}
+        onToggle={async (t) => { await base44.entities.Task.update(t.id, taskStatusPatch(t, t.status === "done" ? "todo" : "done")); loadToday(); }}
         onRemove={async (t) => { await base44.entities.Task.update(t.id, { today_date: null }); loadToday(); }}
       />
 

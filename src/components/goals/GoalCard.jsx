@@ -13,7 +13,9 @@ const STATUS_STYLES = {
   Draft: "bg-secondary text-muted-foreground",
 };
 
-export default function GoalCard({ goal, projects, habitCount, onEdit }) {
+import CheckinChart from "@/components/goals/CheckinChart";
+
+export default function GoalCard({ goal, projects, checkins = [], habitCount, onEdit }) {
   const progress = goalProgress(goal, projects);
   return (
     <div className="rounded-2xl border border-border bg-card/60 p-4 space-y-3">
@@ -32,6 +34,7 @@ export default function GoalCard({ goal, projects, habitCount, onEdit }) {
         <div className="flex justify-between text-xs"><span className="text-muted-foreground">Progress</span><span className="text-foreground/90">{progress}%</span></div>
         <Progress value={progress} className="h-1.5" />
       </div>
+      <CheckinChart checkins={checkins} />
       {goal.progress_mode === "key_results" && (goal.key_results || []).map((k, i) => (
         <p key={i} className="text-xs text-foreground/80">• {k.title}: {k.current || 0}/{k.target} {k.unit}</p>
       ))}

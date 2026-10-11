@@ -15,12 +15,13 @@ export default function GoalsTab() {
   const [drafting, setDrafting] = useState(false);
 
   const load = useCallback(async () => {
-    const [goals, projects, habits] = await Promise.all([
+    const [goals, projects, habits, checkins] = await Promise.all([
       base44.entities.Goal.filter({ workspace }, { sort: "-updated_date", limit: 50 }),
       base44.entities.Project.filter({ workspace, goal_id: { $exists: true } }, { limit: 200, fields: ["goal_id", "status", "progress", "title"] }),
       base44.entities.Habit.filter({ workspace, active: true }, { limit: 100, fields: ["goal_id"] }),
+      base44.entities.GoalCheckin.filter({ workspace }, { sort: "-week_start", limit: 300, fields: ["goal_id", "week_start", "progress_snapshot"] }),
     ]);
-    setData({ goals: goals.items, projects: projects.items, habits: habits.items });
+    setData({ goals: goals.items, projects: projects.items, habits: habits.items, checkins: checkins.items });
   }, [workspace]);
 
   useEffect(() => { load(); }, [load]);
@@ -55,6 +56,7 @@ export default function GoalsTab() {
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {data.goals.map((g) => (
             <GoalCard key={g.id} goal={g} projects={data.projects.filter((p) => p.goal_id === g.id)}
+              checkins={data.checkins.filter((c) => c.goal_id === g.id)}
               habitCount={data.habits.filter((h) => h.goal_id === g.id).length} onEdit={() => setEditing(g)} />
           ))}
         </div>
