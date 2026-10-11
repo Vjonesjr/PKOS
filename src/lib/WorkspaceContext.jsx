@@ -24,13 +24,21 @@ export function WorkspaceProvider({ children }) {
 
   useEffect(() => {
     if (workspace !== "demo" || seedAttempted.current) return;
+    // Already confirmed seeded this session: skip the network check entirely.
+    if (sessionStorage.getItem("pkos_demo_seeded")) return;
     seedAttempted.current = true;
     (async () => {
       try {
-        const existing = await base44.entities.Project.filter({ workspace: "demo" }, "-created_date", 1);
-        if (existing.length > 0) return;
-        setIsSeeding(true);
-        await base44.functions.invoke("seedDemoData", {});
+        const existing = await base44.entities.Project.count({ workspace: "demo" });
+        if (existing === 0) {
+          setIsSeeding(true);
+          await base44.functions.invoke("seedDemoData", {});
+        }
+        sessionStorage.setItem("pkos_demo_seeded", "1");
+      } catch (e) {
+        // Background check only: on a rate limit, retry on the next workspace switch instead of crashing.
+        seedAttempted.current = false;
+        console.warn("Demo seed check skipped:", e.message);
       } finally {
         setIsSeeding(false);
       }
