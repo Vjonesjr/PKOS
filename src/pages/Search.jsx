@@ -22,14 +22,22 @@ export default function SearchPage() {
   const load = useCallback(async () => {
     const version = ++requestVersion.current;
     if (isSeeding) return;
-    const [captures, knowledge, projects, tasks, learning, decisions, lessons] = await Promise.all([
-      base44.entities.Capture.filter({ workspace }, "-created_date", 300),
-      base44.entities.Knowledge.filter({ workspace }, "-updated_date", 300),
-      base44.entities.Project.filter({ workspace }, "-updated_date", 200),
-      base44.entities.Task.filter({ workspace }, "-updated_date", 300),
-      base44.entities.LearningItem.filter({ workspace }, "-updated_date", 200),
-      base44.entities.Decision.filter({ workspace }, "-updated_date", 200),
-      base44.entities.Lesson.filter({ workspace }, "-created_date", 200),
+    // Smaller pages, fetched in two waves, with one backoff retry to stay under the app's rate limit.
+    const get = async (entity, sort, limit) => {
+      try { return await entity.filter({ workspace }, sort, limit); }
+      catch (e) {
+        if (!/rate limit/i.test(e?.message || "")) throw e;
+        await new Promise((r) => setTimeout(r, 2500));
+        return entity.filter({ workspace }, sort, limit);
+      }
+    };
+    const e = base44.entities;
+    const [captures, knowledge, projects, tasks] = await Promise.all([
+      get(e.Capture, "-created_date", 100), get(e.Knowledge, "-updated_date", 100),
+      get(e.Project, "-updated_date", 100), get(e.Task, "-updated_date", 100),
+    ]);
+    const [learning, decisions, lessons] = await Promise.all([
+      get(e.LearningItem, "-updated_date", 60), get(e.Decision, "-updated_date", 60), get(e.Lesson, "-created_date", 60),
     ]);
     if (version !== requestVersion.current) return;
     setData({ workspace, capture: captures, knowledge, project: projects, task: tasks, learning, decision: decisions, lesson: lessons });
