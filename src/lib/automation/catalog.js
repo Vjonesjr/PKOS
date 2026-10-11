@@ -66,7 +66,7 @@ export const TRIGGERS = {
 export const MODES = { create: "Immediate", update: "Immediate", scan: "While app is open", nightly: "Nightly check" };
 export const isNightly = (key) => TRIGGERS[key]?.event === "nightly";
 // Conditions the nightly server check understands.
-export const NIGHTLY_CONDITIONS = ["status", "text"];
+export const NIGHTLY_CONDITIONS = ["tag", "text", "status"];
 
 export const CONDITIONS = {
   tag: { label: "Tag is", needsValue: true, test: (r, v) => (r.tags || []).some((t) => t.toLowerCase() === v.toLowerCase()) },

@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CONDITIONS } from "@/lib/automation/catalog";
 
-export default function ConditionEditor({ conditions, onChange, projects, allowed }) {
+import SuggestInput from "@/components/automations/SuggestInput";
+
+export default function ConditionEditor({ conditions, onChange, projects, allowed, trigger, workspace }) {
   const options = Object.entries(CONDITIONS).filter(([k]) => !allowed || allowed.includes(k));
   const set = (i, patch) => onChange(conditions.map((c, j) => (j === i ? { ...c, ...patch } : c)));
   return (
@@ -29,6 +31,8 @@ export default function ConditionEditor({ conditions, onChange, projects, allowe
                 <SelectTrigger className="w-32"><SelectValue placeholder="Choose" /></SelectTrigger>
                 <SelectContent>{def.options.map((o) => <SelectItem key={o} value={o} className="capitalize">{o}</SelectItem>)}</SelectContent>
               </Select>
+            ) : (c.field === "tag" || c.field === "text") ? (
+              <SuggestInput field={c.field} value={c.value} onChange={(v) => set(i, { value: v })} trigger={trigger} workspace={workspace} />
             ) : def?.needsValue ? (
               <Input value={c.value} onChange={(e) => set(i, { value: e.target.value })} placeholder="Value" className="min-w-32 flex-1" />
             ) : null}

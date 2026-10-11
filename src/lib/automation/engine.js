@@ -1,6 +1,7 @@
 import { base44 } from "@/api/base44Client";
 import { TRIGGERS, TYPES, matchesTrigger, matchesConditions, recordTitle } from "@/lib/automation/catalog";
 import { ACTIONS, actionApplies } from "@/lib/automation/actions";
+import { claimEvent, releaseEvent } from "@/lib/automation/claim";
 
 // Loop protection:
 // 1) callers provide a stable key for scan events or an event-specific key for live changes,
@@ -25,6 +26,8 @@ export async function processRecord(recipe, type, record, runKeys, explicitKey) 
   const key = explicitKey || `${recipe.id}:${record.id}`;
   if (runKeys.has(key)) return;
   runKeys.add(key);
+  // Cross-tab / cross-device guard: only the first claimant of this event key proceeds.
+  if (!(await claimEvent(key, recipe.workspace))) return;
   const action = ACTIONS[recipe.action];
   const base = { recipe_id: recipe.id, recipe_name: recipe.name, trigger: recipe.trigger, action: recipe.action, record_type: type, record_id: record.id, record_title: recordTitle(type, record), workspace: recipe.workspace, run_key: key, source: "live", digest_date: localDate() };
 
@@ -43,6 +46,7 @@ export async function processRecord(recipe, type, record, runKeys, explicitKey) 
   } catch (e) {
     // A transient failure should be eligible for retry instead of being suppressed for the rest of the session.
     runKeys.delete(key);
+    await releaseEvent(key);
     await base44.entities.AutomationRun.create({ ...base, status: "failed", message: e.message || "Unknown error" });
     await bumpRecipe(recipe, "failed");
   }

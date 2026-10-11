@@ -28,6 +28,12 @@ async function allPages(entity, query, opts = {}) {
   return out;
 }
 
+// "First one wins": upsert keyed on claim_key creates the row exactly once across concurrent runs.
+async function claim(db, key, owner_id, workspace) {
+  const res = await db.AutomationClaim.upsert([{ claim_key: key, owner_id, workspace }], { key: 'claim_key' });
+  return res.created === 1;
+}
+
 async function markMissed(db, date) {
   const wd = weekday(date);
   const habits = await allPages(db.Habit, { active: true });
@@ -49,7 +55,8 @@ function matches(recipe, rec) {
   return (recipe.conditions || []).every((c) => {
     const v = String(c.value || '').toLowerCase();
     if (c.field === 'status') return String(rec.status ?? (rec.active === false ? 'Paused' : 'Active')).toLowerCase() === v;
-    if (c.field === 'text') return String(rec.title || '').toLowerCase().includes(v);
+    if (c.field === 'text') return [rec.title, rec.why, rec.content, rec.note].join(' ').toLowerCase().includes(v);
+    if (c.field === 'tag') return (rec.tags || []).some((t) => String(t).toLowerCase() === v);
     return false;
   });
 }
@@ -125,8 +132,13 @@ async function evaluateRecipes(db, recipes, D, dryRun) {
     }));
     if (dryRun) { preview.push(...rows); continue; }
     if (!rows.length) continue;
-    const existing = new Set((await allPages(db.AutomationRun, { run_key: { $in: rows.map((r) => r.run_key) } }, { fields: ['run_key'] })).map((r) => r.run_key));
-    const fresh = rows.filter((r) => !existing.has(r.run_key));
+    // Atomic claim per event: only rows whose claim we *created* are written, so overlapping runs can't duplicate.
+    const fresh = [];
+    for (let i = 0; i < rows.length; i += 6) {
+      const batch = rows.slice(i, i + 6);
+      const won = await Promise.all(batch.map((r) => claim(db, r.run_key, r.owner_id, r.workspace)));
+      batch.forEach((r, j) => won[j] && fresh.push(r));
+    }
     if (!fresh.length) continue;
     await db.AutomationRun.bulkCreate(fresh);
     created += fresh.length;
@@ -147,11 +159,12 @@ async function buildDigests(base44, db, D) {
   for (const [digest_key, g] of Object.entries(groups)) {
     const items = g.runs.slice(0, 50).map((r) => ({ recipe_name: r.recipe_name, record_type: r.record_type, record_id: r.record_id, record_title: r.record_title, status: r.status, message: r.message, source: r.source || 'live' }));
     const data = { digest_key, owner_id: g.owner, date: D, total: g.runs.length, pending: g.runs.filter((r) => r.status === 'pending_review').length, items, workspace: g.workspace };
-    const [existing] = (await db.DailyDigest.filter({ digest_key }, { limit: 1 })).items;
-    if (existing?.emailed) continue;
-    const digest = existing ? await db.DailyDigest.update(existing.id, data) : await db.DailyDigest.create({ ...data, emailed: false });
+    // One digest per key, enforced by upsert; the email is guarded by its own atomic claim.
+    const { records } = await db.DailyDigest.upsert([data], { key: 'digest_key' });
+    const digest = records[0];
     digests++;
     if (g.workspace !== 'personal') continue; // demo digests are in-app only
+    if (!(await claim(db, `email:${digest_key}`, g.owner, g.workspace))) continue;
     const [owner] = await db.User.filter({ id: g.owner });
     if (!owner?.email) continue;
     await base44.asServiceRole.integrations.Core.SendEmail({
@@ -162,7 +175,7 @@ async function buildDigests(base44, db, D) {
         highlights: items.slice(0, 8).map((i) => `${i.record_title}: ${i.message}`).join(' • ') + (items.length > 8 ? ` • and ${items.length - 8} more` : ''),
       },
     });
-    await db.DailyDigest.update(digest.id || existing.id, { emailed: true });
+    await db.DailyDigest.update(digest.id, { emailed: true });
     emails++;
   }
   return { digests, emails };

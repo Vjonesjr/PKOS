@@ -39,6 +39,7 @@ export default async function (req) {
       base44.entities.AutomationRun.deleteMany({ workspace: W }),
       base44.entities.AutomationRecipe.deleteMany({ workspace: W }),
       base44.entities.DailyDigest.deleteMany({ workspace: W }),
+      base44.entities.AutomationClaim.deleteMany({ workspace: W }),
     ]);
 
     // ---------- Projects ----------
@@ -615,10 +616,12 @@ export default async function (req) {
     const habitPage = await base44.entities.Habit.filter({ workspace: W, active: true }, { limit: 1 });
     const g = goalPage.items[0], h = habitPage.items[0];
     const sampleRuns = [];
-    if (g) sampleRuns.push({ recipe_id: byName['Goal deadline watch'].id, recipe_name: 'Goal deadline watch', trigger: 'goal_due_soon', action: 'surface_today', record_type: 'goal', record_id: g.id, record_title: g.title, status: 'success', message: `Target date ${g.target_date} is coming up`, flag: 'today', flag_open: true, source: 'nightly', digest_date: yesterday, owner_id: user.id, run_key: `demo:${g.id}:${yesterday}`, workspace: W });
-    if (h) sampleRuns.push({ recipe_id: byName['Pause neglected habits'].id, recipe_name: 'Pause neglected habits', trigger: 'habit_streak_broken', action: 'propose_status', record_type: 'habit', record_id: h.id, record_title: h.title, status: 'pending_review', message: `Change status to Paused · Streak broken on ${yesterday}`, flag: 'none', flag_open: false, source: 'nightly', digest_date: yesterday, owner_id: user.id, run_key: `demo:${h.id}:${yesterday}`, workspace: W });
+    if (g) sampleRuns.push({ recipe_id: byName['Goal deadline watch'].id, recipe_name: 'Goal deadline watch', trigger: 'goal_due_soon', action: 'surface_today', record_type: 'goal', record_id: g.id, record_title: g.title, status: 'success', message: `Target date ${g.target_date} is coming up`, flag: 'today', flag_open: true, source: 'nightly', digest_date: yesterday, owner_id: user.id, run_key: `${byName['Goal deadline watch'].id}:${g.id}:goal_due_soon:${g.target_date}`, workspace: W });
+    if (h) sampleRuns.push({ recipe_id: byName['Pause neglected habits'].id, recipe_name: 'Pause neglected habits', trigger: 'habit_streak_broken', action: 'propose_status', record_type: 'habit', record_id: h.id, record_title: h.title, status: 'pending_review', message: `Change status to Paused · Streak broken on ${yesterday}`, flag: 'none', flag_open: false, source: 'nightly', digest_date: yesterday, owner_id: user.id, run_key: `${byName['Pause neglected habits'].id}:${h.id}:habit_streak_broken:${yesterday}`, workspace: W });
     if (sampleRuns.length) {
       await base44.entities.AutomationRun.bulkCreate(sampleRuns);
+      // Claim the sample keys so the real nightly check won't re-create these same events.
+      await base44.asServiceRole.entities.AutomationClaim.upsert(sampleRuns.map((r) => ({ claim_key: r.run_key, owner_id: user.id, workspace: W })), { key: 'claim_key' });
       await base44.asServiceRole.entities.DailyDigest.create({
         digest_key: `${user.id}:${W}:${yesterday}`, owner_id: user.id, date: yesterday, total: sampleRuns.length,
         pending: sampleRuns.filter((r) => r.status === 'pending_review').length, emailed: false, workspace: W,

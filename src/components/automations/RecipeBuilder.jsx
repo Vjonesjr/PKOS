@@ -55,7 +55,7 @@ export default function RecipeBuilder({ draft, onClose, onSaved, workspace, proj
             </Select>
             {TRIGGERS[r.trigger] && <div className="mt-2"><ModeBadge trigger={r.trigger} /></div>}
           </Step>
-          <Step label="IF (optional)"><ConditionEditor conditions={r.conditions} onChange={(c) => set({ conditions: c })} projects={projects} allowed={nightly ? NIGHTLY_CONDITIONS : null} /></Step>
+          <Step label="IF (optional)"><ConditionEditor conditions={r.conditions} onChange={(c) => set({ conditions: c })} projects={projects} allowed={nightly ? NIGHTLY_CONDITIONS : null} trigger={r.trigger} workspace={workspace} /></Step>
           <Step label="THEN">
             <div className="space-y-2">
               <Select value={r.action || ""} onValueChange={(v) => set({ action: v })}>
