@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, CalendarDays, Trash2 } from "lucide-react";
+import { ArrowLeft, Archive, ArchiveRestore, CalendarDays, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { taskStatusPatch } from "@/lib/taskStatus";
@@ -99,6 +99,14 @@ export default function TaskDetail() {
     navigate(-1);
   };
 
+  // Archived tasks leave active lists but remain in search.
+  const toggleArchive = async () => {
+    const archived = !task.archived;
+    await base44.entities.Task.update(id, { archived });
+    if (archived) navigate(-1);
+    else setTask({ ...task, archived });
+  };
+
   if (notFound) {
     return (
       <div className="mx-auto max-w-2xl py-16 text-center">
@@ -121,9 +129,14 @@ export default function TaskDetail() {
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Task Details</h1>
           <p className="mt-1 text-sm text-muted-foreground">Update the task without losing its project or source connections.</p>
         </div>
+        <div className="flex gap-1">
+        <Button size="sm" variant="ghost" onClick={toggleArchive} aria-label={task.archived ? "Restore task" : "Archive task"} title={task.archived ? "Restore task" : "Archive task"}>
+          {task.archived ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
+        </Button>
         <Button size="sm" variant="ghost" onClick={remove} aria-label="Delete task" title="Delete task">
           <Trash2 className="h-4 w-4 text-destructive" />
         </Button>
+        </div>
       </div>
 
       <div className="space-y-4 rounded-2xl border border-border bg-card/60 p-5 sm:p-6">

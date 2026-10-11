@@ -23,6 +23,7 @@ export default function SearchResultGroup({ type, records, query }) {
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-medium text-foreground/90 truncate">{highlightMatch(getTitle(type, r), query)}</p>
                 {r.status && <StatusBadge value={r.status} />}
+                {r.archived && <StatusBadge value="Archived" />}
               </div>
               {snippet && (
                 <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{highlightMatch(snippet, query)}</p>

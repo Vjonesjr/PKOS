@@ -30,7 +30,7 @@ export default function Today() {
   const [todayTasks, setTodayTasks] = useState([]);
 
   const loadToday = useCallback(async () => {
-    if (!isSeeding) setTodayTasks(await base44.entities.Task.filter({ workspace, today_date: today }, "-created_date", 100));
+    if (!isSeeding) setTodayTasks(await base44.entities.Task.filter({ workspace, today_date: today, archived: { $ne: true } }, "-created_date", 100));
   }, [workspace, today, isSeeding]);
 
   useEffect(() => { loadToday(); setBrief(null); }, [loadToday]);

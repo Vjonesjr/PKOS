@@ -13,7 +13,7 @@ export default async function(req) {
 
     const today = new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date());
     const tasks = await base44.asServiceRole.entities.Task.filter({
-      workspace: 'personal', status: { $ne: 'done' }, calendar_event_id: { $exists: false },
+      workspace: 'personal', status: { $ne: 'done' }, archived: { $ne: true }, calendar_event_id: { $exists: false },
       $or: [{ today_date: today }, { due_date: today }],
     }, 'title', 50);
 

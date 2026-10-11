@@ -16,8 +16,8 @@ export default function Home() {
   const load = useCallback(async () => {
     if (isSeeding) return;
     const [tasks, projects, captures, knowledge, decisions, flashcards] = await Promise.all([
-      base44.entities.Task.filter({ workspace }, "-updated_date", 60),
-      base44.entities.Project.filter({ workspace }, "-updated_date", 30),
+      base44.entities.Task.filter({ workspace, archived: { $ne: true } }, "-updated_date", 60),
+      base44.entities.Project.filter({ workspace, status: { $ne: "Archived" } }, "-updated_date", 30),
       base44.entities.Capture.filter({ workspace, status: "inbox" }, "-created_date", 10),
       base44.entities.Knowledge.filter({ workspace }, "-updated_date", 10),
       base44.entities.Decision.filter({ workspace }, "-updated_date", 5),

@@ -33,7 +33,7 @@ export default function ProjectDetail() {
       const p = await base44.entities.Project.get(id);
       if (!p || p.workspace !== workspace) throw new Error("Project not found");
       const [t, d, l] = await Promise.all([
-        base44.entities.Task.filter({ project_id: id, workspace }, "-created_date", 100),
+        base44.entities.Task.filter({ project_id: id, workspace, archived: { $ne: true } }, "-created_date", 100),
         base44.entities.Decision.filter({ project_id: id, workspace }, "-date", 100),
         base44.entities.Lesson.filter({ project_id: id, workspace }, "-created_date", 100),
       ]);

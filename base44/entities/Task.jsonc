@@ -38,6 +38,10 @@
       "type": "string",
       "format": "date"
     },
+    "archived": {
+      "type": "boolean",
+      "default": false
+    },
     "project_id": {
       "type": "string"
     },

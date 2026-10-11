@@ -23,8 +23,10 @@ export default function Projects() {
 
   const load = useCallback(async () => {
     if (isSeeding) return;
-    setProjects(await base44.entities.Project.filter({ workspace }, "-updated_date", 200));
-  }, [workspace, isSeeding]);
+    // Archived projects stay out of the active list unless explicitly filtered for (still searchable).
+    const status = statusFilter === "all" ? { $ne: "Archived" } : statusFilter;
+    setProjects(await base44.entities.Project.filter({ workspace, status }, "-updated_date", 200));
+  }, [workspace, isSeeding, statusFilter]);
 
   useEffect(() => {
     load();
@@ -40,7 +42,7 @@ export default function Projects() {
     .filter((p) => (statusFilter === "all" ? true : p.status === statusFilter))
     .filter((p) => (priorityFilter === "all" ? true : p.priority === priorityFilter));
 
-  const visibleStatuses = statusFilter === "all" ? STATUSES : [statusFilter];
+  const visibleStatuses = statusFilter === "all" ? STATUSES.filter((s) => s !== "Archived") : [statusFilter];
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
