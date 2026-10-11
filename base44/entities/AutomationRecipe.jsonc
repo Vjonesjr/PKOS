@@ -44,6 +44,9 @@
         "text": {
           "type": "string"
         },
+        "status": {
+          "type": "string"
+        },
         "target_type": {
           "type": "string"
         },
