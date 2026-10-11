@@ -26,7 +26,7 @@ export default function ConvertMenu({ capture, onConverted }) {
         const rec = await base44.entities.Project.create({ title, description: capture.content, workspace: capture.workspace });
         await markProcessed("project", rec.id);
       } else if (target === "decision") {
-        const rec = await base44.entities.Decision.create({ title, decision: capture.content || title, context: capture.content, project_id: capture.project_id, date: new Date().toISOString().slice(0, 10), workspace: capture.workspace });
+        const rec = await base44.entities.Decision.create({ title, decision: title, context: capture.content && capture.content.trim() !== title.trim() ? capture.content : "", project_id: capture.project_id, date: new Date().toISOString().slice(0, 10), workspace: capture.workspace });
         await markProcessed("decision", rec.id);
       } else if (target === "lesson") {
         const rec = await base44.entities.Lesson.create({ title, what_happened: capture.content, learned: capture.content || title, project_id: capture.project_id, workspace: capture.workspace });

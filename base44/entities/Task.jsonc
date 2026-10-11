@@ -51,6 +51,10 @@
       "type": "string",
       "description": "Google Calendar event created from this task's deadline"
     },
+    "agenda_event_id": {
+      "type": "string",
+      "description": "Google Calendar event created by the morning agenda sync"
+    },
     "scheduled_time": {
       "type": "string"
     },
