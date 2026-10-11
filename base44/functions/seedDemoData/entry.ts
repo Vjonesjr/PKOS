@@ -38,6 +38,7 @@ export default async function (req) {
       base44.entities.Device.deleteMany({ workspace: W }),
       base44.entities.AutomationRun.deleteMany({ workspace: W }),
       base44.entities.AutomationRecipe.deleteMany({ workspace: W }),
+      base44.entities.DailyDigest.deleteMany({ workspace: W }),
     ]);
 
     // ---------- Projects ----------
@@ -558,6 +559,22 @@ export default async function (req) {
         workspace: W,
       },
       {
+        name: 'Celebrate goal check-ins',
+        description: 'Each weekly check-in surfaces a reflection prompt.',
+        enabled: true, trigger: 'goal_checkin_saved', conditions: [], action: 'review_prompt',
+        action_params: { text: 'What moved this goal forward this week?' }, workspace: W,
+      },
+      {
+        name: 'Goal deadline watch',
+        description: 'Nightly: goals due within a week show in Today.',
+        enabled: true, trigger: 'goal_due_soon', conditions: [], action: 'surface_today', action_params: {}, workspace: W,
+      },
+      {
+        name: 'Pause neglected habits',
+        description: 'Nightly: when a streak breaks, propose pausing the habit (needs approval).',
+        enabled: true, trigger: 'habit_streak_broken', conditions: [], action: 'propose_status', action_params: { status: 'Paused' }, workspace: W,
+      },
+      {
         name: 'Process interview captures',
         description: 'Connect Interview captures to the job-search project after approval.',
         enabled: false,
@@ -590,6 +607,24 @@ export default async function (req) {
       W, today, addDays, ownerId: user.id, proj,
       lessonIds: { achieved: lessons.find((l) => l.title.startsWith('Outcome bullets'))?.id, dropped: lessons.find((l) => l.title.startsWith('Too many goals'))?.id },
     });
+
+    // Sample nightly history: one flagged deadline + one pending status proposal, dated yesterday (demo digests are never emailed).
+    const yesterday = addDays(today, -1);
+    const byName = Object.fromEntries(demoRecipes.map((r) => [r.name, r]));
+    const goalPage = await base44.entities.Goal.filter({ workspace: W, status: 'Active' }, { sort: 'target_date', limit: 1 });
+    const habitPage = await base44.entities.Habit.filter({ workspace: W, active: true }, { limit: 1 });
+    const g = goalPage.items[0], h = habitPage.items[0];
+    const sampleRuns = [];
+    if (g) sampleRuns.push({ recipe_id: byName['Goal deadline watch'].id, recipe_name: 'Goal deadline watch', trigger: 'goal_due_soon', action: 'surface_today', record_type: 'goal', record_id: g.id, record_title: g.title, status: 'success', message: `Target date ${g.target_date} is coming up`, flag: 'today', flag_open: true, source: 'nightly', digest_date: yesterday, owner_id: user.id, run_key: `demo:${g.id}:${yesterday}`, workspace: W });
+    if (h) sampleRuns.push({ recipe_id: byName['Pause neglected habits'].id, recipe_name: 'Pause neglected habits', trigger: 'habit_streak_broken', action: 'propose_status', record_type: 'habit', record_id: h.id, record_title: h.title, status: 'pending_review', message: `Change status to Paused · Streak broken on ${yesterday}`, flag: 'none', flag_open: false, source: 'nightly', digest_date: yesterday, owner_id: user.id, run_key: `demo:${h.id}:${yesterday}`, workspace: W });
+    if (sampleRuns.length) {
+      await base44.entities.AutomationRun.bulkCreate(sampleRuns);
+      await base44.asServiceRole.entities.DailyDigest.create({
+        digest_key: `${user.id}:${W}:${yesterday}`, owner_id: user.id, date: yesterday, total: sampleRuns.length,
+        pending: sampleRuns.filter((r) => r.status === 'pending_review').length, emailed: false, workspace: W,
+        items: sampleRuns.map((r) => ({ recipe_name: r.recipe_name, record_type: r.record_type, record_id: r.record_id, record_title: r.record_title, status: r.status, message: r.message, source: 'nightly' })),
+      });
+    }
 
     return Response.json({
       success: true,

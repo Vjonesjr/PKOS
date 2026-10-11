@@ -6,6 +6,8 @@ export async function seedDemoRecipes(projects, targets) {
   const target = targets.find((t) => t.type === "learning") || targets[0];
   const base = { workspace: "demo", run_count: 0 };
   await base44.entities.AutomationRecipe.bulkCreate([
+    { ...base, name: "Celebrate goal check-ins", description: "Each weekly check-in surfaces a reflection prompt.", enabled: true, trigger: "goal_checkin_saved", conditions: [], action: "review_prompt", action_params: { text: "What moved this goal forward this week?" } },
+    { ...base, name: "Goal deadline watch", description: "Nightly: goals due within a week show in Today.", enabled: true, trigger: "goal_due_soon", conditions: [], action: "surface_today", action_params: {} },
     { ...base, name: "High priority task watch", description: "Overdue high-priority tasks show up in Today.", enabled: true, trigger: "task_overdue", conditions: [{ field: "priority", value: "high" }], action: "surface_today", action_params: {} },
     { ...base, name: "Project completion review", description: "Reflect when a project is completed.", enabled: true, trigger: "project_status_changed", conditions: [{ field: "status", value: "Completed" }], action: "review_prompt", action_params: { text: "What did you learn from {title}?" } },
     { ...base, name: "Stalled project watch", description: "Projects without a next action go to Review.", enabled: true, trigger: "project_updated", conditions: [{ field: "no_next_action", value: "" }], action: "add_review", action_params: {} },

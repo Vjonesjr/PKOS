@@ -72,6 +72,19 @@ export const ACTIONS = {
       return { message: "Follow-up created", createdId: t.id };
     },
   },
+  propose_status: {
+    label: "Change goal or habit status", level: "review", params: ["status"], types: ["goal", "habit"],
+    describe: (p) => `Change status to ${p.status || "?"}`,
+    run: async (type, r, p) => {
+      if (type === "habit") {
+        if (!["Active", "Paused"].includes(p.status)) throw new Error("Habits can only be set to Active or Paused");
+        await base44.entities.Habit.update(r.id, { active: p.status === "Active" });
+      } else {
+        await base44.entities.Goal.update(r.id, { status: p.status });
+      }
+      return { message: `Status changed to ${p.status}` };
+    },
+  },
   suggest_link: {
     label: "Link to a learning or knowledge item", level: "review", params: ["target"],
     describe: (p) => `Link to “${p.target_label || "?"}”`,

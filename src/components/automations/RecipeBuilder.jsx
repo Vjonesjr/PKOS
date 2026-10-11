@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from "@/api/base44Client";
-import { TRIGGERS } from "@/lib/automation/catalog";
+import { TRIGGERS, MODES, isNightly, NIGHTLY_CONDITIONS } from "@/lib/automation/catalog";
+import ModeBadge from "@/components/automations/ModeBadge";
 import { ACTIONS } from "@/lib/automation/actions";
 import ConditionEditor from "@/components/automations/ConditionEditor";
 import ActionParams from "@/components/automations/ActionParams";
@@ -18,7 +19,7 @@ const Step = ({ label, children }) => (
   </div>
 );
 
-const missingParam = (a, p) => (a?.params || []).some((k) => (k === "tag" && !p.tag) || (k === "text" && !p.text) || (k === "project" && !p.project_id) || (k === "target" && !p.target_id));
+const missingParam = (a, p) => (a?.params || []).some((k) => (k === "tag" && !p.tag) || (k === "text" && !p.text) || (k === "project" && !p.project_id) || (k === "target" && !p.target_id) || (k === "status" && !p.status));
 
 export default function RecipeBuilder({ draft, onClose, onSaved, workspace, projects, targets }) {
   const [r, setR] = useState(null);
@@ -27,6 +28,7 @@ export default function RecipeBuilder({ draft, onClose, onSaved, workspace, proj
   if (!r) return null;
   const set = (patch) => setR((x) => ({ ...x, ...patch }));
   const action = ACTIONS[r.action];
+  const nightly = isNightly(r.trigger);
   const invalid = !r.name?.trim() || !TRIGGERS[r.trigger] || !action || missingParam(action, r.action_params);
 
   const save = async () => {
@@ -49,10 +51,11 @@ export default function RecipeBuilder({ draft, onClose, onSaved, workspace, proj
           <Step label="WHEN">
             <Select value={r.trigger || ""} onValueChange={(v) => set({ trigger: v })}>
               <SelectTrigger><SelectValue placeholder="Choose what happens" /></SelectTrigger>
-              <SelectContent>{Object.entries(TRIGGERS).map(([k, t]) => <SelectItem key={k} value={k}>{t.label}</SelectItem>)}</SelectContent>
+              <SelectContent>{Object.entries(TRIGGERS).map(([k, t]) => <SelectItem key={k} value={k}>{t.label} · {MODES[t.event]}</SelectItem>)}</SelectContent>
             </Select>
+            {TRIGGERS[r.trigger] && <div className="mt-2"><ModeBadge trigger={r.trigger} /></div>}
           </Step>
-          <Step label="IF (optional)"><ConditionEditor conditions={r.conditions} onChange={(c) => set({ conditions: c })} projects={projects} /></Step>
+          <Step label="IF (optional)"><ConditionEditor conditions={r.conditions} onChange={(c) => set({ conditions: c })} projects={projects} allowed={nightly ? NIGHTLY_CONDITIONS : null} /></Step>
           <Step label="THEN">
             <div className="space-y-2">
               <Select value={r.action || ""} onValueChange={(v) => set({ action: v })}>

@@ -7,6 +7,7 @@ import { ACTIONS, actionApplies } from "@/lib/automation/actions";
 // 2) records changed/created by an automation are ignored for a short window,
 // so automations do not recursively trigger themselves while legitimate later user edits can still run.
 export const touched = new Set();
+const localDate = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
 const touch = (id) => { if (!id) return; touched.add(id); setTimeout(() => touched.delete(id), 15000); };
 
 const bumpRecipe = (recipe, result) =>
@@ -25,7 +26,7 @@ export async function processRecord(recipe, type, record, runKeys, explicitKey) 
   if (runKeys.has(key)) return;
   runKeys.add(key);
   const action = ACTIONS[recipe.action];
-  const base = { recipe_id: recipe.id, recipe_name: recipe.name, trigger: recipe.trigger, action: recipe.action, record_type: type, record_id: record.id, record_title: recordTitle(type, record), workspace: recipe.workspace };
+  const base = { recipe_id: recipe.id, recipe_name: recipe.name, trigger: recipe.trigger, action: recipe.action, record_type: type, record_id: record.id, record_title: recordTitle(type, record), workspace: recipe.workspace, run_key: key, source: "live", digest_date: localDate() };
 
   if (!actionApplies(action, type)) {
     await base44.entities.AutomationRun.create({ ...base, status: "skipped", message: `This action doesn't apply to ${TYPES[type].label.toLowerCase()} records` });
@@ -65,6 +66,14 @@ export async function approveRun(run) {
 export async function testRecipe(recipe) {
   const trigger = TRIGGERS[recipe.trigger];
   const action = ACTIONS[recipe.action];
+  if (trigger.event === "nightly") {
+    // Nightly rules are evaluated by the server; it previews last night's check for this recipe only.
+    const { data } = await base44.functions.invoke("markMissedHabits", { dry_run: true, recipe_id: recipe.id });
+    return (data.results || []).map((x) => ({
+      type: x.record_type, record: { id: x.record_id }, title: x.record_title, outcome: x.message,
+      level: x.status === "pending_review" ? "review" : x.status === "skipped" ? "skip" : "safe",
+    }));
+  }
   const lists = await Promise.all(trigger.types.map((t) => TYPES[t].entity.filter({ workspace: recipe.workspace }, "-updated_date", 30).then((rs) => rs.map((r) => ({ type: t, r })))));
   return lists.flat()
     .filter(({ type, r }) => matchesTrigger(trigger, type, r) && matchesConditions(recipe, type, r))

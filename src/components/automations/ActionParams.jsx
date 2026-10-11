@@ -10,6 +10,12 @@ export default function ActionParams({ action, params, onChange, projects, targe
     <div className="space-y-2">
       {needs.includes("tag") && <Input value={params.tag || ""} onChange={(e) => set({ tag: e.target.value })} placeholder="Tag to add" />}
       {needs.includes("text") && <Input value={params.text || ""} onChange={(e) => set({ text: e.target.value })} placeholder="Text — use {title} for the record's title" />}
+      {needs.includes("status") && (
+        <Select value={params.status || ""} onValueChange={(v) => set({ status: v })}>
+          <SelectTrigger><SelectValue placeholder="New status" /></SelectTrigger>
+          <SelectContent>{["Active", "Paused", "Achieved", "Dropped"].map((s) => <SelectItem key={s} value={s}>{s}{s === "Achieved" || s === "Dropped" ? " (goals only)" : ""}</SelectItem>)}</SelectContent>
+        </Select>
+      )}
       {needs.includes("project") && (
         <Select value={params.project_id || ""} onValueChange={(v) => set({ project_id: v, target_label: projects.find((p) => p.id === v)?.title })}>
           <SelectTrigger><SelectValue placeholder="Choose project" /></SelectTrigger>

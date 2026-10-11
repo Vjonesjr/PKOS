@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CONDITIONS } from "@/lib/automation/catalog";
 
-export default function ConditionEditor({ conditions, onChange, projects }) {
+export default function ConditionEditor({ conditions, onChange, projects, allowed }) {
+  const options = Object.entries(CONDITIONS).filter(([k]) => !allowed || allowed.includes(k));
   const set = (i, patch) => onChange(conditions.map((c, j) => (j === i ? { ...c, ...patch } : c)));
   return (
     <div className="space-y-2">
@@ -16,7 +17,7 @@ export default function ConditionEditor({ conditions, onChange, projects }) {
             {i > 0 && <span className="text-xs text-muted-foreground">and</span>}
             <Select value={c.field} onValueChange={(v) => set(i, { field: v, value: "" })}>
               <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-              <SelectContent>{Object.entries(CONDITIONS).map(([k, d]) => <SelectItem key={k} value={k}>{d.label}</SelectItem>)}</SelectContent>
+              <SelectContent>{options.map(([k, d]) => <SelectItem key={k} value={k}>{d.label}</SelectItem>)}</SelectContent>
             </Select>
             {def?.project ? (
               <Select value={c.value} onValueChange={(v) => set(i, { value: v })}>
@@ -35,7 +36,7 @@ export default function ConditionEditor({ conditions, onChange, projects }) {
           </div>
         );
       })}
-      <Button type="button" variant="ghost" size="sm" onClick={() => onChange([...conditions, { field: "tag", value: "" }])} className="gap-1"><Plus className="h-3.5 w-3.5" /> Add condition</Button>
+      <Button type="button" variant="ghost" size="sm" onClick={() => onChange([...conditions, { field: options[0][0], value: "" }])} className="gap-1"><Plus className="h-3.5 w-3.5" /> Add condition</Button>
     </div>
   );
 }

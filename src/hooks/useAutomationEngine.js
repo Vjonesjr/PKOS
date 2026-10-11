@@ -40,6 +40,7 @@ export default function useAutomationEngine(workspace) {
     const isRealTransition = (recipe, previous, record) => {
       switch (recipe.trigger) {
         case "project_status_changed":
+        case "goal_status_changed":
           return !!previous && previous.status !== record.status;
         case "task_completed":
           return !!previous && previous.status !== "done" && record.status === "done";

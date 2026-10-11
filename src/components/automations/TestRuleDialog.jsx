@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { testRecipe } from "@/lib/automation/engine";
-import { recordRoute, TYPES } from "@/lib/automation/catalog";
+import { recordRoute, TYPES, TRIGGERS } from "@/lib/automation/catalog";
 import LevelBadge from "@/components/automations/LevelBadge";
 
 export default function TestRuleDialog({ recipe, onClose }) {
@@ -14,7 +14,7 @@ export default function TestRuleDialog({ recipe, onClose }) {
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader><DialogTitle>Test: {recipe.name}</DialogTitle></DialogHeader>
-        <p className="text-xs text-muted-foreground">A preview against your recent records. Nothing is changed.</p>
+        <p className="text-xs text-muted-foreground">{TRIGGERS[recipe.trigger]?.event === "nightly" ? "What last night's check would do for this rule. Nothing is changed." : "A preview against your recent records. Nothing is changed."}</p>
         {!results ? <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" /> : results.length === 0 ? (
           <p className="py-6 text-center text-sm text-muted-foreground">No recent records match this rule.</p>
         ) : (

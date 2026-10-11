@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { TRIGGERS, CONDITIONS } from "@/lib/automation/catalog";
 import { ACTIONS } from "@/lib/automation/actions";
 import LevelBadge from "@/components/automations/LevelBadge";
+import ModeBadge from "@/components/automations/ModeBadge";
 
 const Row = ({ label, children }) => (
   <div className="flex gap-3 text-sm"><span className="w-12 shrink-0 text-xs font-bold tracking-widest text-primary pt-0.5">{label}</span><span className="text-foreground/90">{children}</span></div>
@@ -33,7 +34,9 @@ export default function RecipeCard({ recipe, onToggle, onEdit, onTest, onDelete 
       </div>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <ModeBadge trigger={recipe.trigger} />
           {action && <LevelBadge level={action.level} />}
+          {recipe.workspace === "demo" && <span className="rounded-full bg-secondary px-2 py-0.5">Sample</span>}
           <span>Ran {recipe.run_count || 0}×</span>
           {recipe.last_run && <span>· last {formatDistanceToNow(new Date(recipe.last_run), { addSuffix: true })} ({recipe.last_result})</span>}
         </div>

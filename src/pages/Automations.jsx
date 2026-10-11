@@ -12,6 +12,7 @@ import TestRuleDialog from "@/components/automations/TestRuleDialog";
 import TemplatePicker from "@/components/automations/TemplatePicker";
 import AIRecipeDraft from "@/components/automations/AIRecipeDraft";
 import RunList from "@/components/automations/RunList";
+import DigestView from "@/components/automations/DigestView";
 import EmptyState from "@/components/shared/EmptyState";
 
 export default function Automations() {
@@ -60,6 +61,7 @@ export default function Automations() {
           <TabsTrigger value="recipes">Recipes</TabsTrigger>
           <TabsTrigger value="approvals">Approvals{pending.length ? ` (${pending.length})` : ""}</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
+          <TabsTrigger value="digest">Digest</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -78,6 +80,8 @@ export default function Automations() {
       )}
       {tab === "approvals" && <RunList runs={pending} onChange={load} emptyIcon={CheckCircle2} emptyTitle="Nothing waiting" emptyText="Actions that need your OK will appear here." />}
       {tab === "history" && <RunList runs={runs} onChange={load} emptyIcon={History} emptyTitle="No runs yet" emptyText="Every time a recipe runs, it's logged here." />}
+
+      {tab === "digest" && <DigestView workspace={workspace} />}
 
       <RecipeBuilder draft={draft} onClose={() => setDraft(null)} onSaved={() => { setDraft(null); load(); }} workspace={workspace} projects={projects} targets={targets} />
       <TestRuleDialog recipe={testing} onClose={() => setTesting(null)} />
