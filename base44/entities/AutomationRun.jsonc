@@ -52,6 +52,25 @@
       "type": "boolean",
       "default": false
     },
+    "run_key": {
+      "type": "string",
+      "description": "Idempotency key: recipe:record:trigger:period"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "live",
+        "nightly"
+      ],
+      "default": "live"
+    },
+    "digest_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "owner_id": {
+      "type": "string"
+    },
     "workspace": {
       "type": "string",
       "enum": [
@@ -84,6 +103,9 @@
           "created_by_id": "{{user.id}}"
         },
         {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
@@ -96,6 +118,9 @@
           "created_by_id": "{{user.id}}"
         },
         {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
@@ -106,6 +131,9 @@
       "$or": [
         {
           "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.owner_id": "{{user.id}}"
         },
         {
           "user_condition": {
