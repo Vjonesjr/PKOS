@@ -20,7 +20,7 @@ export default async function(req) {
       headers: { Authorization: `Bearer ${accessToken}` }, signal: AbortSignal.timeout(15000),
     });
     if (!res.ok) return Response.json({ error: `Calendar error ${res.status}` }, { status: 502 });
-    const events = ((await res.json()).items || []).filter((e) => e.status !== 'cancelled');
+    const events = ((await res.json()).items || []).filter((e) => e.status !== 'cancelled' && e.extendedProperties?.private?.pkos !== '1');
 
     const ids = events.map((e) => e.id);
     const existing = ids.length ? await base44.entities.Task.filter({ workspace, calendar_event_id: { $in: ids } }) : [];

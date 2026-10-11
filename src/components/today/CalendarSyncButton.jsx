@@ -10,10 +10,14 @@ export default function CalendarSyncButton({ workspace, today, onDone }) {
 
   const sync = async () => {
     setLoading(true);
-    const res = await base44.functions.invoke("syncCalendar", { workspace, today }).catch((e) => ({ data: { error: e.message } }));
+    const fail = (e) => ({ data: { error: e.message } });
+    // Pull appointments in, then push task deadlines + weekly goal check-ins out.
+    const res = await base44.functions.invoke("syncCalendar", { workspace, today }).catch(fail);
+    const push = res.data?.error ? null : await base44.functions.invoke("pushToCalendar", { workspace, today }).catch(fail);
     setLoading(false);
-    if (res.data?.error) return toast({ title: "Calendar sync failed", description: res.data.error, variant: "destructive" });
-    toast({ title: "Calendar synced", description: `${res.data.created} new, ${res.data.updated} updated scheduled items` });
+    const error = res.data?.error || push?.data?.error;
+    if (error) return toast({ title: "Calendar sync failed", description: error, variant: "destructive" });
+    toast({ title: "Calendar synced", description: `${res.data.created} new, ${res.data.updated} updated · ${push.data.tasks} deadlines${push.data.checkin ? " + weekly check-in" : ""} sent to Google` });
     onDone?.();
   };
 

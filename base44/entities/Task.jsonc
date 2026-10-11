@@ -47,6 +47,10 @@
     "calendar_event_id": {
       "type": "string"
     },
+    "pushed_event_id": {
+      "type": "string",
+      "description": "Google Calendar event created from this task's deadline"
+    },
     "scheduled_time": {
       "type": "string"
     },
