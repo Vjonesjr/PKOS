@@ -37,6 +37,7 @@ import ContextPacks from '@/pages/ContextPacks';
 import ContextPackDetail from '@/pages/ContextPackDetail';
 import Automations from '@/pages/Automations';
 import Goals from '@/pages/Goals';
+import Documents from '@/pages/Documents';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -77,6 +78,7 @@ const AuthenticatedApp = () => {
           <Route path="/router" element={<ToolRouter />} />
           <Route path="/automations" element={<Automations />} />
           <Route path="/goals" element={<Goals />} />
+          <Route path="/documents" element={<Documents />} />
           <Route path="/context-packs" element={<ContextPacks />} />
           <Route path="/context-pack" element={<ContextPackDetail />} />
           <Route path="/knowledge" element={<Knowledge />} />
