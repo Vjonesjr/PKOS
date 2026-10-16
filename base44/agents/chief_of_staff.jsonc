@@ -5,7 +5,8 @@
     {
       "entity_name": "Capture",
       "allowed_operations": [
-        "read"
+        "read",
+        "create"
       ]
     },
     {
@@ -29,7 +30,8 @@
     {
       "entity_name": "Task",
       "allowed_operations": [
-        "read"
+        "read",
+        "create"
       ]
     },
     {
