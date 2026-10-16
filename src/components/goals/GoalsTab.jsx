@@ -12,7 +12,9 @@ export default function GoalsTab() {
   const { workspace } = useWorkspace();
   const [data, setData] = useState(null);
   const [editing, setEditing] = useState(null); // null = closed, {} = new
-  const [drafting, setDrafting] = useState(false);
+  // ?draft=<text> (from the command palette) opens the AI draft dialog prefilled.
+  const [draftText] = useState(() => new URLSearchParams(window.location.search).get("draft") || "");
+  const [drafting, setDrafting] = useState(() => new URLSearchParams(window.location.search).has("draft"));
 
   const load = useCallback(async () => {
     const [goals, projects, habits, checkins] = await Promise.all([
@@ -61,7 +63,7 @@ export default function GoalsTab() {
           ))}
         </div>
       )}
-      <GoalDraftDialog open={drafting} onOpenChange={setDrafting} onCreated={load} />
+      <GoalDraftDialog open={drafting} onOpenChange={setDrafting} onCreated={load} initialText={draftText} />
       <GoalForm open={!!editing} onOpenChange={(o) => !o && setEditing(null)} initial={editing?.id ? editing : null} onSave={save} />
     </div>
   );

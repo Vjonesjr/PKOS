@@ -523,6 +523,13 @@ Captures: ${JSON.stringify(captures.map((c) => ({ id: c.id, title: c.title, cont
       if (!text) return Response.json({ error: 'Describe the goal first' }, { status: 400 });
       const today = /^\d{4}-\d{2}-\d{2}$/.test(body.today || '') ? body.today : new Date().toISOString().slice(0, 10);
 
+      // Daily cap per user, tracked server-side on the user record so it can't be bypassed from the client.
+      const DAILY_LIMIT = 10;
+      const used = user.goal_drafts_date === today ? (user.goal_drafts_count || 0) : 0;
+      if (used >= DAILY_LIMIT) return Response.json({ error: `Daily limit reached (${DAILY_LIMIT} AI goal drafts). Try again tomorrow.` }, { status: 429 });
+      await base44.asServiceRole.entities.User.update(user.id, { goal_drafts_date: today, goal_drafts_count: used + 1 });
+      const remaining = DAILY_LIMIT - used - 1;
+
       const [goals, projects, habits] = await Promise.all([
         base44.entities.Goal.filter({ workspace, status: { $in: ['Active', 'Draft', 'Paused'] } }, '-updated_date', 15),
         base44.entities.Project.filter({ workspace, goal_id: null, status: { $in: ['Idea', 'Planned', 'Active'] } }, '-updated_date', 30),
@@ -583,6 +590,7 @@ Workspace context: ${JSON.stringify(ctx)}`;
         new_habits: (r.new_habits || []).slice(0, 3).filter((x) => x.title),
         overlaps: (r.overlaps || []).filter((x) => gMap.has(x.goal_id)).map((x) => ({ ...x, title: gMap.get(x.goal_id).title })),
         warnings: (r.warnings || []).slice(0, 3),
+        remaining,
       });
     }
 

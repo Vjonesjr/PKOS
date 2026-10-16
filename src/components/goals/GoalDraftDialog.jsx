@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Sparkles, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { base44 } from "@/api/base44Client";
@@ -10,9 +10,10 @@ import GoalDraftReview from "@/components/goals/GoalDraftReview";
 import { useWorkspace } from "@/lib/WorkspaceContext";
 
 /** Step 1: describe intent (+ one optional clarification round). Step 2: review. */
-export default function GoalDraftDialog({ open, onOpenChange, onCreated }) {
+export default function GoalDraftDialog({ open, onOpenChange, onCreated, initialText = "" }) {
   const { workspace } = useWorkspace();
-  const [text, setText] = useState("");
+  const [text, setText] = useState(initialText);
+  useEffect(() => { if (open && initialText) setText(initialText); }, [open, initialText]);
   const [answer, setAnswer] = useState("");
   const [draft, setDraft] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -49,6 +50,7 @@ export default function GoalDraftDialog({ open, onOpenChange, onCreated }) {
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             {draft ? (draft.clarifying_question && answer ? "Refine draft" : "Regenerate") : "Draft goal"}
           </Button>
+          {typeof draft?.remaining === "number" && <p className="text-center text-[11px] text-muted-foreground">{draft.remaining} AI drafts left today</p>}
           {draft && <GoalDraftReview key={JSON.stringify(draft.goal)} draft={draft} workspace={workspace} onDone={(goal) => { close(false); onCreated(goal); }} />}
         </div>
       </DialogContent>

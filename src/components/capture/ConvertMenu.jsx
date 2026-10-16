@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { ArrowRightCircle, StickyNote, ListTodo, FolderPlus, Scale, GraduationCap, Lightbulb } from "lucide-react";
+import { ArrowRightCircle, StickyNote, ListTodo, FolderPlus, Scale, GraduationCap, Lightbulb, Target } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import GoalDraftDialog from "@/components/goals/GoalDraftDialog";
 
 export default function ConvertMenu({ capture, onConverted }) {
   const [loading, setLoading] = useState(false);
+  const [goalOpen, setGoalOpen] = useState(false);
 
   const markProcessed = async (type, id) => {
     await base44.entities.Capture.update(capture.id, { status: "processed", converted_to_type: type, converted_to_id: id });
@@ -41,6 +43,7 @@ export default function ConvertMenu({ capture, onConverted }) {
   };
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="outline" disabled={loading} className="h-8 gap-1.5 text-xs">
@@ -66,7 +69,13 @@ export default function ConvertMenu({ capture, onConverted }) {
         <DropdownMenuItem onClick={() => convert("learning")}>
           <GraduationCap className="mr-2 h-3.5 w-3.5" /> To Learning
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setGoalOpen(true)}>
+          <Target className="mr-2 h-3.5 w-3.5" /> Turn into Goal (AI)
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    <GoalDraftDialog open={goalOpen} onOpenChange={setGoalOpen} initialText={[capture.title, capture.content].filter(Boolean).join("\n").slice(0, 1000)}
+      onCreated={(goal) => markProcessed("goal", goal.id)} />
+    </>
   );
 }
