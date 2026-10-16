@@ -11,7 +11,7 @@ export default function Documents() {
   const [hasMore, setHasMore] = useState(false);
   const [cursor, setCursor] = useState(null);
   const [projects, setProjects] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedId, setSelectedId] = useState(() => new URLSearchParams(window.location.search).get("doc"));
 
   const load = useCallback(async () => {
     if (isSeeding) return;
@@ -42,9 +42,9 @@ export default function Documents() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Documents</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Import PDFs, text files, and screenshots. Keep them in your library, then choose what goes where.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Import PDFs, text, Markdown, and images (stored privately). Keep them in your library, then choose what goes where.</p>
       </div>
-      <DocumentUploader workspace={workspace} onChange={load} />
+      <DocumentUploader workspace={workspace} projects={projects} onChange={load} onSelect={setSelectedId} />
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
         <div className="space-y-2">
           <DocumentList docs={docs} selectedId={selectedId} onSelect={setSelectedId} />

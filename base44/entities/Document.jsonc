@@ -17,6 +17,10 @@
     "size": {
       "type": "number"
     },
+    "content_hash": {
+      "type": "string",
+      "description": "SHA-256 of the file, used to detect re-imports"
+    },
     "status": {
       "type": "string",
       "enum": [
@@ -33,6 +37,13 @@
     "extracted_text": {
       "type": "string",
       "description": "Capped extracted text for search/reference"
+    },
+    "extraction_method": {
+      "type": "string",
+      "enum": [
+        "direct",
+        "ai"
+      ]
     },
     "tags": {
       "type": "array",
@@ -65,6 +76,12 @@
           }
         }
       }
+    },
+    "whole_sent_type": {
+      "type": "string"
+    },
+    "whole_sent_id": {
+      "type": "string"
     },
     "processed_date": {
       "type": "string",

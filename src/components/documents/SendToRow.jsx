@@ -45,7 +45,7 @@ export default function SendToRow({ item, projects, defaultProject, onSend }) {
             {projects.map((p) => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Button size="sm" className="ml-auto h-8" onClick={send} disabled={busy}><Send className="h-3.5 w-3.5" /> Send</Button>
+        <Button size="sm" className="ml-auto h-8" onClick={send} disabled={busy || (DESTINATIONS.find((d) => d.value === dest)?.needsProject && project === "none")}><Send className="h-3.5 w-3.5" /> Send</Button>
       </div>
     </div>
   );

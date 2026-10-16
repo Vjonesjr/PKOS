@@ -86,7 +86,7 @@ export default function LinkedItems({ recordType, recordId, allowedTypes = LINKA
     return (
       <div className="flex items-center justify-between rounded-lg border border-border bg-secondary/40 px-3 py-2">
         <RouterLink
-          to={cfg.detail ? `${cfg.route}?id=${item.record.id}` : cfg.route}
+          to={cfg.detail ? `${cfg.route}?id=${item.record.id}` : cfg.param ? `${cfg.route}?${cfg.param}=${item.record.id}` : cfg.route}
           className="flex items-center gap-2 text-sm text-foreground/90 hover:text-primary"
         >
           <span className={`h-1.5 w-1.5 rounded-full ${cfg.bg}`} />
