@@ -22,14 +22,19 @@ export default function ChiefOfStaff() {
   };
 
   // Resume the most recent conversation, or start one.
+  // If resuming fails, fall back to a fresh conversation so the chat is never stuck loading.
   useEffect(() => {
     (async () => {
-      const list = await base44.agents.listConversations({ agent_name: AGENT });
-      if (list?.length) {
-        const c = await base44.agents.getConversation(list[0].id);
-        setConversation(c);
-        setMessages(c.messages || []);
-      } else await startNew();
+      try {
+        const list = await base44.agents.listConversations({ agent_name: AGENT });
+        if (list?.length) {
+          const c = await base44.agents.getConversation(list[0].id);
+          setConversation(c);
+          setMessages(c.messages || []);
+          return;
+        }
+      } catch (e) { console.error("Resume failed", e); }
+      await startNew();
     })();
   }, []);
 
@@ -42,10 +47,19 @@ export default function ChiefOfStaff() {
 
   const send = async (text) => {
     const content = (text ?? input).trim();
-    if (!content || !conversation || sending) return;
+    if (!content || sending) return;
     setInput("");
     setSending(true);
-    try { await base44.agents.addMessage(conversation, { role: "user", content }); }
+    try {
+      // Create a conversation on demand if initialization hasn't finished.
+      let c = conversation;
+      if (!c) {
+        c = await base44.agents.createConversation({ agent_name: AGENT, metadata: { name: "Chief of Staff" } });
+        setConversation(c);
+      }
+      setMessages((prev) => [...prev, { role: "user", content }]);
+      await base44.agents.addMessage(c, { role: "user", content });
+    }
     finally { setSending(false); }
   };
 
@@ -63,8 +77,8 @@ export default function ChiefOfStaff() {
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto rounded-2xl border border-border bg-card/30 p-4">
-        {!conversation && <p className="py-10 text-center text-sm text-muted-foreground"><Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin" />Loading...</p>}
-        {conversation && messages.length === 0 && (
+        {!conversation && messages.length > 0 && <p className="py-10 text-center text-sm text-muted-foreground"><Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin" />Loading...</p>}
+        {messages.length === 0 && (
           <div className="flex flex-wrap justify-center gap-2 py-10">
             {STARTERS.map((s) => <Button key={s} size="sm" variant="secondary" onClick={() => send(s)}>{s}</Button>)}
           </div>
@@ -77,7 +91,7 @@ export default function ChiefOfStaff() {
       <form onSubmit={(e) => { e.preventDefault(); send(); }} className="mt-3 flex gap-2">
         <Textarea value={input} onChange={(e) => setInput(e.target.value)} rows={2} placeholder="Ask your Chief of Staff..."
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} className="resize-none" />
-        <Button type="submit" disabled={!input.trim() || sending || !conversation} aria-label="Send message" className="h-auto"><Send className="h-4 w-4" /></Button>
+        <Button type="submit" disabled={!input.trim() || sending} aria-label="Send message" className="h-auto"><Send className="h-4 w-4" /></Button>
       </form>
     </div>
   );
