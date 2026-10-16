@@ -70,7 +70,7 @@ export default function CaptureEditDialog({ capture, onOpenChange, onSave }) {
                 ))}
               </SelectContent>
             </Select>
-            <Button type="button" variant={form.important ? "default" : "outline"} size="icon" onClick={() => setForm({ ...form, important: !form.important })}>
+            <Button type="button" variant={form.important ? "default" : "outline"} size="icon" aria-label={form.important ? "Unmark important" : "Mark important"} onClick={() => setForm({ ...form, important: !form.important })}>
               <Star className={`h-4 w-4 ${form.important ? "fill-current" : ""}`} />
             </Button>
           </div>

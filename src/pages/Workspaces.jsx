@@ -57,7 +57,7 @@ export default function Workspaces() {
               {key === "demo" && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" disabled={resetting} title="Reset Demo Data">
+                    <Button size="icon" variant="ghost" className="h-8 w-8" disabled={resetting} title="Reset Demo Data" aria-label="Reset Demo Data">
                       <RotateCcw className="h-3.5 w-3.5 text-muted-foreground" />
                     </Button>
                   </AlertDialogTrigger>
