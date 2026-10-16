@@ -1,5 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.49';
 
+// Daily cap on AI goal generations per user. Change here only.
+const GOAL_DRAFT_DAILY_LIMIT = 10;
+
 async function invoke(base44, prompt, schema) {
   return base44.asServiceRole.integrations.Core.InvokeLLM({
     prompt,
@@ -516,6 +519,13 @@ Captures: ${JSON.stringify(captures.map((c) => ({ id: c.id, title: c.title, cont
       return Response.json(result);
     }
 
+    if (action === 'goal_draft_usage') {
+      // Read-only: never counts toward the limit. `today` is the client's local calendar day.
+      const today = /^\d{4}-\d{2}-\d{2}$/.test(body.today || '') ? body.today : new Date().toISOString().slice(0, 10);
+      const used = user.goal_drafts_date === today ? (user.goal_drafts_count || 0) : 0;
+      return Response.json({ used, limit: GOAL_DRAFT_DAILY_LIMIT });
+    }
+
     if (action === 'draft_goal') {
       // Inputs are bounded; context is titles/ids only so cost stays flat as data grows.
       const text = String(body.text || '').slice(0, 1000).trim();
@@ -524,7 +534,7 @@ Captures: ${JSON.stringify(captures.map((c) => ({ id: c.id, title: c.title, cont
       const today = /^\d{4}-\d{2}-\d{2}$/.test(body.today || '') ? body.today : new Date().toISOString().slice(0, 10);
 
       // Daily cap per user, tracked server-side on the user record so it can't be bypassed from the client.
-      const DAILY_LIMIT = 10;
+      const DAILY_LIMIT = GOAL_DRAFT_DAILY_LIMIT;
       const used = user.goal_drafts_date === today ? (user.goal_drafts_count || 0) : 0;
       if (used >= DAILY_LIMIT) return Response.json({ error: `Daily limit reached (${DAILY_LIMIT} AI goal drafts). Try again tomorrow.` }, { status: 429 });
       await base44.asServiceRole.entities.User.update(user.id, { goal_drafts_date: today, goal_drafts_count: used + 1 });
@@ -546,7 +556,9 @@ Rules:
 - If the intent is too vague to define a measurable outcome, set clarity="vague" and ask exactly one short clarifying_question; still return your best-guess draft.
 - target_date must be in the future (yyyy-MM-dd). If the user's timeline looks unrealistic, keep it but add a warning.
 - Only link projects/habits from the provided lists, using their exact ids, and only when clearly relevant. Never invent ids.
-- Suggest at most 3 new projects and 3 new habits, only if they materially help.
+- Keep it practical and proportional: a simple goal gets a simple plan. Don't turn it into a big project plan.
+- Also give: desired outcome (one sentence), 1-4 success criteria, priority (low/medium/high), up to 4 milestones (title + optional due_date in the future), ONE concrete first next action, up to 5 small suggested tasks, and up to 3 possible blockers.
+- Suggest at most 3 new projects and 3 new habits, only if they materially help. Suggest a new project only when the goal is large enough to need one.
 - If an existing goal overlaps, list it in overlaps with a short note.
 - Answer in the user's language.
 Hints: area=${body.area || 'none'}, target_date=${body.target_date || 'none'}
@@ -557,7 +569,11 @@ Workspace context: ${JSON.stringify(ctx)}`;
         properties: {
           clarity: { type: 'string', enum: ['clear', 'vague'] },
           clarifying_question: { type: 'string' },
-          goal: { type: 'object', properties: { title: { type: 'string' }, why: { type: 'string' }, area: { type: 'string' }, target_date: { type: 'string' } } },
+          goal: { type: 'object', properties: { title: { type: 'string' }, why: { type: 'string' }, outcome: { type: 'string' }, area: { type: 'string' }, target_date: { type: 'string' }, priority: { type: 'string', enum: ['low', 'medium', 'high'] }, next_action: { type: 'string' } } },
+          success_criteria: { type: 'array', items: { type: 'string' } },
+          milestones: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, due_date: { type: 'string' } } } },
+          suggested_tasks: { type: 'array', items: { type: 'string' } },
+          blockers: { type: 'array', items: { type: 'string' } },
           key_results: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, target: { type: 'number' }, unit: { type: 'string' } } } },
           link_projects: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, reason: { type: 'string' } } } },
           new_projects: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, next_action: { type: 'string' } } } },
@@ -582,7 +598,14 @@ Workspace context: ${JSON.stringify(ctx)}`;
           why: String(g.why || '').slice(0, 1000),
           area: AREAS.includes(g.area) ? g.area : 'Personal',
           target_date: /^\d{4}-\d{2}-\d{2}$/.test(g.target_date || '') && g.target_date > today ? g.target_date : '',
+          outcome: String(g.outcome || '').slice(0, 500),
+          priority: ['low', 'medium', 'high'].includes(g.priority) ? g.priority : 'medium',
+          next_action: String(g.next_action || '').slice(0, 200),
+          success_criteria: (r.success_criteria || []).filter(Boolean).slice(0, 4).map((s) => String(s).slice(0, 200)),
+          blockers: (r.blockers || []).filter(Boolean).slice(0, 3).map((s) => String(s).slice(0, 200)),
+          milestones: (r.milestones || []).filter((m) => m?.title).slice(0, 4).map((m) => ({ title: String(m.title).slice(0, 200), done: false, due_date: /^\d{4}-\d{2}-\d{2}$/.test(m.due_date || '') && m.due_date > today ? m.due_date : '' })),
         },
+        suggested_tasks: (r.suggested_tasks || []).filter(Boolean).slice(0, 5).map((s) => String(s).slice(0, 200)),
         key_results: (r.key_results || []).slice(0, 4).filter((k) => k.title && k.target > 0).map((k) => ({ title: k.title, current: 0, target: k.target, unit: k.unit || '' })),
         link_projects: (r.link_projects || []).filter((x) => pMap.has(x.id)).map((x) => ({ ...x, title: pMap.get(x.id).title })),
         new_projects: (r.new_projects || []).slice(0, 3).filter((x) => x.title),
@@ -591,6 +614,8 @@ Workspace context: ${JSON.stringify(ctx)}`;
         overlaps: (r.overlaps || []).filter((x) => gMap.has(x.goal_id)).map((x) => ({ ...x, title: gMap.get(x.goal_id).title })),
         warnings: (r.warnings || []).slice(0, 3),
         remaining,
+        used: used + 1,
+        limit: DAILY_LIMIT,
       });
     }
 

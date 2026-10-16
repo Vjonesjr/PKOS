@@ -55,6 +55,9 @@
     "project_id": {
       "type": "string"
     },
+    "goal_id": {
+      "type": "string"
+    },
     "source_capture_id": {
       "type": "string"
     },

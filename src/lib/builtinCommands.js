@@ -26,7 +26,7 @@ const BUILTINS = [
     run: (ctx, p) => ctx.navigate(`/context-pack?id=${p.id}`) },
   { id: "search-knowledge", label: "Search Knowledge", icon: Search, kind: "input", placeholder: "Search for...", queryLabel: (q) => `Search for "${q}"`,
     run: (ctx, text) => ctx.navigate(`/search?q=${encodeURIComponent(text)}`) },
-  { id: "draft-goal-ai", label: "Draft Goal with AI", icon: Sparkles, kind: "input", placeholder: "What do you want to achieve?", keywords: ["goal", "okr", "ai"],
+  { id: "draft-goal-ai", label: "Draft Goal with AI", icon: Sparkles, kind: "input", placeholder: "What do you want to achieve?", keywords: ["goal", "okr", "ai", "Create Goal from Idea", "Turn Idea into Goal", "AI Goal Draft"],
     run: (ctx, text) => ctx.navigate(`/goals?draft=${encodeURIComponent(text)}`) },
   { id: "start-review", label: "Start Review", icon: History, run: (ctx) => ctx.navigate("/review") },
   { id: "study-flashcards", label: "Study Flashcards", icon: GraduationCap, run: (ctx) => ctx.navigate("/learning") },

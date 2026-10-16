@@ -25,8 +25,14 @@ export async function applyGoalDraft(draft, picks, workspace) {
   const linkP = draft.link_projects.filter((p) => picks.linkProjects.has(p.id));
   const linkH = draft.link_habits.filter((h) => picks.linkHabits.has(h.id));
 
-  if (newProjects.length) await run("new projects", () => base44.entities.Project.bulkCreate(
-    newProjects.map((p) => ({ title: p.title, next_action: p.next_action || "", status: "Planned", goal_id: goal.id, workspace }))));
+  let created = [];
+  if (newProjects.length) await run("new projects", async () => { created = await base44.entities.Project.bulkCreate(
+    newProjects.map((p) => ({ title: p.title, next_action: p.next_action || "", status: "Planned", goal_id: goal.id, workspace }))); });
+  // Approved tasks belong to the goal, and to the new project when exactly one was created.
+  const newTasks = draft.suggested_tasks.filter((_, i) => picks.newTasks.has(i));
+  const projectId = created.length === 1 ? created[0].id : undefined;
+  if (newTasks.length) await run("tasks", () => base44.entities.Task.bulkCreate(
+    newTasks.map((title) => ({ title, goal_id: goal.id, ...(projectId ? { project_id: projectId } : {}), workspace }))));
   if (newHabits.length) await run("new habits", () => base44.entities.Habit.bulkCreate(
     newHabits.map((h) => ({ title: h.title, schedule_type: h.schedule_type || "daily", weekdays: [1, 2, 3, 4, 5], per_week_target: h.per_week_target || 3, active: true, start_date: today, goal_id: goal.id, workspace }))));
   if (linkP.length) await run("project links", () => base44.entities.Project.bulkUpdate(linkP.map((p) => ({ id: p.id, goal_id: goal.id }))));
