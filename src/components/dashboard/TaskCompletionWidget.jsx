@@ -7,7 +7,7 @@ import Widget from "@/components/dashboard/Widget";
 /** Merge done/created buckets into chart rows keyed by bucket date. */
 function merge(done = [], created = []) {
   const map = {};
-  done.forEach((r) => ((map[r.updated_date] ??= { key: r.updated_date, done: 0, created: 0 }).done = r.count));
+  done.forEach((r) => ((map[r.completed_date] ??= { key: r.completed_date, done: 0, created: 0 }).done = r.count));
   created.forEach((r) => ((map[r.created_date] ??= { key: r.created_date, done: 0, created: 0 }).created = r.count));
   return Object.values(map).sort((a, b) => a.key.localeCompare(b.key));
 }

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, Archive, ArchiveRestore, CalendarDays, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { taskStatusPatch } from "@/lib/taskStatus";
+import { taskStatusPatch, spawnNextIfRecurring, RECURRENCES } from "@/lib/taskStatus";
 import { useWorkspace } from "@/lib/WorkspaceContext";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -64,6 +64,7 @@ export default function TaskDetail() {
       priority: t.priority || "medium",
       due_date: t.due_date || "",
       project_id: t.project_id || "",
+      recurrence: t.recurrence || "none",
     });
   }, [id, workspace]);
 
@@ -81,7 +82,9 @@ export default function TaskDetail() {
       priority: form.priority,
       due_date: form.due_date || null,
       project_id: form.project_id || null,
+      recurrence: form.recurrence,
     });
+    await spawnNextIfRecurring({ ...task, ...form }, form.status);
     setSaving(false);
     await load();
   };
@@ -180,6 +183,15 @@ export default function TaskDetail() {
               <SelectContent>
                 <SelectItem value="__none">No project</SelectItem>
                 {projects.map((project) => <SelectItem key={project.id} value={project.id}>{project.title}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Repeat</label>
+            <Select value={form.recurrence} onValueChange={(value) => setForm({ ...form, recurrence: value })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {RECURRENCES.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>

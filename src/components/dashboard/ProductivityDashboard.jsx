@@ -20,7 +20,7 @@ export default function ProductivityDashboard({ workspace }) {
     const unit = range === 7 ? "day" : "week";
     const T = base44.entities.Task;
     Promise.all([
-      T.aggregate({ query: { workspace, status: "done", updated_date: { $gte: since } }, dateBucket: { field: "updated_date", unit } }),
+      T.aggregate({ query: { workspace, status: "done", completed_date: { $gte: since.slice(0, 10) } }, dateBucket: { field: "completed_date", unit } }),
       T.aggregate({ query: { workspace, created_date: { $gte: since } }, dateBucket: { field: "created_date", unit } }),
       base44.entities.Project.aggregate({ query: { workspace }, groupBy: "status" }),
       base44.entities.Knowledge.aggregate({ query: { workspace, created_date: { $gte: since } }, dateBucket: { field: "created_date", unit } }),
