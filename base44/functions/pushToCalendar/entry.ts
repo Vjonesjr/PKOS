@@ -16,6 +16,8 @@ export default async function(req) {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // The calendar connection belongs to the app owner, so only admins may use it.
+    if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
     const body = await req.json().catch(() => ({}));
     const workspace = body.workspace === 'demo' ? 'demo' : 'personal';
     const today = body.today || new Date().toISOString().slice(0, 10);

@@ -198,7 +198,9 @@ export default async function(req) {
       return Response.json({ date, results: preview.slice(0, 25) });
     }
 
-    if (user && user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
+    // Full run is admin-only (the nightly workflow calls as the admin creator).
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
     const marked = await markMissed(db, date);
     const recipes = await allPages(db.AutomationRecipe, { enabled: true, trigger: { $in: NIGHTLY } });
     const { created } = await evaluateRecipes(db, recipes, date, false);
