@@ -1,19 +1,26 @@
 import React from "react";
-import { format } from "date-fns";
+import { format, parseISO, startOfWeek } from "date-fns";
 import { CheckCircle2 } from "lucide-react";
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import Widget from "@/components/dashboard/Widget";
 
 /** Merge done/created buckets into chart rows keyed by bucket date. */
-function merge(done = [], created = []) {
+// Daily rows come in; for week view, fold each day into its Monday.
+const bucketKey = (d, unit) => {
+  const day = String(d).slice(0, 10);
+  return unit === "day" ? day : format(startOfWeek(parseISO(day), { weekStartsOn: 1 }), "yyyy-MM-dd");
+};
+
+function merge(done = [], created = [], unit) {
   const map = {};
-  done.forEach((r) => ((map[r.completed_date] ??= { key: r.completed_date, done: 0, created: 0 }).done = r.count));
-  created.forEach((r) => ((map[r.created_date] ??= { key: r.created_date, done: 0, created: 0 }).created = r.count));
+  const add = (d, field, n) => { if (!d) return; const k = bucketKey(d, unit); (map[k] ??= { key: k, done: 0, created: 0 })[field] += n; };
+  done.forEach((r) => add(r.completed_date, "done", r.count));
+  created.forEach((r) => add(r.created_date, "created", r.count));
   return Object.values(map).sort((a, b) => a.key.localeCompare(b.key));
 }
 
 export default function TaskCompletionWidget({ done, created, unit }) {
-  const rows = merge(done, created).map((r) => ({ ...r, label: format(new Date(r.key), unit === "day" ? "EEE" : "MMM d") }));
+  const rows = merge(done, created, unit).map((r) => ({ ...r, label: format(parseISO(r.key), unit === "day" ? "EEE" : "MMM d") }));
   const totalDone = rows.reduce((a, r) => a + r.done, 0);
   const totalCreated = rows.reduce((a, r) => a + r.created, 0);
 
