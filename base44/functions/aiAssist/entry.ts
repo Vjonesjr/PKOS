@@ -619,6 +619,64 @@ Workspace context: ${JSON.stringify(ctx)}`;
       });
     }
 
+    if (action === 'parse_dump') {
+      // Bounded input; projects passed as titles/ids only so cost stays flat.
+      const text = String(body.text || '').slice(0, 1500).trim();
+      if (!text) return Response.json({ error: 'Paste something to parse' }, { status: 400 });
+      const today = /^\d{4}-\d{2}-\d{2}$/.test(body.today || '') ? body.today : new Date().toISOString().slice(0, 10);
+      const projects = await base44.entities.Project.filter({ workspace, status: { $in: ['Idea', 'Planned', 'Active', 'Waiting'] } }, '-updated_date', 40);
+      const prompt = `You turn a messy brain dump into a clear task list for someone with ADHD. Today is ${today} (yyyy-MM-dd).
+Split the text into separate items (separators: newlines, ";", bullets). For each item detect:
+- group: a project header ("Laundry: ...") or an inferred area (Health, Work, Personal, Home...). Use "Inbox" when unclear. If it matches an existing project, set existing_project_id to its exact id.
+- done: true for "(done)", "✓", "[x]", "x " markers. "[ ]" means open.
+- due_date (yyyy-MM-dd, resolve "tomorrow", "4/22", "Apr 20" relative to today, future dates), time (HH:mm), priority (low/medium/high; "!" or "high" = high), tags (#home, @email -> "home", "email"), estimate_minutes ("5m", "30m", "1h").
+- subtasks: comma-separated steps after a header become subtasks of ONE todo when they are clearly parts of one job, otherwise separate todos.
+- next_action: one tiny, physical first step (under 10 words) for open items. Empty for done items.
+- chunks: only for items likely over 20 minutes, 2-5 chunks of 10-20 minutes each; else empty.
+Never invent tasks that aren't in the text. due_date, time, tags, priority and estimate_minutes must come ONLY from what is literally written: leave them empty/0/"medium" otherwise (do not default dates to today). Keep titles short, starting with a verb.
+Existing projects: ${JSON.stringify(projects.map((p) => ({ id: p.id, title: p.title })))}
+TEXT: """${text}"""`;
+      const r = await invoke(base44, prompt, {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                group: { type: 'string' }, existing_project_id: { type: 'string' }, title: { type: 'string' }, done: { type: 'boolean' },
+                due_date: { type: 'string' }, time: { type: 'string' }, priority: { type: 'string', enum: ['low', 'medium', 'high'] },
+                tags: { type: 'array', items: { type: 'string' } }, estimate_minutes: { type: 'number' },
+                subtasks: { type: 'array', items: { type: 'string' } }, next_action: { type: 'string' }, chunks: { type: 'array', items: { type: 'string' } },
+              },
+              required: ['group', 'title'],
+            },
+          },
+        },
+        required: ['items'],
+      });
+      const pMap = new Map(projects.map((p) => [p.id, p.title]));
+      const str = (v, n) => String(v || '').slice(0, n);
+      const items = (r.items || []).filter((i) => i.title).slice(0, 40).map((i) => {
+        const pid = pMap.has(i.existing_project_id) ? i.existing_project_id : '';
+        return {
+          group: pid ? pMap.get(pid) : str(i.group, 80) || 'Inbox',
+          project_id: pid,
+          title: str(i.title, 200),
+          done: !!i.done,
+          due_date: /^\d{4}-\d{2}-\d{2}$/.test(i.due_date || '') ? i.due_date : '',
+          time: /^\d{2}:\d{2}$/.test(i.time || '') ? i.time : '',
+          priority: ['low', 'medium', 'high'].includes(i.priority) ? i.priority : 'medium',
+          tags: (i.tags || []).map((t) => str(t, 30).replace(/^[#@]/, '')).filter(Boolean).slice(0, 5),
+          estimate_minutes: i.estimate_minutes > 0 ? Math.min(Math.round(i.estimate_minutes), 600) : 0,
+          subtasks: (i.subtasks || []).filter(Boolean).slice(0, 8).map((s) => str(s, 150)),
+          next_action: i.done ? '' : str(i.next_action, 120),
+          chunks: (i.chunks || []).filter(Boolean).slice(0, 5).map((s) => str(s, 150)),
+        };
+      });
+      return Response.json({ items });
+    }
+
     if (action === 'weekly_goal_summary') {
       const week = /^\d{4}-\d{2}-\d{2}$/.test(body.week_start || '') ? body.week_start : null;
       if (!week) return Response.json({ error: 'week_start required' }, { status: 400 });

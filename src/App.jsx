@@ -31,6 +31,7 @@ import Settings from '@/pages/Settings';
 import Workspaces from '@/pages/Workspaces';
 import SearchPage from '@/pages/Search';
 import Triage from '@/pages/Triage';
+import QuickParse from '@/pages/QuickParse';
 import Today from '@/pages/Today';
 import ToolRouter from '@/pages/ToolRouter';
 import ContextPacks from '@/pages/ContextPacks';
@@ -75,6 +76,7 @@ const AuthenticatedApp = () => {
           <Route path="/" element={<Home />} />
           <Route path="/capture" element={<Capture />} />
           <Route path="/triage" element={<Triage />} />
+          <Route path="/parse" element={<QuickParse />} />
           <Route path="/today" element={<Today />} />
           <Route path="/router" element={<ToolRouter />} />
           <Route path="/automations" element={<Automations />} />
