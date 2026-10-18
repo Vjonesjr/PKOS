@@ -3,45 +3,37 @@ import { Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useWorkspace } from "@/lib/WorkspaceContext";
-import { SEARCH_TYPE_LABELS, getSearchText, getTitle, getRoute } from "@/lib/searchConfig";
+import { SEARCH_TYPE_LABELS, getTitle, getRoute } from "@/lib/searchConfig";
+import useServerSearch from "@/hooks/useServerSearch";
+
+const SEARCH_TYPES = ["capture", "knowledge", "project", "task", "learning", "decision", "lesson"];
 
 export default function UniversalSearch() {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
-  const [data, setData] = useState(null);
   const navigate = useNavigate();
   const containerRef = useRef(null);
   const { workspace } = useWorkspace();
 
   useEffect(() => {
-    (async () => {
-      const [captures, knowledge, projects, tasks, learning, decisions, lessons] = await Promise.all([
-        base44.entities.Capture.filter({ workspace }, "-created_date", 100),
-        base44.entities.Knowledge.filter({ workspace }, "-updated_date", 100),
-        base44.entities.Project.filter({ workspace }, "-updated_date", 60),
-        base44.entities.Task.filter({ workspace }, "-updated_date", 100),
-        base44.entities.LearningItem.filter({ workspace }, "-updated_date", 100),
-        base44.entities.Decision.filter({ workspace }, "-updated_date", 60),
-        base44.entities.Lesson.filter({ workspace }, "-created_date", 60),
-      ]);
-      setData({ capture: captures, knowledge, project: projects, task: tasks, learning, decision: decisions, lesson: lessons });
-    })();
     const onClick = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) setFocused(false);
     };
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
-  }, [workspace]);
+  }, []);
 
   const q = query.trim().toLowerCase();
-  const results =
-    q.length > 0 && data
-      ? Object.entries(data).reduce((acc, [type, records]) => {
-          const matches = records.filter((r) => getSearchText(type, r).toLowerCase().includes(q));
-          if (matches.length) acc[type] = matches.slice(0, 5);
-          return acc;
-        }, {})
-      : {};
+  // Search on the server only while typing (debounced), instead of preloading every record type on each page.
+  const { results: pages, loading } = useServerSearch({
+    enabled: focused && q.length >= 2,
+    types: SEARCH_TYPES,
+    filters: { workspace, q: query.trim() },
+  });
+  const results = Object.entries(pages).reduce((acc, [type, p]) => {
+    if (p.items?.length) acc[type] = p.items.slice(0, 5);
+    return acc;
+  }, {});
   const hasResults = Object.keys(results).length > 0;
 
   const highlight = (text) => {
@@ -82,7 +74,8 @@ export default function UniversalSearch() {
       </div>
       {focused && q.length > 0 && (
         <div className="absolute z-50 mt-2 w-full rounded-xl border border-border bg-popover p-2 shadow-2xl max-h-[70vh] overflow-y-auto">
-          {!hasResults && <p className="px-3 py-4 text-center text-sm text-muted-foreground">No matches for "{query}"</p>}
+          {(loading || q.length < 2) && !hasResults && <p className="px-3 py-4 text-center text-sm text-muted-foreground">{q.length < 2 ? "Keep typing..." : "Searching..."}</p>}
+          {!loading && q.length >= 2 && !hasResults && <p className="px-3 py-4 text-center text-sm text-muted-foreground">No matches for "{query}"</p>}
           {Object.entries(results).map(([type, records]) => (
             <div key={type} className="mb-1">
               <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{SEARCH_TYPE_LABELS[type]}</p>
