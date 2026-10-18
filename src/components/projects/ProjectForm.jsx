@@ -37,7 +37,7 @@ export default function ProjectForm({ open, onOpenChange, initial, onSave }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{initial ? "Edit Project" : "New Project"}</DialogTitle>
+          <DialogTitle>{initial ? "Edit project" : "New project"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <Input placeholder="Project title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />

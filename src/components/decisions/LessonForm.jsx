@@ -45,7 +45,7 @@ export default function LessonForm({ open, onOpenChange, onSave, projectId, deci
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{initial ? "Edit Lesson" : "New Lesson"}</DialogTitle>
+          <DialogTitle>{initial ? "Edit lesson" : "New lesson"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
           <Input placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />

@@ -26,6 +26,7 @@ import DecisionDetail from '@/pages/DecisionDetail';
 import Lessons from '@/pages/Lessons';
 import LessonDetail from '@/pages/LessonDetail';
 import Review from '@/pages/Review';
+import WeeklyReview from '@/pages/WeeklyReview';
 import AIWorkspace from '@/pages/AIWorkspace';
 import Settings from '@/pages/Settings';
 import Workspaces from '@/pages/Workspaces';
@@ -98,6 +99,7 @@ const AuthenticatedApp = () => {
           <Route path="/lessons" element={<Lessons />} />
           <Route path="/lesson-detail" element={<LessonDetail />} />
           <Route path="/review" element={<Review />} />
+          <Route path="/weekly-review" element={<WeeklyReview />} />
           <Route path="/ai" element={<AIWorkspace />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/settings" element={<Settings />} />

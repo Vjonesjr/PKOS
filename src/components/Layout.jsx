@@ -4,7 +4,7 @@ import { BookOpen } from "lucide-react";
 import { GUIDE_SEEN_KEY } from "@/lib/guideSteps";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Inbox, Library, FolderKanban, GraduationCap, History, Sparkles, Menu, X, Settings, Search, Layers, Sun, Cpu, Zap, Target, FileText, Briefcase, Wand2 } from "lucide-react";
+import { Home, Inbox, Library, FolderKanban, GraduationCap, History, Sparkles, Menu, X, Settings, Search, Layers, Sun, Cpu, Zap, Target, FileText, Briefcase, Wand2, CalendarCheck } from "lucide-react";
 import useAutomationEngine from "@/hooks/useAutomationEngine";
 import UniversalSearch from "@/components/shared/UniversalSearch";
 import QuickCapture from "@/components/shared/QuickCapture";
@@ -26,6 +26,7 @@ const NAV = [
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/learning", label: "Learning", icon: GraduationCap },
   { to: "/review", label: "Review", icon: History },
+  { to: "/weekly-review", label: "Weekly review", icon: CalendarCheck },
   { to: "/ai", label: "AI", icon: Sparkles },
   { to: "/chief-of-staff", label: "Chief of Staff", icon: Briefcase },
   { to: "/context-packs", label: "Context Packs", icon: Layers },

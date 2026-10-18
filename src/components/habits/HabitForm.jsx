@@ -23,7 +23,7 @@ export default function HabitForm({ open, onOpenChange, initial, onSave }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle>{initial ? "Edit Habit" : "New Habit"}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{initial ? "Edit habit" : "New habit"}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <Input placeholder="Habit, e.g. Deep work 90 min" value={form.title} onChange={(e) => set({ title: e.target.value })} />
           <GoalPicker value={form.goal_id} onChange={(goal_id) => set({ goal_id })} />

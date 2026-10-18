@@ -53,7 +53,7 @@ export default function CaptureEditDialog({ capture, onOpenChange, onSave }) {
     <Dialog open={!!capture} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Edit Capture</DialogTitle>
+          <DialogTitle>Edit capture</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <Textarea rows={4} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} />

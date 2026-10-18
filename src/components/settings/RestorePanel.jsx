@@ -65,7 +65,7 @@ export default function RestorePanel() {
       <Dialog open={!!pending} onOpenChange={(open) => !open && setPending(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Restore</DialogTitle>
+            <DialogTitle>Confirm restore</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
             <p className="text-sm text-foreground/80">

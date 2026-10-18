@@ -54,7 +54,7 @@ export default function DecisionForm({ open, onOpenChange, onSave, projectId, pr
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{initial ? "Edit Decision" : "New Decision"}</DialogTitle>
+          <DialogTitle>{initial ? "Edit decision" : "New decision"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
           <Input placeholder="Title (optional)" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />

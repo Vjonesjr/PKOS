@@ -29,7 +29,7 @@ export default function GoalForm({ open, onOpenChange, initial, onSave }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader><DialogTitle>{initial ? "Edit Goal" : "New Goal"}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{initial ? "Edit goal" : "New goal"}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <Input placeholder="Goal, e.g. Ship 3 indie apps" value={form.title} onChange={(e) => set({ title: e.target.value })} />
           <Textarea placeholder="Why does this matter?" rows={2} value={form.why} onChange={(e) => set({ why: e.target.value })} />

@@ -66,7 +66,7 @@ export default function LearningItemForm({ open, onOpenChange, onSave, initial }
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{initial ? "Edit Learning Item" : "New Learning Item"}</DialogTitle>
+          <DialogTitle>{initial ? "Edit learning item" : "New learning item"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <Input placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />

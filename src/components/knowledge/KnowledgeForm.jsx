@@ -41,7 +41,7 @@ export default function KnowledgeForm({ open, onOpenChange, initial, onSave }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{initial ? "Edit Knowledge" : "New Knowledge Record"}</DialogTitle>
+          <DialogTitle>{initial ? "Edit knowledge" : "New knowledge record"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <Input placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />

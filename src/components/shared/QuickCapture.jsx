@@ -70,7 +70,7 @@ export default function QuickCapture({ onCaptured }) {
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setError(null); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Quick Capture</DialogTitle>
+            <DialogTitle>Quick capture</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <Textarea

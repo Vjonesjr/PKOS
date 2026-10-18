@@ -63,7 +63,7 @@ export default function Workspaces() {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Reset Demo Data?</AlertDialogTitle>
+                      <AlertDialogTitle>Reset demo data?</AlertDialogTitle>
                       <AlertDialogDescription>
                         This deletes everything currently in the Demo workspace and replaces it with the standard sample dataset. Your Personal data is never touched.
                       </AlertDialogDescription>

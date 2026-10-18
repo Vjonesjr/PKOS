@@ -58,7 +58,7 @@ export default function ContextPacks() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>New Context Pack</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>New context pack</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <Input placeholder="Name, e.g. PKOS Architecture" value={name} onChange={(e) => setName(e.target.value)} />
             <Textarea placeholder="What is this pack for? (optional)" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
