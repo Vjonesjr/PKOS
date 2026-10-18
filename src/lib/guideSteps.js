@@ -1,7 +1,8 @@
 // Quick Start tutorial. Each step opens a page in the Demo Workspace so the
 // user sees real-looking sample data before touching their own.
-export const GUIDE_SEEN_KEY = "pkos_guide_seen";
-export const GUIDE_DONE_KEY = "pkos_guide_done";
+// Stored on the user's account (not the browser) so they sync across devices.
+export const GUIDE_SEEN_KEY = "guide_seen";
+export const GUIDE_DONE_KEY = "guide_done";
 
 export const GUIDE_STEPS = [
   { id: "home", to: "/", title: "Your dashboard", why: "See everything at a glance.",

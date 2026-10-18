@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { BookOpen } from "lucide-react";
 import { GUIDE_SEEN_KEY } from "@/lib/guideSteps";
+import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Home, Inbox, Library, FolderKanban, GraduationCap, History, Sparkles, Menu, X, Settings, Search, Layers, Sun, Cpu, Zap, Target, FileText, Briefcase, Wand2 } from "lucide-react";
 import useAutomationEngine from "@/hooks/useAutomationEngine";
@@ -41,10 +42,12 @@ export default function Layout() {
 
   // First visit: start in the demo profile with the Quick Start Guide open.
   useEffect(() => {
-    if (localStorage.getItem(GUIDE_SEEN_KEY)) return;
-    localStorage.setItem(GUIDE_SEEN_KEY, "1");
-    setWorkspace("demo");
-    navigate("/guide", { replace: true });
+    base44.auth.me().then((u) => {
+      if (u[GUIDE_SEEN_KEY]) return;
+      base44.auth.updateMe({ [GUIDE_SEEN_KEY]: true });
+      setWorkspace("demo");
+      navigate("/guide", { replace: true });
+    });
   }, []);
 
   const isActive = (to) => (to === "/" ? location.pathname === "/" : location.pathname.startsWith(to));

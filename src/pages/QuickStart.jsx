@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,9 +12,11 @@ import GuideStep from "@/components/guide/GuideStep";
 export default function QuickStart() {
   const navigate = useNavigate();
   const { workspace, setWorkspace } = useWorkspace();
-  const [done, setDone] = useState(() => new Set(JSON.parse(localStorage.getItem(GUIDE_DONE_KEY) || "[]")));
+  const [done, setDone] = useState(new Set());
+  // Progress lives on the user's account so it follows them across devices.
+  useEffect(() => { base44.auth.me().then((u) => setDone(new Set(u.guide_done || []))); }, []);
 
-  const save = (next) => { setDone(next); localStorage.setItem(GUIDE_DONE_KEY, JSON.stringify([...next])); };
+  const save = (next) => { setDone(next); base44.auth.updateMe({ [GUIDE_DONE_KEY]: [...next] }); };
   const toggle = (id) => { const n = new Set(done); n.has(id) ? n.delete(id) : n.add(id); save(n); };
   const tryStep = (s) => { save(new Set(done).add(s.id)); setWorkspace("demo"); navigate(s.to); };
 
