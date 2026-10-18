@@ -13,6 +13,8 @@ import ParsedGroup from "@/components/parse/ParsedGroup";
 import ParseSummary from "@/components/parse/ParseSummary";
 import ParseToolbar from "@/components/parse/ParseToolbar";
 import FocusTimer from "@/components/parse/FocusTimer";
+import SingleTaskEntry from "@/components/parse/SingleTaskEntry";
+import DataToggle from "@/components/workspace/DataToggle";
 
 // Text handed off from another screen (Capture, Knowledge, Documents), read once.
 const takeHandoff = () => { const t = sessionStorage.getItem(PARSE_HANDOFF_KEY) || ""; sessionStorage.removeItem(PARSE_HANDOFF_KEY); return t; };
@@ -30,6 +32,15 @@ export default function QuickParse() {
   const [opts, setOpts] = useState({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [mode, setMode] = useState("bulk");
+
+  // Drag a .txt/.md file onto the box to fill it.
+  const onDrop = async (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file && /text|markdown/.test(file.type || "text")) setRaw((await file.text()).slice(0, MAX));
+    else setRaw((raw + "\n" + e.dataTransfer.getData("text")).trim().slice(0, MAX));
+  };
   const today = format(new Date(), "yyyy-MM-dd");
 
   const parse = async () => {
@@ -62,11 +73,21 @@ export default function QuickParse() {
 
   return (
     <div className={`mx-auto max-w-2xl space-y-4 p-4 ${view.large ? "text-lg [&_input]:text-base [&_li]:text-base" : ""} ${view.contrast ? "contrast-125 [&_.text-muted-foreground]:text-foreground" : ""}`}>
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">Quick Parse</h1>
-        <p className="text-sm text-muted-foreground">Paste a brain dump. AI sorts it into projects, todos and tiny next actions. Nothing saves until you accept.</p>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h1 className="text-xl font-semibold text-foreground">Quick Parse</h1>
+          <p className="text-sm text-muted-foreground">{mode === "bulk" ? "Paste or drop a brain dump. AI sorts it into projects, todos and next actions. Nothing saves until you accept." : "Add tasks one at a time."}</p>
+        </div>
+        <DataToggle />
       </div>
-      <Textarea rows={6} value={raw} maxLength={MAX} onChange={(e) => setRaw(e.target.value)}
+      <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
+        {[["bulk", "Bulk paste"], ["single", "Single entry"]].map(([k, l]) => (
+          <button key={k} onClick={() => setMode(k)} aria-pressed={mode === k}
+            className={`rounded-md px-2.5 py-1 text-xs font-medium ${mode === k ? "bg-secondary text-foreground" : "text-muted-foreground"}`}>{l}</button>
+        ))}
+      </div>
+      {mode === "single" ? <SingleTaskEntry key={workspace} workspace={workspace} /> : <>
+      <Textarea rows={6} value={raw} maxLength={MAX} onChange={(e) => setRaw(e.target.value)} onDrop={onDrop} onDragOver={(e) => e.preventDefault()}
         onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) parse(); }}
         placeholder="Laundry: wash whites, fold; Doctor 4/22 @10am; Email boss about report (done); Buy stamps; Call Mom tomorrow 30m" aria-label="Text to parse" />
       <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
@@ -95,6 +116,7 @@ export default function QuickParse() {
           </div>
         </>
       ))}
+      </>}
     </div>
   );
 }
