@@ -677,6 +677,26 @@ TEXT: """${text}"""`;
       return Response.json({ items });
     }
 
+    if (action === 'parse_plan_import') {
+      // Best-effort structure detection for imported files that don't match a template. Bounded input.
+      const text = String(body.text || '').slice(0, 12000).trim();
+      if (!text) return Response.json({ error: 'The file is empty' }, { status: 400 });
+      const ms = { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, due_date: { type: 'string' } }, required: ['title'] } };
+      const r = await invoke(base44, `Extract goals, projects and milestones from this imported file for a personal planning app.
+Rules: only include items literally present in the text; never invent records. A goal is a desired outcome; a project is a body of work; milestones are checkpoints belonging to a goal or project.
+Dates must be yyyy-MM-dd and only when written in the text. area is one of Career, Health, Learning, Finance, Relationships, Personal, Other. Project status is one of Idea, Planned, Active, Waiting, Completed. For a project serving a goal, set goal_title to that goal's exact title. Max 50 goals and 50 projects.
+FILE:
+"""${text}"""`, {
+        type: 'object',
+        properties: {
+          goals: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, area: { type: 'string' }, priority: { type: 'string' }, target_date: { type: 'string' }, why: { type: 'string' }, milestones: ms }, required: ['title'] } },
+          projects: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, status: { type: 'string' }, priority: { type: 'string' }, description: { type: 'string' }, goal_title: { type: 'string' }, milestones: ms }, required: ['title'] } },
+        },
+        required: ['goals', 'projects'],
+      });
+      return Response.json({ goals: (r.goals || []).slice(0, 50), projects: (r.projects || []).slice(0, 50), truncated: String(body.text || '').length > 12000 });
+    }
+
     if (action === 'weekly_goal_summary') {
       const week = /^\d{4}-\d{2}-\d{2}$/.test(body.week_start || '') ? body.week_start : null;
       if (!week) return Response.json({ error: 'week_start required' }, { status: 400 });

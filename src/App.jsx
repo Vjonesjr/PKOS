@@ -40,6 +40,7 @@ import ContextPacks from '@/pages/ContextPacks';
 import ContextPackDetail from '@/pages/ContextPackDetail';
 import Automations from '@/pages/Automations';
 import Goals from '@/pages/Goals';
+import ImportPlans from '@/pages/ImportPlans';
 import Documents from '@/pages/Documents';
 import ChiefOfStaff from '@/pages/ChiefOfStaff';
 
@@ -84,6 +85,7 @@ const AuthenticatedApp = () => {
           <Route path="/router" element={<ToolRouter />} />
           <Route path="/automations" element={<Automations />} />
           <Route path="/goals" element={<Goals />} />
+          <Route path="/import" element={<ImportPlans />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/chief-of-staff" element={<ChiefOfStaff />} />
           <Route path="/context-packs" element={<ContextPacks />} />
