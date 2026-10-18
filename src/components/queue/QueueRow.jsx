@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { GripVertical, ChevronDown, Star } from "lucide-react";
+import { GripVertical, ChevronDown, Star, ArrowUpToLine } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import QueueAttributes from "@/components/queue/QueueAttributes";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { STATUSES } from "@/lib/taskQueue";
 
 /** One task in the queue. dragHandleProps is set only when manual reordering is active. */
-export default function QueueRow({ task, parentTitle, dragHandleProps, onStatus, onSave }) {
+export default function QueueRow({ task, parentTitle, dragHandleProps, onStatus, onSave, onTop }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="rounded-lg border border-border bg-card px-2 py-1.5">
@@ -28,6 +28,11 @@ export default function QueueRow({ task, parentTitle, dragHandleProps, onStatus,
           <SelectTrigger className="h-7 w-[92px] shrink-0 px-2 text-[11px]" aria-label="Task status"><SelectValue /></SelectTrigger>
           <SelectContent>{STATUSES.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}</SelectContent>
         </Select>
+        {onTop && (
+          <button type="button" aria-label="Move to top" onClick={onTop} className="shrink-0 p-1 text-muted-foreground hover:text-primary">
+            <ArrowUpToLine className="h-4 w-4" />
+          </button>
+        )}
         <button type="button" aria-label="Edit task details" onClick={() => setOpen(!open)} className="shrink-0 p-1 text-muted-foreground hover:text-primary">
           <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
         </button>

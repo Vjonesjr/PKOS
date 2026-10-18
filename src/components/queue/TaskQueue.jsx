@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { DragDropContext } from "@hello-pangea/dnd";
 import { ListTodo } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import QueueControls from "@/components/queue/QueueControls";
 import QueueRow from "@/components/queue/QueueRow";
-import { sortTasks, groupTasks } from "@/lib/taskQueue";
+import QueueGroups from "@/components/queue/QueueGroups";
+import { sortTasks, groupTasks, groupMovePatch, MOVABLE_GROUPS } from "@/lib/taskQueue";
 import { taskStatusPatch, spawnNextIfRecurring } from "@/lib/taskStatus";
 
 const LIMIT = 100;
@@ -37,7 +38,8 @@ export default function TaskQueue({ workspace }) {
   useEffect(() => { localStorage.setItem("queue_sort", sort); localStorage.setItem("queue_group", group); }, [sort, group]);
 
   const groups = useMemo(() => (tasks ? groupTasks(sortTasks(tasks, sort), group, names.projects) : []), [tasks, sort, group, names]);
-  const canDrag = sort === "manual" && group === "none";
+  const canReorder = sort === "manual" && group === "none";
+  const canDrag = canReorder || MOVABLE_GROUPS.includes(group);
 
   const patchLocal = (id, patch) => setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)));
   const save = async (task, patch) => { patchLocal(task.id, patch); await base44.entities.Task.update(task.id, patch); };
@@ -47,8 +49,23 @@ export default function TaskQueue({ workspace }) {
     if (status === "done" && !showDone) setTasks((ts) => ts.filter((t) => t.id !== task.id));
   };
 
-  const onDragEnd = async ({ source, destination }) => {
-    if (!destination || destination.index === source.index) return;
+  // Lowest position wins, so one update puts the task above everything else.
+  const moveToTop = (task) => {
+    const min = Math.min(0, ...tasks.map((t) => t.sort_order ?? 0));
+    save(task, { sort_order: min - 10 });
+  };
+
+  const onDragEnd = async ({ source, destination, draggableId }) => {
+    if (!destination) return;
+    if (!canReorder) {
+      // Grouped view: dropping into another group rewrites that one field.
+      if (destination.droppableId === source.droppableId) return;
+      const task = tasks.find((t) => t.id === draggableId.split("::")[1]);
+      const from = source.droppableId.slice(2), to = destination.droppableId.slice(2);
+      if (group === "status") return setStatus(task, to);
+      return save(task, groupMovePatch(group, task, from, to));
+    }
+    if (destination.index === source.index) return;
     const list = sortTasks(tasks, "manual");
     const [moved] = list.splice(source.index, 1);
     list.splice(destination.index, 0, moved);
@@ -59,7 +76,7 @@ export default function TaskQueue({ workspace }) {
 
   const row = (t, handle) => (
     <QueueRow task={t} parentTitle={names.tasks[t.parent_task_id]} dragHandleProps={handle}
-      onStatus={(s) => setStatus(t, s)} onSave={(p) => save(t, p)} />
+      onStatus={(s) => setStatus(t, s)} onSave={(p) => save(t, p)} onTop={sort === "manual" ? () => moveToTop(t) : null} />
   );
 
   return (
@@ -70,30 +87,18 @@ export default function TaskQueue({ workspace }) {
         {tasks && <span className="text-xs text-muted-foreground">{tasks.length}{tasks.length === LIMIT ? "+" : ""}</span>}
       </div>
       <QueueControls sort={sort} setSort={setSort} group={group} setGroup={setGroup} showDone={showDone} setShowDone={setShowDone} />
-      {!canDrag && tasks?.length > 0 && <p className="text-[11px] text-muted-foreground">Switch to "My order" with no grouping to drag tasks.</p>}
+      {tasks?.length > 0 && (
+        <p className="text-[11px] text-muted-foreground">
+          {canReorder ? "Drag to reorder." : canDrag ? "Drag a task into another group to change it." : "Dragging works in \"My order\", or when grouped by where, effort or status."}
+        </p>
+      )}
       {!tasks ? <p className="py-6 text-center text-xs text-muted-foreground">Loading tasks...</p>
         : tasks.length === 0 ? <p className="py-6 text-center text-xs text-muted-foreground">No open tasks. Nice.</p>
-        : canDrag ? (
+        : (
           <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="queue">
-              {(p) => (
-                <div ref={p.innerRef} {...p.droppableProps} className="space-y-1.5">
-                  {groups[0][1].map((t, i) => (
-                    <Draggable key={t.id} draggableId={t.id} index={i}>
-                      {(d) => <div ref={d.innerRef} {...d.draggableProps}>{row(t, d.dragHandleProps)}</div>}
-                    </Draggable>
-                  ))}
-                  {p.placeholder}
-                </div>
-              )}
-            </Droppable>
+            <QueueGroups groups={groups} draggable={canDrag} renderRow={row} />
           </DragDropContext>
-        ) : groups.map(([name, list]) => (
-          <div key={name} className="space-y-1.5">
-            {name && <p className="pt-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{name} · {list.length}</p>}
-            {list.map((t) => <div key={`${name}-${t.id}`}>{row(t)}</div>)}
-          </div>
-        ))}
+        )}
     </div>
   );
 }

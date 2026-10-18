@@ -30,17 +30,40 @@ const dueBucket = (t) => {
 };
 const label = (pairs, v, fallback) => pairs.find(([k]) => k === v)?.[1] || fallback;
 
-/** Returns [[groupName, tasks]]. A task with several contexts appears in each matching group. */
+// Groupings where dropping a task into another group can safely rewrite one field.
+export const MOVABLE_GROUPS = ["context", "effort", "status"];
+
+/**
+ * Returns [{name, value, tasks}]. `value` is the field value the group represents ("" = unset).
+ * A task with several contexts appears in each matching group.
+ */
 export function groupTasks(tasks, by, projectNames) {
-  if (by === "none") return [["", tasks]];
+  if (by === "none") return [{ name: "", value: "", tasks }];
   const map = new Map();
-  const add = (k, t) => map.set(k, [...(map.get(k) || []), t]);
+  const add = (name, value, t) => {
+    if (!map.has(name)) map.set(name, { name, value, tasks: [] });
+    map.get(name).tasks.push(t);
+  };
   tasks.forEach((t) => {
-    if (by === "context") (t.contexts?.length ? t.contexts : [null]).forEach((c) => add(c ? label(CONTEXTS, c, c) : "Anywhere / unset", t));
-    else if (by === "effort") add(label(EFFORTS, t.effort, "Effort not set"), t);
-    else if (by === "due") add(dueBucket(t), t);
-    else if (by === "project") add(projectNames[t.project_id] || "No project", t);
-    else add(label(STATUSES, t.status, "To do"), t);
+    if (by === "context") (t.contexts?.length ? t.contexts : [""]).forEach((c) => add(c ? label(CONTEXTS, c, c) : "Anywhere / unset", c, t));
+    else if (by === "effort") add(label(EFFORTS, t.effort, "Effort not set"), t.effort || "", t);
+    else if (by === "due") add(dueBucket(t), "", t);
+    else if (by === "project") add(projectNames[t.project_id] || "No project", t.project_id || "", t);
+    else add(label(STATUSES, t.status, "To do"), t.status || "todo", t);
   });
-  return [...map.entries()];
+  // Show every option for movable groupings so tasks can be dropped into empty groups too.
+  const all = { context: [...CONTEXTS, ["", "Anywhere / unset"]], effort: [...EFFORTS, ["", "Effort not set"]], status: STATUSES }[by];
+  all?.forEach(([v, l]) => !map.has(l) && map.set(l, { name: l, value: v, tasks: [] }));
+  const order = all?.map(([, l]) => l);
+  return [...map.values()].sort((a, b) => (order ? order.indexOf(a.name) - order.indexOf(b.name) : 0));
+}
+
+/** Field patch for moving a task from one group to another. */
+export function groupMovePatch(by, task, fromValue, toValue) {
+  if (by === "effort") return { effort: toValue || null };
+  if (by === "context") {
+    const rest = (task.contexts || []).filter((c) => c !== fromValue && c !== toValue);
+    return { contexts: toValue ? [...rest, toValue] : rest };
+  }
+  return null; // status is handled by the caller (completion side effects)
 }
