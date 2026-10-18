@@ -2,11 +2,10 @@ import React from "react";
 import { Library } from "lucide-react";
 import Widget from "@/components/dashboard/Widget";
 
-export default function KnowledgeGrowthWidget({ rows, links, range }) {
-  const added = (rows || []).reduce((a, r) => a + r.count, 0);
+export default function KnowledgeGrowthWidget({ added, links, range }) {
   return (
     <Widget title="Knowledge growth" icon={Library}>
-      {!rows ? <p className="text-xs text-muted-foreground">Loading...</p> : (
+      {added == null ? <p className="text-xs text-muted-foreground">Loading...</p> : (
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-lg bg-secondary/60 p-3">
             <p className="text-2xl font-semibold text-foreground">{added}</p>
