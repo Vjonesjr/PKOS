@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { goalProgress } from "@/lib/goals";
+import useGoalActivity from "@/hooks/useGoalActivity";
 import { CHECKIN_STATUSES, statusMeta } from "@/lib/weeks";
 
 /** Pace: share of the goal's time elapsed, for an "expected vs actual" hint. */
@@ -24,7 +25,8 @@ export default function GoalCheckinCard({ goal, week, workspace, projects, histo
   const [saving, setSaving] = useState(false);
 
   const live = { ...goal, key_results: krs, manual_progress: Number(manual) };
-  const progress = goalProgress(live, projects);
+  const activity = useGoalActivity(goal, projects);
+  const progress = goalProgress(live, projects, activity);
   const delta = last ? progress - (last.progress_snapshot || 0) : null;
   const expected = pace(goal);
 

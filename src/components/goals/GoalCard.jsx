@@ -4,6 +4,7 @@ import { Pencil, FolderKanban, Repeat, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { goalProgress } from "@/lib/goals";
+import useGoalActivity from "@/hooks/useGoalActivity";
 
 const STATUS_STYLES = {
   Active: "bg-primary/15 text-primary",
@@ -16,7 +17,8 @@ const STATUS_STYLES = {
 import CheckinChart from "@/components/goals/CheckinChart";
 
 export default function GoalCard({ goal, projects, checkins = [], habitCount, onEdit }) {
-  const progress = goalProgress(goal, projects);
+  const activity = useGoalActivity(goal, projects);
+  const progress = goalProgress(goal, projects, activity);
   return (
     <div className="rounded-2xl border border-border bg-card/60 p-4 space-y-3">
       <div className="flex items-start justify-between gap-2">
