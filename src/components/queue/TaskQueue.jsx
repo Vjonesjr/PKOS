@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import QueueControls from "@/components/queue/QueueControls";
 import QueueRow from "@/components/queue/QueueRow";
 import QueueGroups from "@/components/queue/QueueGroups";
-import { sortTasks, groupTasks, groupMovePatch, MOVABLE_GROUPS } from "@/lib/taskQueue";
+import { sortTasks, groupTasks, groupMovePatch, topOrder, MOVABLE_GROUPS } from "@/lib/taskQueue";
 import { taskStatusPatch, spawnNextIfRecurring } from "@/lib/taskStatus";
 
 const LIMIT = 100;
@@ -14,15 +14,16 @@ const LIMIT = 100;
  * Home-screen task queue: every open task at every nesting level, flattened.
  * Drag-to-reorder is enabled in "My order" with no grouping; order persists via sort_order.
  */
-export default function TaskQueue({ workspace }) {
+export default function TaskQueue({ workspace, projectId, title = "My Task Queue", onChange }) {
+  const storeKey = projectId ? "project_queue" : "queue";
   const [tasks, setTasks] = useState(null);
   const [names, setNames] = useState({ projects: {}, tasks: {} });
-  const [sort, setSort] = useState(() => localStorage.getItem("queue_sort") || "manual");
-  const [group, setGroup] = useState(() => localStorage.getItem("queue_group") || "none");
+  const [sort, setSort] = useState(() => localStorage.getItem(`${storeKey}_sort`) || "manual");
+  const [group, setGroup] = useState(() => localStorage.getItem(`${storeKey}_group`) || "none");
   const [showDone, setShowDone] = useState(false);
 
   const load = useCallback(async () => {
-    const query = { workspace, archived: { $ne: true }, ...(showDone ? {} : { status: { $ne: "done" } }) };
+    const query = { workspace, archived: { $ne: true }, ...(projectId ? { project_id: projectId } : {}), ...(showDone ? {} : { status: { $ne: "done" } }) };
     const page = await base44.entities.Task.filter(query, { sort: "sort_order", limit: LIMIT });
     setTasks(page.items);
     // Titles for parents and projects so flattened subtasks keep their context.
@@ -33,16 +34,16 @@ export default function TaskQueue({ workspace }) {
       projectIds.length ? base44.entities.Project.filter({ id: { $in: projectIds } }, { fields: ["title"], limit: LIMIT }) : { items: [] },
     ]);
     setNames({ tasks: Object.fromEntries(parents.items.map((p) => [p.id, p.title])), projects: Object.fromEntries(projects.items.map((p) => [p.id, p.title])) });
-  }, [workspace, showDone]);
+  }, [workspace, projectId, showDone]);
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { localStorage.setItem("queue_sort", sort); localStorage.setItem("queue_group", group); }, [sort, group]);
+  useEffect(() => { localStorage.setItem(`${storeKey}_sort`, sort); localStorage.setItem(`${storeKey}_group`, group); }, [sort, group, storeKey]);
 
   const groups = useMemo(() => (tasks ? groupTasks(sortTasks(tasks, sort), group, names.projects) : []), [tasks, sort, group, names]);
   const canReorder = sort === "manual" && group === "none";
   const canDrag = canReorder || MOVABLE_GROUPS.includes(group);
 
   const patchLocal = (id, patch) => setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)));
-  const save = async (task, patch) => { patchLocal(task.id, patch); await base44.entities.Task.update(task.id, patch); };
+  const save = async (task, patch) => { patchLocal(task.id, patch); await base44.entities.Task.update(task.id, patch); onChange?.(); };
   const setStatus = async (task, status) => {
     await save(task, taskStatusPatch(task, status));
     await spawnNextIfRecurring(task, status);
@@ -50,10 +51,7 @@ export default function TaskQueue({ workspace }) {
   };
 
   // Lowest position wins, so one update puts the task above everything else.
-  const moveToTop = (task) => {
-    const min = Math.min(0, ...tasks.map((t) => t.sort_order ?? 0));
-    save(task, { sort_order: min - 10 });
-  };
+  const moveToTop = (task) => save(task, { sort_order: topOrder(tasks) });
 
   const onDragEnd = async ({ source, destination, draggableId }) => {
     if (!destination) return;
@@ -83,13 +81,13 @@ export default function TaskQueue({ workspace }) {
     <div className="space-y-3 rounded-2xl border border-border bg-card/60 p-4">
       <div className="flex items-center gap-2">
         <ListTodo className="h-4 w-4 text-primary" />
-        <h2 className="text-sm font-semibold text-foreground">My task queue</h2>
+        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
         {tasks && <span className="text-xs text-muted-foreground">{tasks.length}{tasks.length === LIMIT ? "+" : ""}</span>}
       </div>
       <QueueControls sort={sort} setSort={setSort} group={group} setGroup={setGroup} showDone={showDone} setShowDone={setShowDone} />
       {tasks?.length > 0 && (
         <p className="text-[11px] text-muted-foreground">
-          {canReorder ? "Drag to reorder." : canDrag ? "Drag a task into another group to change it." : "Dragging works in \"My order\", or when grouped by where, effort or status."}
+          {canReorder ? "Drag to reorder." : canDrag ? "Drag a task into another group to change it." : "Dragging works in \"My Order\", or when grouped by priority, status, where, or effort."}
         </p>
       )}
       {!tasks ? <p className="py-6 text-center text-xs text-muted-foreground">Loading tasks...</p>

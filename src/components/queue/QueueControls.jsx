@@ -15,7 +15,7 @@ export default function QueueControls({ sort, setSort, group, setGroup, showDone
       <Pick value={sort} onChange={setSort} options={SORTS} label="Sort tasks" />
       <Pick value={group} onChange={setGroup} options={GROUPS} label="Group tasks" />
       <button type="button" onClick={() => setShowDone(!showDone)} className="text-xs text-muted-foreground hover:text-primary">
-        {showDone ? "Hide complete" : "Show complete"}
+        {showDone ? "Hide Complete" : "Show Complete"}
       </button>
     </div>
   );
