@@ -29,6 +29,7 @@ const BUILTINS = [
   { id: "draft-goal-ai", label: "Draft Goal with AI", icon: Sparkles, kind: "input", placeholder: "What do you want to achieve?", keywords: ["goal", "okr", "ai", "Create Goal from Idea", "Turn Idea into Goal", "AI Goal Draft"],
     run: (ctx, text) => ctx.navigate(`/goals?draft=${encodeURIComponent(text)}`) },
   { id: "quick-parse", label: "Quick Parse a Brain Dump", icon: Inbox, keywords: ["parse", "/parse", "dump", "adhd"], run: (ctx) => ctx.navigate("/parse") },
+  { id: "quick-start", label: "Open Quick Start Guide", icon: Sparkles, keywords: ["help", "tutorial", "guide", "how"], run: (ctx) => ctx.navigate("/guide") },
   { id: "start-review", label: "Start Review", icon: History, run: (ctx) => ctx.navigate("/review") },
   { id: "study-flashcards", label: "Study Flashcards", icon: GraduationCap, run: (ctx) => ctx.navigate("/learning") },
   { id: "ask-ai", label: "Ask AI", icon: Sparkles, run: (ctx) => ctx.navigate("/ai") },

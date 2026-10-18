@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { BookOpen } from "lucide-react";
+import { GUIDE_SEEN_KEY } from "@/lib/guideSteps";
 import { motion, AnimatePresence } from "framer-motion";
 import { Home, Inbox, Library, FolderKanban, GraduationCap, History, Sparkles, Menu, X, Settings, Search, Layers, Sun, Cpu, Zap, Target, FileText, Briefcase, Wand2 } from "lucide-react";
 import useAutomationEngine from "@/hooks/useAutomationEngine";
@@ -12,6 +14,7 @@ import { useWorkspace } from "@/lib/WorkspaceContext";
 
 const NAV = [
   { to: "/", label: "Home", icon: Home },
+  { to: "/guide", label: "Quick Start", icon: BookOpen },
   { to: "/today", label: "Today", icon: Sun },
   { to: "/search", label: "Search", icon: Search },
   { to: "/capture", label: "Capture", icon: Inbox },
@@ -32,8 +35,17 @@ const NAV = [
 export default function Layout() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { isDemo, workspace } = useWorkspace();
+  const { isDemo, workspace, setWorkspace } = useWorkspace();
+  const navigate = useNavigate();
   useAutomationEngine(workspace);
+
+  // First visit: start in the demo profile with the Quick Start Guide open.
+  useEffect(() => {
+    if (localStorage.getItem(GUIDE_SEEN_KEY)) return;
+    localStorage.setItem(GUIDE_SEEN_KEY, "1");
+    setWorkspace("demo");
+    navigate("/guide", { replace: true });
+  }, []);
 
   const isActive = (to) => (to === "/" ? location.pathname === "/" : location.pathname.startsWith(to));
 
