@@ -55,6 +55,10 @@
     "project_id": {
       "type": "string"
     },
+    "parent_task_id": {
+      "type": "string",
+      "description": "Parent task when this is a subtask (nesting)"
+    },
     "goal_id": {
       "type": "string"
     },

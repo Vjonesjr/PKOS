@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { taskStatusPatch, spawnNextIfRecurring, RECURRENCES } from "@/lib/taskStatus";
 import { useWorkspace } from "@/lib/WorkspaceContext";
+import TaskSubtasks from "@/components/tasks/TaskSubtasks";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -218,6 +219,7 @@ export default function TaskDetail() {
           {saving ? "Saving..." : "Save Changes"}
         </Button>
       </div>
+      <TaskSubtasks key={task.id} task={task} workspace={workspace} />
     </div>
   );
 }

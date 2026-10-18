@@ -682,15 +682,20 @@ TEXT: """${text}"""`;
       const text = String(body.text || '').slice(0, 12000).trim();
       if (!text) return Response.json({ error: 'The file is empty' }, { status: 400 });
       const ms = { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, due_date: { type: 'string' } }, required: ['title'] } };
+      // Tasks nest up to 3 levels (task → subtask → sub-subtask); schema is spelled out since JSON schema recursion isn't supported.
+      const taskProps = { title: { type: 'string' }, priority: { type: 'string' }, due_date: { type: 'string' } };
+      const leaf = { type: 'array', items: { type: 'object', properties: taskProps, required: ['title'] } };
+      const mid = { type: 'array', items: { type: 'object', properties: { ...taskProps, subtasks: leaf }, required: ['title'] } };
+      const tasks = { type: 'array', items: { type: 'object', properties: { ...taskProps, subtasks: mid }, required: ['title'] } };
       const r = await invoke(base44, `Extract goals, projects and milestones from this imported file for a personal planning app.
 Rules: only include items literally present in the text; never invent records. A goal is a desired outcome; a project is a body of work; milestones are checkpoints belonging to a goal or project.
-Dates must be yyyy-MM-dd and only when written in the text. area is one of Career, Health, Learning, Finance, Relationships, Personal, Other. Project status is one of Idea, Planned, Active, Waiting, Completed. For a project serving a goal, set goal_title to that goal's exact title. Max 50 goals and 50 projects.
+Dates must be yyyy-MM-dd and only when written in the text. area is one of Career, Health, Learning, Finance, Relationships, Personal, Other. Project status is one of Idea, Planned, Active, Waiting, Completed. For a project serving a goal, set goal_title to that goal's exact title; leave it empty when there is none. Put action items under their project's tasks, and steps of a task (indented items, sub-bullets) in its subtasks. Don't fill why/description unless written. Max 50 goals and 50 projects.
 FILE:
 """${text}"""`, {
         type: 'object',
         properties: {
           goals: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, area: { type: 'string' }, priority: { type: 'string' }, target_date: { type: 'string' }, why: { type: 'string' }, milestones: ms }, required: ['title'] } },
-          projects: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, status: { type: 'string' }, priority: { type: 'string' }, description: { type: 'string' }, goal_title: { type: 'string' }, milestones: ms }, required: ['title'] } },
+          projects: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, status: { type: 'string' }, priority: { type: 'string' }, description: { type: 'string' }, goal_title: { type: 'string' }, milestones: ms, tasks }, required: ['title'] } },
         },
         required: ['goals', 'projects'],
       });

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Checkbox } from "@/components/ui/checkbox";
+import TaskTreeRow from "@/components/projects/TaskTreeRow";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -28,17 +27,22 @@ export default function ProjectTasks({ tasks, projectId, onChange }) {
     onChange();
   };
 
+  const addChild = async (parent, title) => {
+    await base44.entities.Task.create({ title, project_id: projectId, parent_task_id: parent.id, status: "todo", workspace });
+    onChange();
+  };
+
+  // Tasks whose parent isn't in this project's list are shown as roots so nothing is hidden.
+  const ids = new Set(tasks.map((t) => t.id));
+  const roots = tasks.filter((t) => !t.parent_task_id || !ids.has(t.parent_task_id));
+  const childrenOf = (id) => tasks.filter((t) => t.parent_task_id === id);
+
   return (
     <div className="space-y-2">
       {tasks.length === 0 ? (
         <EmptyState icon={ListTodo} title="No tasks yet" />
       ) : (
-        tasks.map((t) => (
-          <div key={t.id} className="flex items-center gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2">
-            <Checkbox checked={t.status === "done"} onCheckedChange={() => toggleDone(t)} />
-            <Link to={`/task-detail?id=${t.id}`} className={`flex-1 text-sm hover:text-primary ${t.status === "done" ? "text-muted-foreground line-through" : "text-foreground/90"}`}>{t.title}</Link>
-          </div>
-        ))
+        roots.map((t) => <TaskTreeRow key={t.id} task={t} childrenOf={childrenOf} onToggle={toggleDone} onAddChild={addChild} />)
       )}
       <div className="flex gap-2">
         <Input placeholder="Add task" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} className="h-9" />

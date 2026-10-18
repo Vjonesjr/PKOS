@@ -10,7 +10,7 @@ export default function ImportResult({ result, onReset }) {
       <div className="rounded-2xl border border-primary/30 bg-primary/5 p-5 text-center">
         <CheckCircle2 className="mx-auto h-8 w-8 text-primary" />
         <p className="mt-2 font-medium text-foreground">Import finished</p>
-        <p className="mt-1 text-sm text-muted-foreground">{result.goals} goals, {result.projects} projects and {result.milestones} milestones created.</p>
+        <p className="mt-1 text-sm text-muted-foreground">{result.goals} goals, {result.projects} projects, {result.tasks} tasks and {result.milestones} milestones created.</p>
       </div>
       {issues.length > 0 && (
         <div className="rounded-xl border border-border bg-card/60 p-3">

@@ -47,16 +47,30 @@ export async function applyPlan(workspace, plan) {
     if (seenProjects.has(t)) { skipped.push({ title: p.title, reason: "Repeated in file" }); return false; }
     seenProjects.add(t); return true;
   });
-  let projectCount = 0;
+  let projectCount = 0, taskCount = 0;
   if (newProjects.length) {
     try {
-      await base44.entities.Project.bulkCreate(newProjects.map((p) => {
+      const savedProjects = await base44.entities.Project.bulkCreate(newProjects.map((p) => {
         const goal_id = p.goal_key.startsWith("id:") ? p.goal_key.slice(3) : goalIds[p.goal_key];
         return { title: p.title.trim(), status: p.status, priority: p.priority, description: p.description, workspace, milestones: cleanMilestones(p.milestones), ...(goal_id ? { goal_id } : {}) };
       }));
       projectCount = newProjects.length;
       newProjects.forEach((p) => (milestones += cleanMilestones(p.milestones).length));
+      // Tasks are created one nesting level at a time so each subtask gets its saved parent's id.
+      let level = newProjects.flatMap((p, i) => p.tasks.map((t) => ({ t, project_id: savedProjects[i].id, parent: null })));
+      while (level.length) {
+        level = level.filter((x) => x.t.title.trim());
+        if (!level.length) break;
+        try {
+          const saved = await base44.entities.Task.bulkCreate(level.map(({ t, project_id, parent }) => ({
+            title: t.title.trim(), priority: t.priority, status: "todo", project_id, workspace,
+            ...(t.due_date ? { due_date: t.due_date } : {}), ...(parent ? { parent_task_id: parent } : {}),
+          })));
+          taskCount += saved.length;
+          level = level.flatMap((x, i) => x.t.subtasks.map((s) => ({ t: s, project_id: x.project_id, parent: saved[i].id })));
+        } catch (e) { level.forEach((x) => failed.push({ title: x.t.title, reason: `Task: ${e.message}` })); break; }
+      }
     } catch (e) { newProjects.forEach((p) => failed.push({ title: p.title, reason: e.message })); }
   }
-  return { goals: newGoals.length, projects: projectCount, milestones, skipped, failed };
+  return { goals: newGoals.length, projects: projectCount, tasks: taskCount, milestones, skipped, failed };
 }

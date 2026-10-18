@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import MilestoneList from "@/components/import/MilestoneList";
+import TaskTreeEditor from "@/components/import/TaskTreeEditor";
 
 const STATUSES = ["Idea", "Planned", "Active", "Waiting", "Completed"];
 
@@ -32,6 +33,8 @@ export default function ProjectRow({ project, onChange, goalOptions, duplicate }
         </Select>
       </div>
       <MilestoneList items={project.milestones} onChange={(milestones) => set({ milestones })} />
+      <p className="pt-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Tasks</p>
+      <TaskTreeEditor tasks={project.tasks} onChange={(tasks) => set({ tasks })} />
     </div>
   );
 }

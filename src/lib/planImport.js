@@ -17,13 +17,16 @@ goal,Run a half marathon,,Health,,high,2027-04-01,Finish under 2 hours
 milestone,Run 10k without stopping,Run a half marathon,,,,2026-12-01,
 project,Training plan,Run a half marathon,,Active,medium,,12-week schedule
 milestone,Buy running shoes,Training plan,,,,2026-11-01,
+task,Plan weekly runs,Training plan,,,high,2026-10-25,
+subtask,Pick a running route,Plan weekly runs,,,,,
 `;
 
 export const JSON_TEMPLATE = JSON.stringify({
   goals: [{
     title: "Run a half marathon", area: "Health", priority: "high", target_date: "2027-04-01", why: "Finish under 2 hours",
     milestones: [{ title: "Run 10k without stopping", due_date: "2026-12-01" }],
-    projects: [{ title: "Training plan", status: "Active", description: "12-week schedule", milestones: [{ title: "Buy running shoes", due_date: "2026-11-01" }] }],
+    projects: [{ title: "Training plan", status: "Active", description: "12-week schedule", milestones: [{ title: "Buy running shoes", due_date: "2026-11-01" }],
+      tasks: [{ title: "Plan weekly runs", priority: "high", due_date: "2026-10-25", subtasks: [{ title: "Pick a running route" }] }] }],
   }],
   projects: [{ title: "Standalone project", status: "Idea" }],
 }, null, 2);
@@ -36,7 +39,19 @@ export const normGoal = (g) => ({
   why: String(g.why || g.description || "").slice(0, 1000), milestones: (g.milestones || []).map(milestone).filter((m) => m.title), include: true,
 });
 
+export const MAX_TASK_DEPTH = 3; // task → subtask → sub-subtask
+
+/** Nested task tree; deeper levels than MAX_TASK_DEPTH are dropped. */
+export const normTask = (t, depth = 1) => ({
+  key: key(), title: String(t?.title || t || "").trim().slice(0, 200), priority: pick(t?.priority, PRIORITIES, "medium"),
+  due_date: isDate(t?.due_date) ? t.due_date : "",
+  subtasks: depth < MAX_TASK_DEPTH ? (t?.subtasks || []).map((s) => normTask(s, depth + 1)).filter((s) => s.title) : [],
+});
+
+export const countTasks = (tasks) => tasks.reduce((n, t) => n + 1 + countTasks(t.subtasks), 0);
+
 export const normProject = (p, goalKey = "") => ({
+  tasks: (p.tasks || []).map((t) => normTask(t)).filter((t) => t.title),
   key: key(), title: String(p.title || "").trim().slice(0, 200), status: pick(p.status, PROJECT_STATUSES, "Idea"),
   priority: pick(p.priority, PRIORITIES, "medium"), description: String(p.description || "").slice(0, 2000),
   goal_key: goalKey ? `new:${goalKey}` : "", milestones: (p.milestones || []).map(milestone).filter((m) => m.title), include: true,
@@ -71,8 +86,23 @@ function fromCsv(text) {
     if (r.parent && !g) warnings.push(`Project "${r.title}": goal "${r.parent}" not found in file; you can link it below.`);
     projects.push(normProject(r, g?.key || ""));
   });
+  // Tasks: parent is a project title, or a task title (making it a subtask). Rows are processed in order.
+  const taskIndex = []; // [{title, node, depth}]
+  recs.forEach((r, i) => {
+    if (!["task", "subtask"].includes(r.type.toLowerCase())) return;
+    const lc = (r.parent || "").toLowerCase();
+    const parentTask = taskIndex.find((x) => x.title === lc);
+    const proj = !parentTask && byTitle(projects, r.parent || "");
+    if (!parentTask && !proj) return warnings.push(`Row ${i + 2}: task "${r.title}" has no matching project or task "${r.parent}"; skipped.`);
+    const depth = parentTask ? parentTask.depth + 1 : 1;
+    if (depth > MAX_TASK_DEPTH) return warnings.push(`Row ${i + 2}: "${r.title}" is nested more than ${MAX_TASK_DEPTH} levels; skipped.`);
+    const node = normTask(r, depth);
+    (parentTask ? parentTask.node.subtasks : proj.tasks).push(node);
+    taskIndex.push({ title: node.title.toLowerCase(), node, depth });
+  });
   recs.forEach((r, i) => {
     const t = r.type.toLowerCase();
+    if (t === "task" || t === "subtask") return;
     if (t === "milestone") {
       const parent = r.parent && (byTitle(projects, r.parent) || byTitle(goals, r.parent));
       if (!parent) warnings.push(`Row ${i + 2}: milestone "${r.title}" has no matching parent "${r.parent}"; skipped.`);
@@ -111,6 +141,8 @@ export function finalizePlan(plan) {
   const projects = plan.projects.filter((p) => p.title);
   const dropped = plan.goals.length + plan.projects.length - goals.length - projects.length;
   if (dropped) warnings.push(`${dropped} record(s) without a title were skipped.`);
+  const taskCount = projects.reduce((n, p) => n + countTasks(p.tasks), 0);
+  if (taskCount > 300) warnings.push(`${taskCount} tasks found; large imports may take a while.`);
   if (goals.length + projects.length > MAX_RECORDS) warnings.push(`Only the first ${MAX_RECORDS} records are shown.`);
   return { goals: goals.slice(0, MAX_RECORDS), projects: projects.slice(0, Math.max(0, MAX_RECORDS - goals.length)), warnings };
 }
