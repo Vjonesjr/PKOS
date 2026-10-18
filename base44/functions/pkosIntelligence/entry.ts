@@ -1,10 +1,14 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.49';
+import { checkAiQuota } from '../../shared/aiQuota.ts';
 const ENT = { knowledge: 'Knowledge', project: 'Project', task: 'Task', learning: 'LearningItem', decision: 'Decision', lesson: 'Lesson', capture: 'Capture' };
 const str = (x, max = 2000) => typeof x === 'string' ? x.slice(0, max) : '';
 export default async function(req) {
   try {
     const client = createClientFromRequest(req);
-    if (!await client.auth.me()) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const user = await client.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const overLimit = await checkAiQuota(client, user);
+    if (overLimit) return overLimit;
     const body = await req.json();
     if (!['personal', 'demo'].includes(body.workspace)) return Response.json({ error: 'Invalid workspace' }, { status: 400 });
     const llm = (prompt, schema) => client.asServiceRole.integrations.Core.InvokeLLM({ prompt, response_json_schema: schema });

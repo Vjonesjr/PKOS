@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.49';
+import { checkAiQuota } from '../../shared/aiQuota.ts';
 
 // Daily cap on AI goal generations per user. Change here only.
 const GOAL_DRAFT_DAILY_LIMIT = 10;
@@ -15,6 +16,8 @@ export default async function (req) {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const overLimit = await checkAiQuota(base44, user);
+    if (overLimit) return overLimit;
 
     const body = await req.json();
     const action = body.action;
