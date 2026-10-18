@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ExternalLink, RefreshCw, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ParseTextButton from "@/components/parse/ParseTextButton";
 import { base44 } from "@/api/base44Client";
 import { createFromDocument } from "@/lib/documentRecords";
 import SendToRow from "@/components/documents/SendToRow";
@@ -67,6 +68,7 @@ export default function DocumentDetail({ doc, projects, onChange, onDeleted }) {
               item={{ type: "knowledge", title: doc.title, content: doc.extracted_text, sent_id: doc.whole_sent_id, sent_type: doc.whole_sent_type }} />
 
             <button className="text-xs text-primary hover:underline" onClick={() => setShowText(!showText)}>{showText ? "Hide" : "Show"} extracted text</button>
+            <ParseTextButton text={doc.extracted_text} />
             {showText && <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-xl bg-secondary/40 p-3 text-xs">{doc.extracted_text}</pre>}
           </>
         )}

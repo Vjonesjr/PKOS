@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import ParseTextButton from "@/components/parse/ParseTextButton";
 import { ArrowLeft, Pencil, Star, Archive } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -79,6 +80,7 @@ export default function KnowledgeDetail() {
         {record.category && <p className="mt-1 text-xs text-muted-foreground">Category: {record.category}</p>}
         {record.source && <p className="mt-1 text-xs text-muted-foreground">Source: {record.source}</p>}
         <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-foreground/80">{record.content}</p>
+        <ParseTextButton text={record.content} className="mt-3" />
         {record.tags?.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-1.5">
             {record.tags.map((t) => (

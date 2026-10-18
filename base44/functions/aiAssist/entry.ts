@@ -630,7 +630,7 @@ Split the text into separate items (separators: newlines, ";", bullets). For eac
 - group: a project header ("Laundry: ...") or an inferred area (Health, Work, Personal, Home...). Use "Inbox" when unclear. If it matches an existing project, set existing_project_id to its exact id.
 - done: true for "(done)", "✓", "[x]", "x " markers. "[ ]" means open.
 - due_date (yyyy-MM-dd, resolve "tomorrow", "4/22", "Apr 20" relative to today, future dates), time (HH:mm), priority (low/medium/high; "!" or "high" = high), tags (#home, @email -> "home", "email"), estimate_minutes ("5m", "30m", "1h").
-- subtasks: comma-separated steps after a header become subtasks of ONE todo when they are clearly parts of one job, otherwise separate todos.
+- subtasks: comma-separated steps after a header become subtasks of ONE todo when they are clearly parts of one job, otherwise separate todos. Each subtask has only a title and a realistic duration in minutes (your estimate is fine here).
 - next_action: one tiny, physical first step (under 10 words) for open items. Empty for done items.
 - chunks: only for items likely over 20 minutes, 2-5 chunks of 10-20 minutes each; else empty.
 Never invent tasks that aren't in the text. due_date, time, tags, priority and estimate_minutes must come ONLY from what is literally written: leave them empty/0/"medium" otherwise (do not default dates to today). Keep titles short, starting with a verb.
@@ -647,7 +647,7 @@ TEXT: """${text}"""`;
                 group: { type: 'string' }, existing_project_id: { type: 'string' }, title: { type: 'string' }, done: { type: 'boolean' },
                 due_date: { type: 'string' }, time: { type: 'string' }, priority: { type: 'string', enum: ['low', 'medium', 'high'] },
                 tags: { type: 'array', items: { type: 'string' } }, estimate_minutes: { type: 'number' },
-                subtasks: { type: 'array', items: { type: 'string' } }, next_action: { type: 'string' }, chunks: { type: 'array', items: { type: 'string' } },
+                subtasks: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, minutes: { type: 'number' } }, required: ['title'] } }, next_action: { type: 'string' }, chunks: { type: 'array', items: { type: 'string' } },
               },
               required: ['group', 'title'],
             },
@@ -669,7 +669,7 @@ TEXT: """${text}"""`;
           priority: ['low', 'medium', 'high'].includes(i.priority) ? i.priority : 'medium',
           tags: (i.tags || []).map((t) => str(t, 30).replace(/^[#@]/, '')).filter(Boolean).slice(0, 5),
           estimate_minutes: i.estimate_minutes > 0 ? Math.min(Math.round(i.estimate_minutes), 600) : 0,
-          subtasks: (i.subtasks || []).filter(Boolean).slice(0, 8).map((s) => str(s, 150)),
+          subtasks: (i.subtasks || []).filter((s) => s?.title).slice(0, 8).map((s) => ({ title: str(s.title, 150), minutes: s.minutes > 0 ? Math.min(Math.round(s.minutes), 240) : 0 })),
           next_action: i.done ? '' : str(i.next_action, 120),
           chunks: (i.chunks || []).filter(Boolean).slice(0, 5).map((s) => str(s, 150)),
         };

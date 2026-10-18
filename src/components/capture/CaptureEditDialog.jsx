@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import ParseTextButton from "@/components/parse/ParseTextButton";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Star } from "lucide-react";
@@ -56,6 +57,7 @@ export default function CaptureEditDialog({ capture, onOpenChange, onSave }) {
         </DialogHeader>
         <div className="space-y-3">
           <Textarea rows={4} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} />
+          {form.content.length > 120 && <ParseTextButton text={form.content} />}
           <Input placeholder="Title (optional)" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
           <div className="flex items-center gap-2">
             <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
