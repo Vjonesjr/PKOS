@@ -257,13 +257,37 @@ export default async function (req) {
     ];
     // A few tasks are pinned to Today so the Today page has work on first open.
     const TODAY_TASKS = new Set(['Write case study for analytics dashboard project', 'Follow up with recruiters from networking event', 'Easy 5 km recovery run']);
+    let doneIdx = 0;
     await base44.entities.Task.bulkCreate(
       tasksData.map((t) => ({
         title: t.title, status: t.status, priority: t.priority, due_date: shift(t.due_date),
         today_date: TODAY_TASKS.has(t.title) ? today : undefined,
+        // Spread existing done tasks over the last ~5 weeks instead of leaving them undated.
+        completed_date: t.status === 'done' ? addDays(today, -(2 + 3 * doneIdx++)) : undefined,
         project_id: t.project ? proj[t.project] : undefined, workspace: W,
       }))
     );
+
+    // ---------- 90-day completion history (realistic ups and downs for the charts) ----------
+    const histProjects = ['Data Analytics Job Search', 'Learn Python for Data Analysis', 'Personal Portfolio Website', 'Personal Knowledge System Research', '10K Training Plan', 'Small Business Launch'];
+    const histTitles = ['Review notes', 'Send follow-up email', 'Practice exercise set', 'Draft section', 'Plan next week', 'Clean up inbox', 'Research option', 'Fix small issue'];
+    const historyTasks = [];
+    for (let i = 1; i <= 90; i++) {
+      const date = addDays(today, -i);
+      const dow = new Date(`${date}T12:00:00Z`).getUTCDay();
+      let n = [0, 3, 4, 3, 5, 2, 1][dow];          // weekly rhythm: busy midweek, quiet weekends
+      if (i >= 50 && i <= 63) n = Math.max(0, n - 2); // two-week slump (illness/travel)
+      if (i <= 14) n += 1;                           // recent ramp-up
+      if (i % 11 === 0) n += 2;                      // occasional big push day
+      for (let k = 0; k < n; k++) {
+        historyTasks.push({
+          title: `${histTitles[(i + k) % histTitles.length]} (${date})`, status: 'done',
+          priority: ['low', 'medium', 'high'][(i + k) % 3], completed_date: date, archived: true,
+          project_id: proj[histProjects[(i * 3 + k) % histProjects.length]], workspace: W,
+        });
+      }
+    }
+    for (let s = 0; s < historyTasks.length; s += 200) await base44.entities.Task.bulkCreate(historyTasks.slice(s, s + 200));
 
     // ---------- Captures ----------
     const capturesData = [
@@ -691,13 +715,15 @@ async function seedGoalsAndHabits(base44, { W, today, addDays, ownerId, proj, le
   ].filter(Boolean));
 
   // Habits. `pattern(i)` returns the status i days ago (i >= 1), or null for no log.
-  const start = addDays(today, -45);
+  const start = addDays(today, -95);
+  // Slump window (50-63 days ago) mirrors the task history so charts dip together.
+  const slump = (i) => i >= 50 && i <= 63;
   const habitsData = [
-    { title: 'Deep Work 90 min', goal: 'role', schedule_type: 'weekdays', weekdays: [1, 2, 3, 4, 5], pattern: () => 'done' }, // unbroken streak
-    { title: 'SQL practice 20 min', goal: 'role', schedule_type: 'daily', pattern: (i) => (i <= 2 ? 'missed' : 'done') }, // streak just broke
-    { title: 'Read 20 pages', goal: 'pkm', schedule_type: 'daily', pattern: (i) => (i % 5 === 1 ? 'missed' : 'done') }, // recent misses, still going
-    { title: 'Client outreach', goal: 'consult', schedule_type: 'weekdays', weekdays: [1, 3, 5], pattern: (i) => (i === 3 || i === 12 ? 'skipped' : 'done') }, // skips keep streak
-    { title: 'Run', goal: 'run', schedule_type: 'per_week', per_week_target: 3, pattern: (i) => (i % 7 === 1 || i % 7 === 3 || i % 7 === 5 ? 'done' : null) },
+    { title: 'Deep Work 90 min', goal: 'role', schedule_type: 'weekdays', weekdays: [1, 2, 3, 4, 5], pattern: (i) => (slump(i) && i % 2 ? 'missed' : i > 70 && i % 4 === 0 ? 'missed' : 'done') }, // recent unbroken streak
+    { title: 'SQL practice 20 min', goal: 'role', schedule_type: 'daily', pattern: (i) => (i <= 2 || slump(i) || (i > 63 && i % 3 === 0) ? 'missed' : 'done') }, // improving, streak just broke
+    { title: 'Read 20 pages', goal: 'pkm', schedule_type: 'daily', pattern: (i) => (i % 5 === 1 || (slump(i) && i % 2 === 0) ? 'missed' : 'done') },
+    { title: 'Client outreach', goal: 'consult', schedule_type: 'weekdays', weekdays: [1, 3, 5], pattern: (i) => (i === 3 || i === 12 ? 'skipped' : i > 40 ? (i % 3 === 0 ? 'done' : 'missed') : 'done') }, // started weak, got consistent
+    { title: 'Run', goal: 'run', schedule_type: 'per_week', per_week_target: 3, pattern: (i) => (slump(i) ? (i % 7 === 2 ? 'done' : null) : i % 7 === 1 || i % 7 === 3 || i % 7 === 5 ? 'done' : null) },
   ];
   const habits = await E.Habit.bulkCreate(habitsData.map((h) => ({
     title: h.title, goal_id: gid[h.goal], schedule_type: h.schedule_type, weekdays: h.weekdays || [], per_week_target: h.per_week_target || 3,
@@ -708,14 +734,14 @@ async function seedGoalsAndHabits(base44, { W, today, addDays, ownerId, proj, le
   const logs = [];
   habits.forEach((habit, idx) => {
     const h = habitsData[idx];
-    for (let i = 1; i <= 42; i++) {
+    for (let i = 1; i <= 90; i++) {
       const date = addDays(today, -i);
       if (h.schedule_type === 'weekdays' && !h.weekdays.includes(weekday(date))) continue;
       const status = h.pattern(i);
       if (status) logs.push({ habit_id: habit.id, date, status, owner_id: ownerId, workspace: W });
     }
   });
-  await E.HabitLog.bulkCreate(logs);
+  for (let s = 0; s < logs.length; s += 200) await E.HabitLog.bulkCreate(logs.slice(s, s + 200));
 
   // Goal check-ins for the previous 4 ISO weeks (current week left open).
   const dow = weekday(today) || 7;
