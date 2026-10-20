@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Pencil, Archive } from "lucide-react";
+import { ArrowLeft, Pencil, Archive, Save } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -25,6 +25,7 @@ export default function ProjectDetail() {
   const [lessons, setLessons] = useState([]);
   const [notFound, setNotFound] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [progressDraft, setProgressDraft] = useState(0);
   const { workspace, isSeeding } = useWorkspace();
 
   const load = useCallback(async () => {
@@ -39,6 +40,7 @@ export default function ProjectDetail() {
       ]);
       setNotFound(false);
       setProject(p);
+      setProgressDraft(p.progress || 0);
       setTasks(t);
       setDecisions(d);
       setLessons(l);
@@ -65,8 +67,10 @@ export default function ProjectDetail() {
     navigate("/projects");
   };
 
-  const updateProgress = async (val) => {
-    await base44.entities.Project.update(id, { progress: val });
+  const updateProgress = async () => {
+    const value = Math.max(0, Math.min(100, Number(progressDraft) || 0));
+    setProgressDraft(value);
+    await base44.entities.Project.update(id, { progress: value });
     load();
   };
 
@@ -117,10 +121,11 @@ export default function ProjectDetail() {
           </div>
         </div>
 
-        <div className="mt-5 flex items-center gap-2">
+        <div className="mt-5 flex flex-wrap items-center gap-2">
           <span className="text-xs text-muted-foreground">Update progress:</span>
-          <Input type="number" min={0} max={100} defaultValue={project.progress || 0} onBlur={(e) => updateProgress(Number(e.target.value))} className="h-8 w-20" />
+          <Input type="number" min={0} max={100} value={progressDraft} onChange={(e) => setProgressDraft(e.target.value)} className="h-9 w-20" aria-label="Project progress percentage" />
           <span className="text-xs text-muted-foreground">%</span>
+          <Button size="sm" onClick={updateProgress} className="gap-1.5"><Save className="h-3.5 w-3.5" /> Update</Button>
         </div>
       </div>
 
