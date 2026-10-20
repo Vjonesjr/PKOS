@@ -48,7 +48,7 @@ export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isDemo, workspace, setWorkspace } = useWorkspace();
   const navigate = useNavigate();
-  const [backEnabled, setBackEnabled] = useState(() => localStorage.getItem("smart_pkos_back_enabled") !== "false");
+  const backEnabled = localStorage.getItem("smart_pkos_back_enabled") !== "false";
   useAutomationEngine(workspace);
 
   const goBack = () => {
