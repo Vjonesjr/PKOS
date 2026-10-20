@@ -7,16 +7,16 @@ import StatusBadge from "@/components/shared/StatusBadge";
 import { STATUSES } from "@/lib/taskQueue";
 
 /** One task in the queue. dragHandleProps is set only when manual reordering is active. */
-export default function QueueRow({ task, parentTitle, dragHandleProps, onStatus, onSave, onTop }) {
+export default function QueueRow({ task, parentTitle, dragHandleProps, view = "list", onStatus, onSave, onTop }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-lg border border-border bg-card px-2 py-1.5">
+    <div className={`rounded-xl border border-border bg-card p-3 ${view === "card" ? "min-h-32" : ""}`}>
       <div className="flex items-center gap-1.5">
         {dragHandleProps
           ? <span {...dragHandleProps} aria-label="Drag to reorder" className="shrink-0 cursor-grab touch-none p-1 text-muted-foreground"><GripVertical className="h-4 w-4" /></span>
           : <span className="w-1" />}
         <div className="min-w-0 flex-1">
-          <Link to={`/task-detail?id=${task.id}`} className={`block truncate text-sm hover:text-primary ${task.status === "done" ? "text-muted-foreground line-through" : "text-foreground/90"}`}>{task.title}</Link>
+          <Link to={`/task-detail?id=${task.id}`} className={`block break-words text-sm leading-5 hover:text-primary ${task.status === "done" ? "text-muted-foreground line-through" : "text-foreground/90"}`}>{task.title}</Link>
           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
             {parentTitle && <span className="truncate">↳ {parentTitle}</span>}
             {task.due_date && <span className="shrink-0">{task.due_date}</span>}
@@ -25,7 +25,7 @@ export default function QueueRow({ task, parentTitle, dragHandleProps, onStatus,
         </div>
         <StatusBadge value={task.priority} className="hidden sm:inline-flex" />
         <Select value={task.status || "todo"} onValueChange={onStatus}>
-          <SelectTrigger className="h-7 w-[92px] shrink-0 px-2 text-[11px]" aria-label="Task status"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-8 w-[104px] shrink-0 px-2 text-[11px]" aria-label="Task status"><SelectValue /></SelectTrigger>
           <SelectContent>{STATUSES.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}</SelectContent>
         </Select>
         {onTop && (
