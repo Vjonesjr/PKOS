@@ -20,6 +20,7 @@ export default function TaskQueue({ workspace, projectId, title = "My Task Queue
   const [names, setNames] = useState({ projects: {}, tasks: {} });
   const [sort, setSort] = useState(() => localStorage.getItem(`${storeKey}_sort`) || "manual");
   const [group, setGroup] = useState(() => localStorage.getItem(`${storeKey}_group`) || "none");
+  const [view, setView] = useState(() => localStorage.getItem(`${storeKey}_view`) || "list");
   const [showDone, setShowDone] = useState(false);
 
   const load = useCallback(async () => {
@@ -36,7 +37,7 @@ export default function TaskQueue({ workspace, projectId, title = "My Task Queue
     setNames({ tasks: Object.fromEntries(parents.items.map((p) => [p.id, p.title])), projects: Object.fromEntries(projects.items.map((p) => [p.id, p.title])) });
   }, [workspace, projectId, showDone]);
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { localStorage.setItem(`${storeKey}_sort`, sort); localStorage.setItem(`${storeKey}_group`, group); }, [sort, group, storeKey]);
+  useEffect(() => { localStorage.setItem(`${storeKey}_sort`, sort); localStorage.setItem(`${storeKey}_group`, group); localStorage.setItem(`${storeKey}_view`, view); }, [sort, group, view, storeKey]);
 
   const groups = useMemo(() => (tasks ? groupTasks(sortTasks(tasks, sort), group, names.projects) : []), [tasks, sort, group, names]);
   const canReorder = sort === "manual" && group === "none";
@@ -73,7 +74,7 @@ export default function TaskQueue({ workspace, projectId, title = "My Task Queue
   };
 
   const row = (t, handle) => (
-    <QueueRow task={t} parentTitle={names.tasks[t.parent_task_id]} dragHandleProps={handle}
+    <QueueRow task={t} parentTitle={names.tasks[t.parent_task_id]} dragHandleProps={handle} view={view}
       onStatus={(s) => setStatus(t, s)} onSave={(p) => save(t, p)} onTop={sort === "manual" ? () => moveToTop(t) : null} />
   );
 
@@ -84,7 +85,7 @@ export default function TaskQueue({ workspace, projectId, title = "My Task Queue
         <h2 className="text-sm font-semibold text-foreground">{title}</h2>
         {tasks && <span className="text-xs text-muted-foreground">{tasks.length}{tasks.length === LIMIT ? "+" : ""}</span>}
       </div>
-      <QueueControls sort={sort} setSort={setSort} group={group} setGroup={setGroup} showDone={showDone} setShowDone={setShowDone} />
+      <QueueControls sort={sort} setSort={setSort} group={group} setGroup={setGroup} view={view} setView={setView} showDone={showDone} setShowDone={setShowDone} />
       {tasks?.length > 0 && (
         <p className="text-[11px] text-muted-foreground">
           {canReorder ? "Drag to reorder." : canDrag ? "Drag a task into another group to change it." : "Dragging works in \"My Order\", or when grouped by priority, status, where, or effort."}
@@ -94,7 +95,9 @@ export default function TaskQueue({ workspace, projectId, title = "My Task Queue
         : tasks.length === 0 ? <p className="py-6 text-center text-xs text-muted-foreground">No open tasks. Nice.</p>
         : (
           <DragDropContext onDragEnd={onDragEnd}>
-            <QueueGroups groups={groups} draggable={canDrag} renderRow={row} />
+            <div className={view === "grid" ? "grid grid-cols-1 gap-3 sm:grid-cols-2" : view === "card" ? "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" : "space-y-2"}>
+              <QueueGroups groups={groups} draggable={canDrag} renderRow={row} />
+            </div>
           </DragDropContext>
         )}
     </div>
