@@ -24,6 +24,7 @@ export default function GoalRow({ goal, onChange, duplicate }) {
         <Input type="date" value={goal.target_date} onChange={(e) => set({ target_date: e.target.value })} className="h-8 text-xs" aria-label="Target date" />
       </div>
       <MilestoneList items={goal.milestones} onChange={(milestones) => set({ milestones })} />
+      {goal.suggested_tasks?.length > 0 && <div className="rounded-lg bg-primary/5 p-2 text-xs text-foreground/80"><p className="font-medium text-primary">Suggested starter tasks</p><ul className="mt-1 list-disc space-y-0.5 pl-4">{goal.suggested_tasks.map((task, i) => <li key={`${task}-${i}`}>{task}</li>)}</ul><p className="mt-1 text-[11px] text-muted-foreground">These will be added once, linked to this goal.</p></div>}
     </div>
   );
 }
