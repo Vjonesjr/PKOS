@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { BookOpen } from "lucide-react";
 import { GUIDE_SEEN_KEY } from "@/lib/guideSteps";
@@ -49,11 +49,19 @@ export default function Layout() {
   const { isDemo, workspace, setWorkspace } = useWorkspace();
   const navigate = useNavigate();
   const backEnabled = localStorage.getItem("smart_pkos_back_enabled") !== "false";
+  const exitOnDoubleBack = localStorage.getItem("smart_pkos_double_back_exit") === "true";
+  const lastBackAt = useRef(0);
   useAutomationEngine(workspace);
 
   const goBack = () => {
-    if (window.history.length > 1) navigate(-1);
-    else navigate("/");
+    if (window.history.length > 1) return navigate(-1);
+    const now = Date.now();
+    if (exitOnDoubleBack && now - lastBackAt.current < 1500) {
+      window.navigator.app?.exitApp?.();
+      window.close?.();
+    }
+    lastBackAt.current = now;
+    navigate("/");
   };
 
   // First visit: start in the demo profile with the Quick Start Guide open.
