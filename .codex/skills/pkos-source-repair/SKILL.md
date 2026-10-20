@@ -21,8 +21,8 @@ Use this skill whenever editing, repairing, building, or packaging the PKOS sour
 3. Run proportionate checks. For the current PKOS web/runtime work, use `npm.cmd run validate:source`, `node --test test\\*.test.mjs`, and `npm.cmd run build`. If Android output is affected, run `npm.cmd run android:sync` and build `android\\app:assembleDebug` with a task-specific Gradle cache when the normal cache is broken.
 4. Before stopping, create a dated restore archive in `C:\Users\vinni\Downloads\PKOS-Backups`. Include the source, tests, package files, Android project configuration, and a checkpoint note with test/build results and APK checksum when an APK exists.
 5. Update the private GitHub repository `Vjonesjr/PKOS` with the actual changed source files and a `CHECKPOINT.md` note. Verify the repository contents after writing. Do not claim GitHub is updated until readback confirms it.
-6. Upload the same checkpoint artifact or source snapshot to Google Drive in a clearly named PKOS backup folder. Verify the Drive file or folder after upload.
-7. Report the result in plain English with links/paths for the PC backup, GitHub repository, Drive item, and any APK. Clearly separate “checks passed” from “APK installed or tested on a device.”
+6. Upload the checkpoint archive and source snapshot to Google Drive in a clearly named PKOS backup folder. If an APK exists, upload the APK as its own separate Drive file with a direct link; never make the user extract it from a ZIP.
+7. Report the result in plain English with links/paths for the PC backup, GitHub repository, Drive folder, direct APK file, and any archive. Clearly separate “checks passed” from “APK installed or tested on a device.”
 
 ## Safety rules
 
