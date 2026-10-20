@@ -30,10 +30,12 @@ export default function ImportPlans() {
       const parsed = parseTemplate(ext, text);
       let raw = parsed.plan;
       if (!raw) {
-        const { data } = await base44.functions.invoke("aiAssist", { action: "parse_plan_import", workspace, text: parsed.raw });
+        const AI_IMPORT_LIMIT = 120000;
+        const aiText = parsed.raw.length > AI_IMPORT_LIMIT ? parsed.raw.slice(0, AI_IMPORT_LIMIT) : parsed.raw;
+        const { data } = await base44.functions.invoke("aiAssist", { action: "parse_plan_import", workspace, text: aiText });
         if (data.error) throw new Error(data.error);
         raw = fromDetected(data);
-        if (data.truncated) raw.warnings.push("The file was long; only the first part was read.");
+        if (parsed.raw.length > AI_IMPORT_LIMIT || data.truncated) raw.warnings.push("This file was long, so the smart scan used the first 120,000 characters. Use CSV or JSON structure for a complete import.");
       }
       const next = finalizePlan(raw);
       if (!next.goals.length && !next.projects.length) throw new Error("No goals or projects were found in this file.");
