@@ -1,34 +1,35 @@
 ---
 name: pkos-source-repair
-description: "Maintain PKOS source code safely: create restore points, preserve the PC copy, update GitHub and Google Drive, run the relevant checks, and report the saved locations after every source change."
+description: "Maintain Smart PKOS safely: create Base44 restore points, preserve the PC copy, update GitHub and Google Drive, run checks, and report saved locations after every source change."
 ---
 
-# PKOS Source Repair
+# Smart PKOS Source Repair
 
-Use this skill whenever editing, repairing, building, or packaging the PKOS source code.
+Use this skill whenever editing, repairing, building, or packaging Smart PKOS.
 
 ## Source location
 
-- Primary editable source: `C:\Users\vinni\OS3\mindforge`
+- Primary editable source: Base44 app **Smart PKOS**, app ID `6ab97588d935cf6dad456bf1`
 - Local backup folder: `C:\Users\vinni\Downloads\PKOS-Backups`
-- GitHub repository: `Vjonesjr/PKOS` (private)
-- Keep the product name as PKOS. “MindForge” is only the old local folder/package name.
+- Standalone APK reference only: `C:\Users\vinni\Downloads\Local Files\Project Experiments\PKOS\Smart PKOS.apk`
+- Old local folder `C:\Users\vinni\OS3\mindforge` is a separate MindForge app. Never build or publish it as Smart PKOS.
+- GitHub repository: `Vjonesjr/PKOS` (private). Verify contents before claiming it is current.
 
 ## Required workflow
 
-1. Inspect the current source and existing changes before editing. Do not overwrite unrelated work.
-2. Make the requested source change in the primary source folder.
-3. Run proportionate checks. For the current PKOS web/runtime work, use `npm.cmd run validate:source`, `node --test test\\*.test.mjs`, and `npm.cmd run build`. If Android output is affected, run `npm.cmd run android:sync` and build `android\\app:assembleDebug` with a task-specific Gradle cache when the normal cache is broken.
-4. Before stopping, create a dated restore archive in `C:\Users\vinni\Downloads\PKOS-Backups`. Include the source, tests, package files, Android project configuration, and a checkpoint note with test/build results and APK checksum when an APK exists.
-5. Update the private GitHub repository `Vjonesjr/PKOS` with the actual changed source files and a `CHECKPOINT.md` note. Verify the repository contents after writing. Do not claim GitHub is updated until readback confirms it.
-6. Upload the checkpoint archive and source snapshot to Google Drive in a clearly named PKOS backup folder. If an APK exists, upload the APK as its own separate Drive file with a direct link; never make the user extract it from a ZIP.
-7. Report the result in plain English with links/paths for the PC backup, GitHub repository, Drive folder, direct APK file, and any archive. Clearly separate “checks passed” from “APK installed or tested on a device.”
+1. Inspect Smart PKOS before editing.
+2. Start a Base44 checkpoint session before changing the app.
+3. Make the change in the Smart PKOS Base44 app.
+4. Run the Smart PKOS build and direct checks for changed files.
+5. Finish the Base44 checkpoint and record its ID and commit hash.
+6. Save a local backup/export when available.
+7. Update GitHub with the actual Smart PKOS source snapshot and checkpoint note; read it back before claiming success.
+8. Upload the source snapshot and checkpoint to Google Drive when the connector is available.
+9. Clearly separate source checks, APK creation, APK signing, installation, emulator testing, phone testing, and store submission.
 
 ## Safety rules
 
-- Never delete the original source, prior backups, GitHub history, or Drive files just to make room.
-- Do not guess a GitHub repository or Drive destination. Use the configured PKOS repository and create/find a clearly named backup folder when needed.
-- Keep PKOS personal data and source artifacts private. Do not publish the repository or change sharing to public.
-- If a connector is unavailable, save the local backup first, state exactly what could not be synced, and continue with the remaining safe copies.
-- A source test pass does not prove phone runtime behavior; label emulator, physical-phone, signing, and store evidence separately.
-
+- Never delete the original MindForge history, prior backups, GitHub history, or Drive files.
+- Do not call MindForge an APK for Smart PKOS.
+- Keep personal data and source artifacts private.
+- A successful source build does not prove phone runtime behavior.
