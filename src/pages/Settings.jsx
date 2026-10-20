@@ -8,6 +8,7 @@ import RestorePanel from "@/components/settings/RestorePanel";
 export default function Settings() {
   const [user, setUser] = useState(null);
   const [theme, setTheme] = useState(() => localStorage.getItem("smart_pkos_theme") || "dark");
+  const [doubleBackExit, setDoubleBackExit] = useState(() => localStorage.getItem("smart_pkos_double_back_exit") === "true");
 
   useEffect(() => {
     base44.auth.me().then(setUser);
@@ -17,6 +18,10 @@ export default function Settings() {
     document.documentElement.dataset.theme = theme;
     localStorage.setItem("smart_pkos_theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem("smart_pkos_double_back_exit", String(doubleBackExit));
+  }, [doubleBackExit]);
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -48,6 +53,12 @@ export default function Settings() {
             <Button key={value} variant={theme === value ? "default" : "outline"} onClick={() => setTheme(value)}>{label}</Button>
           ))}
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card/60 p-6">
+        <p className="text-sm font-semibold text-foreground/90">Navigation</p>
+        <p className="mt-1 text-xs text-muted-foreground">The back arrow goes to the previous screen. When there is nowhere left to go, press it twice to try to exit the app.</p>
+        <Button variant={doubleBackExit ? "default" : "outline"} size="sm" className="mt-3" onClick={() => setDoubleBackExit((v) => !v)}>{doubleBackExit ? "Double-back exit is on" : "Double-back exit is off"}</Button>
       </div>
 
       <ExportPanel />
