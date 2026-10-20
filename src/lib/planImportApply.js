@@ -74,7 +74,12 @@ export async function applyPlan(workspace, plan) {
       // Tasks are created one nesting level at a time so each subtask gets its saved parent's id.
       let level = newProjects.flatMap((p, i) => p.tasks.map((t) => ({ t, project_id: savedProjects[i].id, parent: null })));
       while (level.length) {
-        level = level.filter((x) => x.t.title.trim());
+        level = level.filter((x) => {
+          const title = norm(x.t.title);
+          if (!title) return false;
+          if (existing.tasks.has(title)) { skipped.push({ title: x.t.title, reason: "Task already exists" }); return false; }
+          existing.tasks.add(title); return true;
+        });
         if (!level.length) break;
         try {
           const saved = await base44.entities.Task.bulkCreate(level.map(({ t, project_id, parent }) => ({
