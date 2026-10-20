@@ -1,0 +1,28 @@
+{
+  "name": "mindforge",
+  "version": "1.6.4",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "android:sync": "npm run build && npx cap sync android",
+    "android:open": "npx cap open android",
+    "validate:ai": "node scripts\\validate-ai-foundation.mjs",
+    "test:stabilization": "node --test test\\stabilization.test.mjs",
+    "test:ai": "node --test test\\ai-proposal-regression.test.mjs",
+    "validate:source": "node --check src\\main.js && node --check src\\app\\runtime.js && node --check src\\app\\fixtures.js && node --check src\\app\\relationships.js && node --check src\\app\\ai-proposals.js && node --check src\\app\\ai-proposal-validation.js && node --check src\\app\\ai-proposal-workflows.js && node --check src\\app\\ai-review-actions.js && node --check src\\app\\search.js && node --check src\\core\\storage.js && node --check src\\app\\native-device.js && node --check src\\app\\import-files.js",
+    "test:release": "node --test test/release-regression.test.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "latest"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/cli": "^7.4.3",
+    "@capacitor/core": "^7.4.3"
+  }
+}
+
