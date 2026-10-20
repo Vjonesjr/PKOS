@@ -8,11 +8,12 @@ const cleanMilestones = (ms) => ms.filter((m) => m.title.trim()).map((m) => ({ t
 export async function findExisting(workspace, plan) {
   const gTitles = plan.goals.map((g) => g.title.trim()).filter(Boolean);
   const pTitles = plan.projects.map((p) => p.title.trim()).filter(Boolean);
-  const [goals, projects] = await Promise.all([
+  const [goals, projects, tasks] = await Promise.all([
     gTitles.length ? base44.entities.Goal.filter({ workspace, title: { $in: gTitles } }, { limit: 200, fields: ["title"] }) : { items: [] },
     pTitles.length ? base44.entities.Project.filter({ workspace, title: { $in: pTitles } }, { limit: 200, fields: ["title"] }) : { items: [] },
+    base44.entities.Task.filter({ workspace, archived: { $ne: true } }, { limit: 5000, fields: ["title", "goal_id", "project_id"] }),
   ]);
-  return { goals: new Map(goals.items.map((g) => [norm(g.title), g.id])), projects: new Set(projects.items.map((p) => norm(p.title))) };
+  return { goals: new Map(goals.items.map((g) => [norm(g.title), g.id])), projects: new Set(projects.items.map((p) => norm(p.title))), tasks: new Set(tasks.items.map((t) => norm(t.title))) };
 }
 
 export async function applyPlan(workspace, plan) {
@@ -28,7 +29,7 @@ export async function applyPlan(workspace, plan) {
     else { seenGoals.add(t); newGoals.push(g); }
   });
 
-  let milestones = 0;
+  let milestones = 0, projectCount = 0, taskCount = 0;
   if (newGoals.length) {
     try {
       const saved = await base44.entities.Goal.bulkCreate(newGoals.map((g) => ({
@@ -39,6 +40,21 @@ export async function applyPlan(workspace, plan) {
     } catch (e) { newGoals.forEach((g) => failed.push({ title: g.title, reason: e.message })); newGoals.length = 0; }
   }
 
+  const suggested = plan.goals.filter((g) => g.include && g.title.trim()).flatMap((g) => (g.suggested_tasks || []).map((title) => ({ title, goal_id: goalIds[`new:${g.key}`] })));
+  const newGoalTasks = suggested.filter((t, i) => {
+    const title = norm(t.title);
+    if (!t.goal_id || !title) return false;
+    if (existing.tasks.has(title)) { skipped.push({ title: t.title, reason: "Task already exists" }); return false; }
+    if (suggested.findIndex((x) => norm(x.title) === title) !== i) { skipped.push({ title: t.title, reason: "Repeated in file" }); return false; }
+    existing.tasks.add(title); return true;
+  });
+  if (newGoalTasks.length) {
+    try {
+      const saved = await base44.entities.Task.bulkCreate(newGoalTasks.map((t) => ({ title: t.title.trim(), status: "todo", goal_id: t.goal_id, workspace })));
+      taskCount += saved.length;
+    } catch (e) { newGoalTasks.forEach((t) => failed.push({ title: t.title, reason: `Goal task: ${e.message}` })); }
+  }
+
   const seenProjects = new Set();
   const newProjects = plan.projects.filter((p) => {
     if (!p.include || !p.title.trim()) return false;
@@ -47,7 +63,6 @@ export async function applyPlan(workspace, plan) {
     if (seenProjects.has(t)) { skipped.push({ title: p.title, reason: "Repeated in file" }); return false; }
     seenProjects.add(t); return true;
   });
-  let projectCount = 0, taskCount = 0;
   if (newProjects.length) {
     try {
       const savedProjects = await base44.entities.Project.bulkCreate(newProjects.map((p) => {
