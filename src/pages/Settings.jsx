@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { LogOut, UserCircle } from "lucide-react";
+import { LogOut, UserCircle, Palette } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import ExportPanel from "@/components/settings/ExportPanel";
@@ -7,10 +7,16 @@ import RestorePanel from "@/components/settings/RestorePanel";
 
 export default function Settings() {
   const [user, setUser] = useState(null);
+  const [theme, setTheme] = useState(() => localStorage.getItem("smart_pkos_theme") || "dark");
 
   useEffect(() => {
     base44.auth.me().then(setUser);
   }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem("smart_pkos_theme", theme);
+  }, [theme]);
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -32,6 +38,16 @@ export default function Settings() {
         <Button variant="outline" className="gap-1.5" onClick={() => base44.auth.logout()}>
           <LogOut className="h-4 w-4" /> Log Out
         </Button>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card/60 p-6">
+        <div className="mb-3 flex items-center gap-2"><Palette className="h-4 w-4 text-primary" /><p className="text-sm font-semibold text-foreground/90">Theme</p></div>
+        <p className="mb-3 text-xs text-muted-foreground">Choose the colors that are easiest for you to read.</p>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {[["dark", "Dark"], ["oled", "OLED"], ["light-blue", "Light Blue"], ["red", "Red"]].map(([value, label]) => (
+            <Button key={value} variant={theme === value ? "default" : "outline"} onClick={() => setTheme(value)}>{label}</Button>
+          ))}
+        </div>
       </div>
 
       <ExportPanel />
