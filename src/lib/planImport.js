@@ -2,7 +2,7 @@
 import { GOAL_AREAS } from "@/lib/goals";
 
 export const PLAN_EXTS = ["csv", "json", "txt"];
-export const PLAN_MAX_BYTES = 1024 * 1024; // 1 MB keeps parsing and AI calls bounded
+export const PLAN_MAX_BYTES = 10 * 1024 * 1024; // Parse larger exports locally; cap only the AI fallback input.
 export const MAX_RECORDS = 100;
 
 const PRIORITIES = ["low", "medium", "high"];
@@ -33,10 +33,13 @@ export const JSON_TEMPLATE = JSON.stringify({
 
 const milestone = (m) => ({ title: String(m?.title || m || "").trim().slice(0, 200), due_date: isDate(m?.due_date) ? m.due_date : "", done: !!m?.done });
 
+const suggestedTasks = (g) => (g.suggested_tasks || g.tasks || []).map((t) => String(t?.title || t || "").trim().slice(0, 200)).filter(Boolean).slice(0, 20);
+
 export const normGoal = (g) => ({
   key: key(), title: String(g.title || "").trim().slice(0, 200), area: pick(g.area, GOAL_AREAS, "Personal"),
   priority: pick(g.priority, PRIORITIES, "medium"), target_date: isDate(g.target_date) ? g.target_date : "",
-  why: String(g.why || g.description || "").slice(0, 1000), milestones: (g.milestones || []).map(milestone).filter((m) => m.title), include: true,
+  why: String(g.why || g.description || "").slice(0, 1000), milestones: (g.milestones || []).map(milestone).filter((m) => m.title),
+  suggested_tasks: suggestedTasks(g), include: true,
 });
 
 export const MAX_TASK_DEPTH = 3; // task → subtask → sub-subtask
