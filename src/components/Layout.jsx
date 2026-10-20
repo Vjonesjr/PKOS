@@ -4,7 +4,7 @@ import { BookOpen } from "lucide-react";
 import { GUIDE_SEEN_KEY } from "@/lib/guideSteps";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, Inbox, Library, FolderKanban, GraduationCap, History, Sparkles, Menu, X, Settings, Search, Layers, Sun, Cpu, Zap, Target, FileText, Briefcase, Wand2, CalendarCheck, FileUp } from "lucide-react";
+import { Home, Inbox, Library, FolderKanban, GraduationCap, History, Sparkles, Menu, X, Settings, Search, Layers, Sun, Cpu, Zap, Target, FileText, Briefcase, Wand2, CalendarCheck, FileUp, ArrowLeft } from "lucide-react";
 import useAutomationEngine from "@/hooks/useAutomationEngine";
 import UniversalSearch from "@/components/shared/UniversalSearch";
 import QuickCapture from "@/components/shared/QuickCapture";
@@ -12,6 +12,14 @@ import CommandLauncher from "@/components/command/CommandLauncher";
 import WorkspaceSwitcherButton from "@/components/workspace/WorkspaceSwitcherButton";
 import DemoBanner from "@/components/workspace/DemoBanner";
 import { useWorkspace } from "@/lib/WorkspaceContext";
+
+const MOBILE_NAV = [
+  { to: "/", label: "Home", icon: Home },
+  { to: "/today", label: "Today", icon: Sun },
+  { to: "/goals", label: "Goals", icon: Target },
+  { to: "/projects", label: "Projects", icon: FolderKanban },
+  { to: "/import", label: "Import", icon: FileUp },
+];
 
 const NAV = [
   { to: "/", label: "Home", icon: Home },
@@ -40,7 +48,13 @@ export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isDemo, workspace, setWorkspace } = useWorkspace();
   const navigate = useNavigate();
+  const [backEnabled, setBackEnabled] = useState(() => localStorage.getItem("smart_pkos_back_enabled") !== "false");
   useAutomationEngine(workspace);
+
+  const goBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate("/");
+  };
 
   // First visit: start in the demo profile with the Quick Start Guide open.
   useEffect(() => {
@@ -97,9 +111,12 @@ export default function Layout() {
 
       {/* Mobile top bar */}
       <div className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/90 px-4 py-3 backdrop-blur lg:hidden">
-        <button onClick={() => setMobileOpen(true)} className="text-foreground" aria-label="Open navigation menu">
-          <Menu className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          {backEnabled && <button onClick={goBack} className="rounded-lg p-1 text-foreground" aria-label="Go back"><ArrowLeft className="h-5 w-5" /></button>}
+          <button onClick={() => setMobileOpen(true)} className="rounded-lg p-1 text-foreground" aria-label="Open navigation menu">
+            <Menu className="h-5 w-5" />
+          </button>
+        </div>
         <WorkspaceSwitcherButton />
         <QuickCapture />
       </div>
@@ -159,7 +176,7 @@ export default function Layout() {
             <QuickCapture />
           </div>
         </div>
-        <main className="px-4 py-6 lg:px-8 lg:py-8">
+        <main className="px-4 py-6 pb-24 lg:px-8 lg:py-8 lg:pb-8">
           {isDemo && <DemoBanner />}
           <AnimatePresence mode="wait">
             <motion.div key={location.pathname} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
@@ -168,6 +185,14 @@ export default function Layout() {
           </AnimatePresence>
         </main>
       </div>
+      <nav aria-label="Bottom navigation" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-card/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1 shadow-lg backdrop-blur lg:hidden">
+        {MOBILE_NAV.map((item) => {
+          const active = isActive(item.to);
+          return <Link key={item.to} to={item.to} aria-current={active ? "page" : undefined} className={`flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-[11px] font-medium ${active ? "text-primary" : "text-muted-foreground"}`}>
+            <item.icon className="h-5 w-5" /><span>{item.label}</span>
+          </Link>;
+        })}
+      </nav>
     </div>
   );
 }
