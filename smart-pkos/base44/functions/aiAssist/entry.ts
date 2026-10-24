@@ -47,8 +47,8 @@ export default async function (req) {
       const result = await invoke(base44, prompt, { type: 'object', properties: { steps: { type: 'array', items: { type: 'string' } } }, required: ['steps'] });
       const seen = new Set(existing.map((title) => String(title).trim().toLowerCase().replace(/\s+/g, ' ')));
       const max = level === 'basic' ? 5 : level === 'detailed' ? 10 : 20;
-      const steps = (Array.isArray(result?.steps) ? result.steps : []).slice(0, max).map((s) => String(s || '').trim().slice(0, 180))
-        .filter((title) => { const key = title.toLowerCase().replace(/\s+/g, ' '); if (!key || seen.has(key)) return false; seen.add(key); return true; });
+      const steps = (Array.isArray(result?.steps) ? result.steps : []).map((s) => String(s || '').trim().slice(0, 180))
+        .filter((title) => { const key = title.toLowerCase().replace(/\s+/g, ' '); if (!key || seen.has(key)) return false; seen.add(key); return true; }).slice(0, max);
       return Response.json({ level, steps });
     }
 
