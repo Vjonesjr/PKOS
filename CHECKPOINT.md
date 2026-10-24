@@ -25,9 +25,11 @@ This checkpoint preserves the user's latest Smart PKOS source line and its exist
 
 ## Runtime limitation
 
-The Android device disconnected before the exact APK install/launch check could run. The APK is therefore build- and signature-verified, but install, launch, screenshot, and fatal-log checks for this new artifact remain pending until an Android target reconnects.
+The original Android target remained disconnected. A local `MindForgeQA_API36` emulator then installed the exact APK successfully, reported the expected package/version, resumed `com.smartpkos.app/.MainActivity`, and produced no Smart PKOS fatal-exception lines. The emulator screen stayed blank after the native splash; the log showed Base44/auth/WebSocket connection errors, so authenticated screen rendering and visual theme verification remain pending.
 
-The checkout's configured Git remote is `file:///app`, so GitHub push/readback was not attempted against a guessed destination. The local commit and source archive are the recoverable handoff until the intended private GitHub remote is configured.
+The checkout's configured `origin` remains `file:///app`. The verified private GitHub repository is `https://github.com/Vjonesjr/PKOS`, and the source was pushed to `codex/smart-pkos-theme-20261024` at commit `85df04bd914f454bcafc7441a50d648f6a3d8854`. The remote main branch was not overwritten because it had diverged.
+
+The source archive and checkpoint note were uploaded to the existing private Drive folder `PKOS Source Repair Backups`. The APK was not uploaded because the required real-screen runtime gate did not pass.
 
 ## Source of truth
 
