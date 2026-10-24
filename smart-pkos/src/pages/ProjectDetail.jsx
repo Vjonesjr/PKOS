@@ -133,7 +133,7 @@ export default function ProjectDetail() {
 
       <div className="rounded-2xl border border-border bg-card/60 p-6">
         <p className="mb-3 text-sm font-semibold text-foreground/90">Milestones</p>
-        <MilestoneEditor milestones={project.milestones} onChange={(m) => update({ milestones: m })} />
+        <MilestoneEditor milestones={project.milestones} onChange={(m) => update({ milestones: m })} project={project} workspace={workspace} />
       </div>
 
       <div className="rounded-2xl border border-border bg-card/60 p-6">
