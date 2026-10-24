@@ -64,7 +64,7 @@ export default function QuickCapture({ onCaptured }) {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} className="gap-1.5 rounded-full shadow-[0_0_20px_-4px_hsl(var(--primary))]">
+      <Button onClick={() => setOpen(true)} className="gap-1.5 rounded-full shadow-sm">
         <Plus className="h-4 w-4" /> Capture
       </Button>
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setError(null); }}>

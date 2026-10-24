@@ -82,7 +82,7 @@ export default function Layout() {
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col overflow-y-auto border-r border-border bg-card/40 px-4 py-6 lg:flex">
         <div className="mb-8 px-2">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent shadow-[0_0_16px_-2px_hsl(var(--primary))]">
+            <div className="brand-mark flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <Sparkles className="h-4 w-4 text-background" />
             </div>
             <span className="font-semibold tracking-tight text-foreground">Smart PKOS</span>
@@ -177,7 +177,7 @@ export default function Layout() {
 
       {/* Main content */}
       <div className="lg:pl-60">
-        <div className="hidden items-center justify-between gap-4 border-b border-border px-8 py-4 lg:flex">
+        <div className="hidden items-center justify-between gap-4 border-b border-border bg-card/25 px-8 py-4 lg:flex">
           <UniversalSearch />
           <div className="flex items-center gap-3">
             <CommandLauncher />
