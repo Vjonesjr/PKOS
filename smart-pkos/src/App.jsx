@@ -17,6 +17,7 @@ import Layout from '@/components/Layout';
 import Home from '@/pages/Home';
 import Capture from '@/pages/Capture';
 import Knowledge from '@/pages/Knowledge';
+import KnowledgeMap from '@/pages/KnowledgeMap';
 import KnowledgeDetail from '@/pages/KnowledgeDetail';
 import Projects from '@/pages/Projects';
 import ProjectDetail from '@/pages/ProjectDetail';
@@ -93,6 +94,7 @@ const AuthenticatedApp = () => {
           <Route path="/context-packs" element={<ContextPacks />} />
           <Route path="/context-pack" element={<ContextPackDetail />} />
           <Route path="/knowledge" element={<Knowledge />} />
+          <Route path="/knowledge-map" element={<KnowledgeMap />} />
           <Route path="/knowledge-detail" element={<KnowledgeDetail />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/project-detail" element={<ProjectDetail />} />
