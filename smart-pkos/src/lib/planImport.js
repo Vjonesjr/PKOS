@@ -146,8 +146,8 @@ export function finalizePlan(plan) {
   if (dropped) warnings.push(`${dropped} record(s) without a title were skipped.`);
   const taskCount = projects.reduce((n, p) => n + countTasks(p.tasks), 0);
   if (taskCount > 300) warnings.push(`${taskCount} tasks found; large imports may take a while.`);
-  if (goals.length + projects.length > MAX_RECORDS) warnings.push(`Only the first ${MAX_RECORDS} records are shown.`);
-  return { goals: goals.slice(0, MAX_RECORDS), projects: projects.slice(0, Math.max(0, MAX_RECORDS - goals.length)), warnings };
+  if (goals.length + projects.length > MAX_RECORDS) throw new Error(`Found ${goals.length + projects.length} goals/projects; this review supports ${MAX_RECORDS} at a time. Split the file into batches. No records have been saved.`);
+  return { goals, projects, warnings };
 }
 
 /** Converts the AI detection response into the same plan shape templates produce. */
