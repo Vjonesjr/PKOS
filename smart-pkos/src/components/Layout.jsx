@@ -29,6 +29,7 @@ const NAV = [
   { to: "/capture", label: "Capture", icon: Inbox },
   { to: "/parse", label: "Quick Parse", icon: Wand2 },
   { to: "/knowledge", label: "Knowledge", icon: Library },
+  { to: "/knowledge-map", label: "Knowledge Map", icon: Layers },
   { to: "/documents", label: "Documents", icon: FileText },
   { to: "/goals", label: "Goals", icon: Target },
   { to: "/projects", label: "Projects", icon: FolderKanban },
