@@ -49,7 +49,7 @@ The source archive and checkpoint note were uploaded to the existing private Dri
 - Restore archive before edits: `C:\Users\vinni\Downloads\PKOS-Backups\smart-pkos-stage1-before-20261026-restore.zip`
 - Restore archive SHA-256: `DCAFCECDFA18F01217937620AA126606956FCC6932B0AC6303C79822C4A8EC2C`
 - Branch: `codex/smart-pkos-stage1-essential-20261026`
-- Commit: `7e08ec029b607cda02fa3531eb52c139efddcecd`
+- Feature commit: `7e08ec029b607cda02fa3531eb52c139efddcecd`
 - Private GitHub readback: `https://github.com/Vjonesjr/PKOS/tree/codex/smart-pkos-stage1-essential-20261026`
 
 ## Checks
