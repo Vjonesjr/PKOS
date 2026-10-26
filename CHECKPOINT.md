@@ -35,3 +35,28 @@ The source archive and checkpoint note were uploaded to the existing private Dri
 
 - Editable source: `C:\Users\vinni\Downloads\Local Files\Project Experiments\Smart PKOS\Smart PKOS Updated Source`
 - APK: `C:\Users\vinni\Downloads\PKOS-Backups\Smart-PKOS-theme-20261024-debug.apk`
+# Smart PKOS Stage 1 checkpoint — 2026-10-26
+
+## Essential experience pass
+
+- Corrected the mobile bottom navigation to exactly four tabs: Home, Projects, Capture, and Settings.
+- Added a Home Today Brief using the existing workspace task/project records: next action, active focus, capacity, completed count with undo, open-today task hints, and stalled-project review hints.
+- Kept the existing full Today, Goals, Import, parse, triage, and other specialist routes available through the existing navigation; no Stage 2, Stage 3, or Stage 4 feature expansion was added.
+
+## Source checkpoint
+
+- Editable source: `C:\Users\vinni\Downloads\Local Files\Project Experiments\Smart PKOS\Smart PKOS Updated Source`
+- Restore archive before edits: `C:\Users\vinni\Downloads\PKOS-Backups\smart-pkos-stage1-before-20261026-restore.zip`
+- Restore archive SHA-256: `DCAFCECDFA18F01217937620AA126606956FCC6932B0AC6303C79822C4A8EC2C`
+- Branch: `codex/smart-pkos-stage1-essential-20261026`
+- Commit: `7e08ec029b607cda02fa3531eb52c139efddcecd`
+- Private GitHub readback: `https://github.com/Vjonesjr/PKOS/tree/codex/smart-pkos-stage1-essential-20261026`
+
+## Checks
+
+- Targeted ESLint for the three changed files: passed.
+- `git diff --check`: passed.
+- `npm.cmd run build`: passed.
+- Full `npm.cmd run typecheck`: remains blocked by the pre-existing source-wide JSX typing baseline; no new type errors remain in `TodayBrief.jsx` after replacing the inferred `Button` usages with native accessible controls.
+- Android APK was not rebuilt in this pass; no new install, launch, signing, or device-runtime claim is made.
+
