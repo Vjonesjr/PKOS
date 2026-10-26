@@ -58,5 +58,18 @@ The source archive and checkpoint note were uploaded to the existing private Dri
 - `git diff --check`: passed.
 - `npm.cmd run build`: passed.
 - Full `npm.cmd run typecheck`: remains blocked by the pre-existing source-wide JSX typing baseline; no new type errors remain in `TodayBrief.jsx` after replacing the inferred `Button` usages with native accessible controls.
-- Android APK was not rebuilt in this pass; no new install, launch, signing, or device-runtime claim is made.
+- Android packaging/runtime evidence is recorded below; authenticated UI remains unverified.
+
+## Android packaging and runtime gate — 2026-10-26
+
+- Added a fresh Capacitor Android wrapper to this exact Smart PKOS source; no MindForge Android tree was reused.
+- Package identity: `com.smartpkos.app`; application label: `Smart PKOS`; target SDK: 35.
+- APK: `C:\Users\vinni\Downloads\PKOS-Backups\Smart-PKOS-stage1-20261026-debug.apk`
+- APK SHA-256: `A7313868A88E061C91DB61809B8DC1982763284D96BF1253EFA4F1114D2D9ED2`
+- `assembleDebug`: passed using isolated `C:\PKOSGradleHome-stage1-20261026`.
+- `apksigner verify`: v1 and v2 signatures passed; debug signing only.
+- Emulator install: passed with explicit debug downgrade because the emulator already had version code `20261024` installed.
+- Launch: `com.smartpkos.app/.MainActivity` resumed; app process remained alive; no Smart PKOS fatal exception was found.
+- Runtime limitation: emulator remained on the loading screen; Base44/WebSocket connection errors prevented authenticated screen and four-tab interaction verification.
+- Runtime screenshot: `C:\Users\vinni\Downloads\PKOS-Backups\smart-pkos-stage1-runtime-after-wait-20261026.png`
 
