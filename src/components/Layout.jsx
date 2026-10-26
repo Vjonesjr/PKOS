@@ -15,10 +15,9 @@ import { useWorkspace } from "@/lib/WorkspaceContext";
 
 const MOBILE_NAV = [
   { to: "/", label: "Home", icon: Home },
-  { to: "/today", label: "Today", icon: Sun },
-  { to: "/goals", label: "Goals", icon: Target },
   { to: "/projects", label: "Projects", icon: FolderKanban },
-  { to: "/import", label: "Import", icon: FileUp },
+  { to: "/capture", label: "Capture", icon: Inbox },
+  { to: "/settings", label: "Settings", icon: Settings },
 ];
 
 const NAV = [
@@ -193,7 +192,7 @@ export default function Layout() {
           </AnimatePresence>
         </main>
       </div>
-      <nav aria-label="Bottom navigation" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-card/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1 shadow-lg backdrop-blur lg:hidden">
+      <nav aria-label="Bottom navigation" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-border bg-card/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1 shadow-lg backdrop-blur lg:hidden">
         {MOBILE_NAV.map((item) => {
           const active = isActive(item.to);
           return <Link key={item.to} to={item.to} aria-current={active ? "page" : undefined} className={`flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-[11px] font-medium ${active ? "text-primary" : "text-muted-foreground"}`}>
