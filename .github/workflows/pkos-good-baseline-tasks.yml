@@ -61,7 +61,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat build-assets/pkos-task-overlay.part1.b64 build-assets/pkos-task-overlay.part2.b64 | base64 -d > /tmp/task-overlay.tgz
+          cat build-assets/pkos-task-overlay.part1.b64 | base64 -d > /tmp/task-overlay.tgz
           tar -xzf /tmp/task-overlay.tgz -C Smart-PKOS
           cd Smart-PKOS
           echo "f15dcdb56b8718a2806a8acd0789f83e34a43f4db87ca8755733cc638a0de647  src/components/Layout.jsx" | sha256sum -c -
