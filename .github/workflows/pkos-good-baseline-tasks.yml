@@ -1,0 +1,132 @@
+name: Build Smart PKOS Good Baseline + Tasks
+
+on:
+  push:
+    paths:
+      - ".github/workflows/pkos-good-baseline-tasks.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Prepare Android SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Download exact good RC4 source and signer
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL 'https://ucc3ca0f89e6490684785885089b.dl.dropboxusercontent.com/cd/0/get/DK18v54RDI1CaRihAXAqAxcACbudlDcAqq4ON-PzERmsiw4LA5FuTTtQkdoTb4HejJ_lOgPR6Xkwjmv5U_vdQIIIMXS-bPvfO5oX805wnDd2oxIyjsD4-uqFMPXGPLG5omhGiQFHzuyKrRHi2VZVjBH0XYfv1ad5xBLdg5Ih_B-1Wg/file?c_luid=a4cf56df' -o source.zip
+          curl -fL 'https://uc00151b15a166daee17c55d8137.dl.dropboxusercontent.com/cd/0/get/DK1fIDQCUVrIGa4BLXHTF1LBRNdXf47EZSQrVWBKzIl2J7PLxyOQhOnINgp4jUpXRdFmredgm-ryyBhZOGVf84PEH-gf5bBQoQhi1r1aQ3iMHAXx0wOgf37MbbVVcddUccABCaUotSNk9UGhCtsBUInC3z9FXK9WqL1llDWe4MfUkw/file?c_luid=a4cf56df' -o debug.keystore
+          echo "a0a65893f2817687a5dadb0034736af372cd5bdc721e974bf573bd1e32f3dd01  source.zip" | sha256sum -c -
+          echo "61ec6cb786c6212e23f96ef765a19918778e775d0023554a68e69cb7d77d289c  debug.keystore" | sha256sum -c -
+          unzip -q source.zip
+          test -f Smart-PKOS/src/components/Layout.jsx
+          test -f Smart-PKOS/android/gradlew
+
+      - name: Prove good UI baseline before patch
+        shell: bash
+        working-directory: Smart-PKOS
+        run: |
+          set -euo pipefail
+          echo "f15dcdb56b8718a2806a8acd0789f83e34a43f4db87ca8755733cc638a0de647  src/components/Layout.jsx" | sha256sum -c -
+          echo "fb3e26fecaaa5973db914f5058ebb833cdb75fc2d324d9c41db6032404fc8509  src/index.css" | sha256sum -c -
+          echo "44e82c2c37df7e41e1d469d69f7221fc466e84d7452e77851a38f806869e1461  src/components/queue/TaskQueue.jsx" | sha256sum -c -
+          echo "71a7e7bd28055d47b63faf61a5baeef79682847e9128f0941470188d3e7394b2  src/components/tasks/TaskSubtasks.jsx" | sha256sum -c -
+          echo "4f74fe9b937cd4ab363831ffce6cfc75e48a358ab298083f1bd5abaf09b76661  src/components/shared/StepGenerator.jsx" | sha256sum -c -
+          grep -F "const TABS=[['/','Home',Home],['/projects','Projects',FolderKanban],['/capture','Capture',Inbox],['/settings','Settings',Settings]];" src/components/Layout.jsx
+
+      - name: Apply task-system overlay only
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat build-assets/pkos-task-overlay.part1.b64 build-assets/pkos-task-overlay.part2.b64 | base64 -d > /tmp/task-overlay.tgz
+          tar -xzf /tmp/task-overlay.tgz -C Smart-PKOS
+          cd Smart-PKOS
+          echo "f15dcdb56b8718a2806a8acd0789f83e34a43f4db87ca8755733cc638a0de647  src/components/Layout.jsx" | sha256sum -c -
+          echo "fb3e26fecaaa5973db914f5058ebb833cdb75fc2d324d9c41db6032404fc8509  src/index.css" | sha256sum -c -
+          echo "44e82c2c37df7e41e1d469d69f7221fc466e84d7452e77851a38f806869e1461  src/components/queue/TaskQueue.jsx" | sha256sum -c -
+          echo "71a7e7bd28055d47b63faf61a5baeef79682847e9128f0941470188d3e7394b2  src/components/tasks/TaskSubtasks.jsx" | sha256sum -c -
+          echo "4f74fe9b937cd4ab363831ffce6cfc75e48a358ab298083f1bd5abaf09b76661  src/components/shared/StepGenerator.jsx" | sha256sum -c -
+          grep -F "New repeating" src/pages/Tasks.jsx
+          grep -F "recurrence_template_id" src/lib/recurringTasks.js
+          grep -F 'path="/tasks"' src/App.jsx
+
+      - name: Bump install version
+        shell: bash
+        working-directory: Smart-PKOS
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("android/app/build.gradle")
+          s=p.read_text()
+          import re
+          s=re.sub(r"versionCode\s+\d+", "versionCode 20261028", s)
+          s=re.sub(r'versionName\s+"[^"]+"', 'versionName "2026.10.27-good-tasks"', s)
+          p.write_text(s)
+          PY
+
+      - name: Build and verify frontend
+        shell: bash
+        working-directory: Smart-PKOS
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run lint
+          npm run build
+          grep -R -F "New repeating" dist/assets/*.js >/dev/null
+          grep -R -F "Standalone task" dist/assets/*.js >/dev/null
+
+      - name: Sync and build Android
+        shell: bash
+        working-directory: Smart-PKOS
+        run: |
+          set -euo pipefail
+          npx cap sync android
+          grep -R -F "New repeating" android/app/src/main/assets/public/assets/*.js >/dev/null
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Align, sign, verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          BT="$ANDROID_HOME/build-tools/35.0.0"
+          UNSIGNED="Smart-PKOS/android/app/build/outputs/apk/release/app-release-unsigned.apk"
+          "$BT/zipalign" -p -f 4 "$UNSIGNED" Smart-PKOS-GOOD-BASELINE-TASKS-aligned.apk
+          "$BT/apksigner" sign             --ks debug.keystore             --ks-key-alias androiddebugkey             --ks-pass pass:android             --key-pass pass:android             --out Smart-PKOS-GOOD-BASELINE-TASKS-20261027.apk             Smart-PKOS-GOOD-BASELINE-TASKS-aligned.apk
+          "$BT/apksigner" verify --verbose --print-certs Smart-PKOS-GOOD-BASELINE-TASKS-20261027.apk | tee verify.txt
+          "$BT/zipalign" -c -v 4 Smart-PKOS-GOOD-BASELINE-TASKS-20261027.apk >/dev/null
+          sha256sum Smart-PKOS-GOOD-BASELINE-TASKS-20261027.apk | tee Smart-PKOS-GOOD-BASELINE-TASKS-20261027.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Smart-PKOS-GOOD-BASELINE-TASKS-20261027
+          path: |
+            Smart-PKOS-GOOD-BASELINE-TASKS-20261027.apk
+            Smart-PKOS-GOOD-BASELINE-TASKS-20261027.sha256
+            verify.txt
+          if-no-files-found: error
+          retention-days: 7
