@@ -1,0 +1,100 @@
+name: Build Smart PKOS RC4 Correct UI
+
+on:
+  push:
+    paths:
+      - ".github/workflows/pkos-rc4-correct-ui.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Download exact RC source and signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL 'https://uc1ed2b878f17122b4b84fb54a11.dl.dropboxusercontent.com/cd/0/get/DKz5rbVIKJDGlbp-0OlFVpOjY6D22dtwZXY4uN8gbF-gKgfDnAqu4HNVExN9ionNO6nFcVcI1-sWQG-J9OTjfhXAHMOpkvMCmlWlVdWIKSBpkW-zXuYoWraLMPZltUoW7dp9BCkjw5CFjnRm-T6oiDIqGccKY2kz6Neb2Zwb1Las0g/file?c_luid=a4cf56df' -o source.zip
+          curl -fL 'https://uc8fb6dd5f95f443343ccb88edc8.dl.dropboxusercontent.com/cd/0/get/DKziAv-WodKMsuOwh2be2IYkB4G1yXLlKvTOdd5TRA28xaXwJbV-STg9WXR4xy9dtD6X6PkS8wTiNgIAfi3XcH6cPZtU0B_WgzUC-mskVdiOm76ffoLGY8SF03jqhSOt6RSU156RNyvo6beGn64GoBepGGXKDj_J4z3-s6DF_Rz8WA/file?c_luid=a4cf56df' -o debug.keystore
+          unzip -q source.zip
+          test -f Smart-PKOS/src/components/Layout.jsx
+          test -f Smart-PKOS/android/gradlew
+
+      - name: Lock UI generation
+        shell: bash
+        working-directory: Smart-PKOS
+        run: |
+          set -euo pipefail
+          grep -F "const TABS=[['/','Home',Home],['/projects','Projects',FolderKanban],['/capture','Capture',Inbox],['/settings','Settings',Settings]];" src/components/Layout.jsx
+          grep -F "grid grid-cols-4" src/components/Layout.jsx
+          if grep -F "['/today','Today'" src/components/Layout.jsx; then exit 1; fi
+          if grep -F "['/goals','Goals'" src/components/Layout.jsx; then exit 1; fi
+          if grep -F "['/import','Import'" src/components/Layout.jsx; then exit 1; fi
+
+      - name: Install and verify frontend
+        shell: bash
+        working-directory: Smart-PKOS
+        run: |
+          set -euo pipefail
+          npm install --ignore-scripts --no-audit --no-fund
+          npm run lint
+          npm run build
+
+      - name: Sync web bundle into Android
+        shell: bash
+        working-directory: Smart-PKOS
+        run: |
+          set -euo pipefail
+          npx cap sync android
+          grep -F "Home" android/app/src/main/assets/public/assets/*.js >/dev/null
+          grep -F "Projects" android/app/src/main/assets/public/assets/*.js >/dev/null
+          grep -F "Capture" android/app/src/main/assets/public/assets/*.js >/dev/null
+          grep -F "Settings" android/app/src/main/assets/public/assets/*.js >/dev/null
+
+      - name: Build unsigned release APK
+        shell: bash
+        working-directory: Smart-PKOS/android
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Align and sign with existing Smart PKOS certificate
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdkmanager "build-tools;35.0.0" >/dev/null
+          BT="$ANDROID_HOME/build-tools/35.0.0"
+          UNSIGNED="Smart-PKOS/android/app/build/outputs/apk/release/app-release-unsigned.apk"
+          test -f "$UNSIGNED"
+          "$BT/zipalign" -p -f 4 "$UNSIGNED" Smart-PKOS-RC4-CORRECT-UI-aligned.apk
+          "$BT/apksigner" sign \
+            --ks debug.keystore \
+            --ks-key-alias androiddebugkey \
+            --ks-pass pass:android \
+            --key-pass pass:android \
+            --out Smart-PKOS-RC4-CORRECT-UI.apk \
+            Smart-PKOS-RC4-CORRECT-UI-aligned.apk
+          "$BT/apksigner" verify --verbose --print-certs Smart-PKOS-RC4-CORRECT-UI.apk
+          "$BT/zipalign" -c -v 4 Smart-PKOS-RC4-CORRECT-UI.apk
+          sha256sum Smart-PKOS-RC4-CORRECT-UI.apk > Smart-PKOS-RC4-CORRECT-UI.sha256
+
+      - name: Upload RC4 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Smart-PKOS-RC4-CORRECT-UI
+          path: |
+            Smart-PKOS-RC4-CORRECT-UI.apk
+            Smart-PKOS-RC4-CORRECT-UI.sha256
+          if-no-files-found: error
+          retention-days: 7
