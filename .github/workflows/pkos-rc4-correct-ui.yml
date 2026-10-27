@@ -34,8 +34,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl -fL 'https://ucacfc92358f1cad316cabe20306.dl.dropboxusercontent.com/cd/0/get/DKz2ZW94x1DIGjsN3rbVEJhFrY3E6dAK9Poac80JpVnVvTGNEM_NRaQUe9M0L9vHkfY24hH2cvIjqc_ixDBsO-uaNBP4LXtpav60dHqaZvD0Yg3Og2g7d0iNM9UIe9NTwMqEseE5UMabLxCrh4gdIum3kH1SiVaG1uOfqxmya4y9ug/file?c_luid=a4cf56df' -o source.zip
-          curl -fL 'https://uc9a64cea856b4057af7183576f7.dl.dropboxusercontent.com/cd/0/get/DKxHx-mybdPjXcKOK0xi21l14TGI2x4fGZwn_DM2wnJGW-UZ-_xPezCWBCBijoeMKfdA0umlj9QWHYFGGJ5BX3Y0PsemVUrcfqnlozhDY-r4eryEVqUIJ1AZfDYFkSU12a1_nBFDCYMPuYRqb2l0cCHZz3f4-5QfZ26qXxJyLP33tQ/file?c_luid=a4cf56df' -o debug.keystore
+          curl -fL 'https://uca5cce4d7d637064336c67d27ce.dl.dropboxusercontent.com/cd/0/get/DKylZUp6PGF9kgqmwacYkO6IMMryGnBZZ1x6T-WqQTbmI84sHjCnIqh5NwOT7rqUyAASCcQGngQwxpzEIkWiIz3-OuKNi1blK83jffznCMKrzJKccu8pFBX5uvD_K8-4yUR_plquQlTYynP7gGzmMtpUvosfOxen2Jff2K6nnt8Z-w/file?c_luid=a4cf56df' -o source.zip
+          curl -fL 'https://ucc633271fa7ec095d44f0aead4f.dl.dropboxusercontent.com/cd/0/get/DKxe1doW_eh2RKl-P8LU12YAm8NeV6tW1ndu9xrBzvlpPcdOabWdvtx_LBGzcEQy0veomoOHka6L50Xo_qH0if0-yOccEfLXHg849TRwozkn9FDK77W9TZZreRulN91z8EHpByITnBjtmwQEZxPSeiA6BKf6sckir6h2djNz9cgpGA/file?c_luid=a4cf56df' -o debug.keystore
           unzip -q source.zip
           test -f Smart-PKOS/src/components/Layout.jsx
           test -f Smart-PKOS/android/gradlew
@@ -83,8 +83,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sdkmanager "build-tools;35.0.0" >/dev/null
           BT="$ANDROID_HOME/build-tools/35.0.0"
+          test -x "$BT/apksigner"
+          test -x "$BT/zipalign"
           UNSIGNED="Smart-PKOS/android/app/build/outputs/apk/release/app-release-unsigned.apk"
           test -f "$UNSIGNED"
           "$BT/zipalign" -p -f 4 "$UNSIGNED" Smart-PKOS-RC4-CORRECT-UI-aligned.apk
