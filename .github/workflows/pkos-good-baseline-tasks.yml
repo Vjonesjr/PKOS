@@ -37,8 +37,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl -fL 'https://ucc3ca0f89e6490684785885089b.dl.dropboxusercontent.com/cd/0/get/DK18v54RDI1CaRihAXAqAxcACbudlDcAqq4ON-PzERmsiw4LA5FuTTtQkdoTb4HejJ_lOgPR6Xkwjmv5U_vdQIIIMXS-bPvfO5oX805wnDd2oxIyjsD4-uqFMPXGPLG5omhGiQFHzuyKrRHi2VZVjBH0XYfv1ad5xBLdg5Ih_B-1Wg/file?c_luid=a4cf56df' -o source.zip
-          curl -fL 'https://uc00151b15a166daee17c55d8137.dl.dropboxusercontent.com/cd/0/get/DK1fIDQCUVrIGa4BLXHTF1LBRNdXf47EZSQrVWBKzIl2J7PLxyOQhOnINgp4jUpXRdFmredgm-ryyBhZOGVf84PEH-gf5bBQoQhi1r1aQ3iMHAXx0wOgf37MbbVVcddUccABCaUotSNk9UGhCtsBUInC3z9FXK9WqL1llDWe4MfUkw/file?c_luid=a4cf56df' -o debug.keystore
+          curl -fL 'https://uc4c6168a5ef29c671c8da0d6c7d.dl.dropboxusercontent.com/cd/0/get/DK3kcMuKr5Owhg3Y8sGmFs8oitrdPXCJ3LnXlC7lPm8AeC-wSmoH5cKqTpzNK1zHWMPgGJO5o4jFGi2Rzbhj8TYq7aoDVCNfOfmY7_b56NMsmpuy32mf9MkBVgE93vUnG4Bm3qhc5EIikfRB34IKFqXkgXwuvO64CY7A0OVIo8a31Q/file?c_luid=a4cf56df' -o source.zip
+          curl -fL 'https://uc5c7123e0b7378083a12d676cf3.dl.dropboxusercontent.com/cd/0/get/DK3_hhtZNol_o9GAdM7wtNpgtqfhtOiBbK9Ytr0ccJxyluAYsTAyMAp_c_zwuvag9hgRFq2LBYfyOjN8cx1UT-9Es8b_sFrAe7fIp0gN3jAKomfJktERJilhbZcJeMFb0sCbGuN02zn4nm3kf14Sha2b1fp9-EUaCEuYSVHl_Ww9jA/file?c_luid=a4cf56df' -o debug.keystore
           echo "a0a65893f2817687a5dadb0034736af372cd5bdc721e974bf573bd1e32f3dd01  source.zip" | sha256sum -c -
           echo "61ec6cb786c6212e23f96ef765a19918778e775d0023554a68e69cb7d77d289c  debug.keystore" | sha256sum -c -
           unzip -q source.zip
