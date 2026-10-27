@@ -18,7 +18,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
 
       - name: Prepare preinstalled Android SDK
         shell: bash
@@ -34,8 +34,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl -fL 'https://uc1ed2b878f17122b4b84fb54a11.dl.dropboxusercontent.com/cd/0/get/DKz5rbVIKJDGlbp-0OlFVpOjY6D22dtwZXY4uN8gbF-gKgfDnAqu4HNVExN9ionNO6nFcVcI1-sWQG-J9OTjfhXAHMOpkvMCmlWlVdWIKSBpkW-zXuYoWraLMPZltUoW7dp9BCkjw5CFjnRm-T6oiDIqGccKY2kz6Neb2Zwb1Las0g/file?c_luid=a4cf56df' -o source.zip
-          curl -fL 'https://uc8fb6dd5f95f443343ccb88edc8.dl.dropboxusercontent.com/cd/0/get/DKziAv-WodKMsuOwh2be2IYkB4G1yXLlKvTOdd5TRA28xaXwJbV-STg9WXR4xy9dtD6X6PkS8wTiNgIAfi3XcH6cPZtU0B_WgzUC-mskVdiOm76ffoLGY8SF03jqhSOt6RSU156RNyvo6beGn64GoBepGGXKDj_J4z3-s6DF_Rz8WA/file?c_luid=a4cf56df' -o debug.keystore
+          curl -fL 'https://ucacfc92358f1cad316cabe20306.dl.dropboxusercontent.com/cd/0/get/DKz2ZW94x1DIGjsN3rbVEJhFrY3E6dAK9Poac80JpVnVvTGNEM_NRaQUe9M0L9vHkfY24hH2cvIjqc_ixDBsO-uaNBP4LXtpav60dHqaZvD0Yg3Og2g7d0iNM9UIe9NTwMqEseE5UMabLxCrh4gdIum3kH1SiVaG1uOfqxmya4y9ug/file?c_luid=a4cf56df' -o source.zip
+          curl -fL 'https://uc9a64cea856b4057af7183576f7.dl.dropboxusercontent.com/cd/0/get/DKxHx-mybdPjXcKOK0xi21l14TGI2x4fGZwn_DM2wnJGW-UZ-_xPezCWBCBijoeMKfdA0umlj9QWHYFGGJ5BX3Y0PsemVUrcfqnlozhDY-r4eryEVqUIJ1AZfDYFkSU12a1_nBFDCYMPuYRqb2l0cCHZz3f4-5QfZ26qXxJyLP33tQ/file?c_luid=a4cf56df' -o debug.keystore
           unzip -q source.zip
           test -f Smart-PKOS/src/components/Layout.jsx
           test -f Smart-PKOS/android/gradlew
