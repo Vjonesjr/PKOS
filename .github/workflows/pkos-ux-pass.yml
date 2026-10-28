@@ -107,7 +107,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl -fL 'https://uc73e6047cd80da1cb6a3c2f7ac8.dl.dropboxusercontent.com/cd/0/get/DK7lZims7bUW5h2gfSMcU4NVD6BBZtCYxTMHuTICJZ7IRckF5Zh_ZqwIGlN4oXihPGx-8E1R3titQ764gDty7mtWrIATRvyJy8ZsY7cvKoWYsxsAsx4zHYItJaRolWoM0xaPFHGccbZ4geoyIMwcpfEaSIniyAgjtusAxu5qx8Hq-w/file?c_luid=a4cf56df' -o debug.keystore
+          curl -fL 'https://uc8ea14f5ebd444a83334816c6db.dl.dropboxusercontent.com/cd/0/get/DK6ER4jfVJY876Q8ShMze-hwGOALpathA7mLRe2BmGwWJljvIpRl1UhIb0zhJZtmZYvL1AUmbLRQDU704xqZnDoadB7Gr9pXuGW-wnTKLY2GxC_Q3k8FMKWa1aKmlWv7uQxKEEEuWS3k5nW7A79-ET0yhMDNMvRZ6FEcc2l7la613w/file?c_luid=a4cf56df' -o debug.keystore
           echo "61ec6cb786c6212e23f96ef765a19918778e775d0023554a68e69cb7d77d289c  debug.keystore" | sha256sum -c -
 
       - name: Align, sign, verify
