@@ -31,14 +31,12 @@ jobs:
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Download exact next-pass source and signer
+      - name: Restore exact current source
         shell: bash
         run: |
           set -euo pipefail
-          curl -fL 'https://uc6a622c88263d723443b72b4a36.dl.dropboxusercontent.com/cd/0/get/DK3onVZy10SGsyAanzQu3PHNfgzAhDffQIEstOiB71a14tf56icRJ_6OALDTL9fHZxOumVE1z8wS_3MykE4n606ZseuP-WmUDzuBcqkPBXHKod802Ce-ZrVerzFtg_xyTkwxYQPprUHI0KXrOfXQiLgDOF4I9-pHEVEg9EM_toF-9A/file?c_luid=a4cf56df' -o source.zip
-          curl -fL 'https://uc2a78d038a8579e63e306dca05b.dl.dropboxusercontent.com/cd/0/get/DK0GJGbsbdXeYUhlI1btTYr5wIbBUJcW6dAM4sUzD1N14Cp3hWs9MvYEco6ersJVWHp-JIDxn79Xv3ppXW3K7NXHm3_vTB1PL-KbfeaBmy4STldcqcDkV1mQE5j76maDRQgOep7kfWkZG0NR1io_vZCa-k9lDDpVwp_22zqth9IYPA/file?c_luid=a4cf56df' -o debug.keystore
-          echo "7973916d234ca8b50a9951164e4c6dffdbaa73665030f4d92ab5843b555e79d4  source.zip" | sha256sum -c -
-          echo "61ec6cb786c6212e23f96ef765a19918778e775d0023554a68e69cb7d77d289c  debug.keystore" | sha256sum -c -
+          base64 -d build-assets/Smart-PKOS-next-pass-source-20261028-v2.b64 > source.zip
+          echo "80d5e4e1fe171ec7b2f353220116d83e1cd2d258e53e9b6fa1893626d544ecdb  source.zip" | sha256sum -c -
           mkdir app
           unzip -q source.zip -d app
 
@@ -94,24 +92,18 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
 
-      - name: Align, sign, verify
+      - name: Stage unsigned APK
         shell: bash
         run: |
           set -euo pipefail
-          BT="$ANDROID_HOME/build-tools/35.0.0"
-          UNSIGNED="app/android/app/build/outputs/apk/release/app-release-unsigned.apk"
-          "$BT/zipalign" -p -f 4 "$UNSIGNED" Smart-PKOS-NEXT-PASS-aligned.apk
-          "$BT/apksigner" sign             --ks debug.keystore             --ks-key-alias androiddebugkey             --ks-pass pass:android             --key-pass pass:android             --out Smart-PKOS-NEXT-PASS-20261028.apk             Smart-PKOS-NEXT-PASS-aligned.apk
-          "$BT/apksigner" verify --verbose --print-certs Smart-PKOS-NEXT-PASS-20261028.apk | tee verify.txt
-          "$BT/zipalign" -c -v 4 Smart-PKOS-NEXT-PASS-20261028.apk >/dev/null
-          sha256sum Smart-PKOS-NEXT-PASS-20261028.apk | tee Smart-PKOS-NEXT-PASS-20261028.sha256
+          cp app/android/app/build/outputs/apk/release/app-release-unsigned.apk Smart-PKOS-NEXT-PASS-20261028-unsigned.apk
+          sha256sum Smart-PKOS-NEXT-PASS-20261028-unsigned.apk > Smart-PKOS-NEXT-PASS-20261028-unsigned.sha256
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Smart-PKOS-NEXT-PASS-20261028
+          name: Smart-PKOS-NEXT-PASS-20261028-UNSIGNED
           path: |
-            Smart-PKOS-NEXT-PASS-20261028.apk
-            Smart-PKOS-NEXT-PASS-20261028.sha256
-            verify.txt
-          retention-days: 7
+            Smart-PKOS-NEXT-PASS-20261028-unsigned.apk
+            Smart-PKOS-NEXT-PASS-20261028-unsigned.sha256
+          retention-days: 3
           if-no-files-found: error
