@@ -1,4 +1,5 @@
 name: Build Smart PKOS UX Pass Exact
+# Rebuild requested 2026-10-31 from verified October 28 source
 
 on:
   push:
