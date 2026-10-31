@@ -1,4 +1,4 @@
-name: Build Smart PKOS UX Pass 2026-10-31
+name: Rebuild Smart PKOS UX Pass 2026-10-31
 
 on:
   push:
@@ -37,10 +37,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl -fL 'https://sdmntprwestus.oaiusercontent.com/files/00000000-f16c-8230-8d8f-4443287ded13/raw?se=2026-10-31T17%3A39%3A27Z&sp=r&sv=2026-02-06&sr=b&scid=ef4bf65f-1750-5c1f-aeae-ecca2925549d&skoid=864daabb-d06a-46b3-a747-d35075313a83&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-31T12%3A58%3A42Z&ske=2026-11-01T12%3A58%3A42Z&sks=b&skv=2026-02-06&sig=HHzG1pDu4e70I0NFprJl/0kGGa%2Bqtp26dX/8KFWDI58%3D' -o source.zip
-          curl -fL 'https://sdmntprsouthcentralus.oaiusercontent.com/files/00000000-993c-81f7-84f8-31c0328d111e/raw?se=2026-10-31T17%3A39%3A28Z&sp=r&sv=2026-02-06&sr=b&scid=9b8aaf2b-d538-54f7-8a53-86697da59200&skoid=864daabb-d06a-46b3-a747-d35075313a83&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-31T16%3A08%3A48Z&ske=2026-11-01T16%3A08%3A48Z&sks=b&skv=2026-02-06&sig=0PtAXB3SQs3cYuByVGoMjGdAfZygAUb308F4kUkJgE0%3D' -o debug.keystore
+          curl --retry 3 -fL 'https://sdmntprcentralus.oaiusercontent.com/files/00000000-f468-81f5-8d11-cd8344862e31/raw?se=2026-10-31T20%3A42%3A51Z&sp=r&sv=2026-02-06&sr=b&scid=0c3bfa30-9234-5751-b8d1-46ee2415d4b5&skoid=864daabb-d06a-46b3-a747-d35075313a83&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-31T00%3A41%3A57Z&ske=2026-11-01T00%3A41%3A57Z&sks=b&skv=2026-02-06&sig=rc7t9Ewtibe0l8zCjAzFx%2BPqCf2wVc%2BsNVMnJyMkHhU%3D' -o source.zip
+          keytool -genkeypair -keystore debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" -noprompt
           echo "2b475a3d0a83bedb2912580efc2fd387c2d1105c2487e9ae53e9d2f79fb6ad67  source.zip" | sha256sum -c -
-          echo "61ec6cb786c6212e23f96ef765a19918778e775d0023554a68e69cb7d77d289c  debug.keystore" | sha256sum -c -
           mkdir app
           unzip -q source.zip -d app
           test -f app/src/pages/Tasks.jsx
