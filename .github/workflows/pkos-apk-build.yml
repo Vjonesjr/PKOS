@@ -1,4 +1,4 @@
-name: PKOS Android APK reproducible build
+name: Smart PKOS Test APK isolated build
 on:
   push:
     paths:
@@ -24,6 +24,11 @@ jobs:
           mkdir app
           unzip -q source.zip -d app
           test -f app/src/pages/Tasks.jsx
+      - name: Separate test app identity
+        run: |
+          sed -i 's/applicationId "com.smartpkos.app"/applicationId "com.smartpkos.test"/' app/android/app/build.gradle
+          sed -i 's/<string name="app_name">Smart PKOS<\/string>/<string name="app_name">Smart PKOS Test<\/string>/' app/android/app/src/main/res/values/strings.xml
+          grep -F 'applicationId "com.smartpkos.test"' app/android/app/build.gradle
       - name: Build frontend
         working-directory: app
         run: |
