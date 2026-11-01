@@ -1,4 +1,4 @@
-name: Smart PKOS Test APK Pass 3
+name: Smart PKOS Pass 3 Install Fix
 on:
   push:
     paths:
@@ -26,9 +26,10 @@ jobs:
           test -f app/src/pages/Tasks.jsx
       - name: Separate test app identity
         run: |
-          sed -i 's/applicationId "com.smartpkos.app"/applicationId "com.smartpkos.test"/' app/android/app/build.gradle
-          sed -i 's/<string name="app_name">Smart PKOS<\/string>/<string name="app_name">Smart PKOS Test<\/string>/' app/android/app/src/main/res/values/strings.xml
-          grep -F 'applicationId "com.smartpkos.test"' app/android/app/build.gradle
+          sed -i 's/applicationId "com.smartpkos.app"/applicationId "com.smartpkos.pass3"/' app/android/app/build.gradle
+          sed -i 's/<string name="app_name">Smart PKOS<\/string>/<string name="app_name">Smart PKOS Pass 3<\/string>/' app/android/app/src/main/res/values/strings.xml
+          grep -F 'applicationId "com.smartpkos.pass3"' app/android/app/build.gradle
+          grep -F 'Smart PKOS Pass 3' app/android/app/src/main/res/values/strings.xml
       - name: Apply Smart PKOS test improvements
         run: |
           python3 build-assets/smart-pkos-test-pass2.py
@@ -53,7 +54,7 @@ jobs:
           sha256sum "$APK"
       - uses: actions/upload-artifact@v4
         with:
-          name: Smart-PKOS-Test-Pass-3-APK
+          name: Smart-PKOS-Pass-3-Install-Fix-APK
           path: app/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 7
