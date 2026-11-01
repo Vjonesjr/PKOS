@@ -10,9 +10,9 @@ p.write_text(s)
 gradle=Path("app/android/app/build.gradle")
 g=gradle.read_text()
 import re
-g,n=re.subn(r'versionCode\s+\d+', 'versionCode 20261101',g,count=1)
+g,n=re.subn(r'versionCode\s+\d+', 'versionCode 20261104',g,count=1)
 assert n==1
-g,n=re.subn(r'versionName\s+"[^"]+"','versionName "2026.11.01-test2"',g,count=1)
+g,n=re.subn(r'versionName\s+"[^"]+"','versionName "2026.11.01-pass4"',g,count=1)
 assert n==1
 gradle.write_text(g)
 print("Added accessible scroll-to-top control and updated test version")
@@ -23,7 +23,13 @@ t=tasks.read_text()
 assert '["compact", "Compact"]' in t
 assert '["grid", "Grid"]' not in t
 t=t.replace('["compact", "Compact"]', '["compact", "Compact"], ["grid", "Grid"]', 1)
-t=t.replace('view === "cards" ? "space-y-2 p-3" : "divide-y divide-border"', 'view === "grid" ? "grid grid-cols-1 gap-3 p-3 sm:grid-cols-2" : view === "cards" ? "space-y-2 p-3" : "divide-y divide-border"')
-assert 'sm:grid-cols-2' in t
+t=t.replace('view === "cards" ? "space-y-2 p-3" : "divide-y divide-border"', 'view === "grid" ? "grid grid-cols-1 gap-3 p-3 min-[430px]:grid-cols-2" : view === "cards" ? "space-y-2 p-3" : "divide-y divide-border"')
+assert 'min-[430px]:grid-cols-2' in t
 tasks.write_text(t)
 print("Pass 3: added responsive task Grid view without changing existing modes")
+
+# Pass 4: assert all requested view controls are present in the source.
+assert all(x in t for x in ['["cards", "Cards"]', '["list", "List"]', '["compact", "Compact"]', '["grid", "Grid"]'])
+assert 'min-[430px]:grid-cols-2' in t
+assert 'aria-label="Scroll to top"' in p.read_text()
+print("Pass 4: Cards, List, Compact, responsive Grid, and scroll-to-top verified")
