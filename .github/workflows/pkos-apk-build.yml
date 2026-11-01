@@ -41,6 +41,21 @@ jobs:
           grep -F '["compact", "Compact"]' app/src/pages/Tasks.jsx
           if grep -F '["grid", "Grid"]' app/src/pages/Tasks.jsx; then exit 1; fi
           grep -F 'aria-label="Scroll to top"' app/src/components/Layout.jsx
+      - name: Inspect task group rendering for pagination
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("app/src/pages/Tasks.jsx")
+          lines=p.read_text().splitlines()
+          keys=("Task groups", "All task groups", "Upcoming", "Someday", ".map(", "grouped", "view ===", "taskGroups", "TaskCard")
+          found=set()
+          for i,line in enumerate(lines):
+              if any(k in line for k in keys):
+                  found.update(range(max(0,i-3), min(len(lines),i+5)))
+          for i in sorted(found):
+              if i<500:
+                  print(f"{i+1:04d}: {lines[i][:220]}")
+          PY
       - name: Build frontend
         working-directory: app
         run: |
