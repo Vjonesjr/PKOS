@@ -65,6 +65,15 @@ jobs:
           path: app/src/pages/Tasks.jsx
           if-no-files-found: error
           retention-days: 30
+      - name: Verify pagination is actually wired into Tasks
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s = Path("app/src/pages/Tasks.jsx").read_text()
+          if "TaskGroupPager" not in s and "slice(0, visibleCount)" not in s and "slice(0,pkosCount)" not in s:
+              raise SystemExit("FAIL: pagination component exists but is not integrated into Tasks. Refusing to publish misleading Pass 5 APK.")
+          print("Pagination integration found in Tasks source.")
+          PY
       - name: Build frontend
         working-directory: app
         run: |
