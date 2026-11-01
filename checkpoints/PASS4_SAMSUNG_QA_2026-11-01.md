@@ -28,3 +28,12 @@ Artifact: 13078616653
 
 ## Evidence
 User report is authoritative for successful Samsung installation; no independent device instrumentation was performed.
+
+## Samsung screenshot findings (2026-11-01)
+- User confirms Scroll to top and Cards; reports Compact works, but screenshots show Compact under Settings > Display control panel > Line spacing. This is not evidence of Compact task-view mode.
+- List and Grid task-view controls not found by user; screenshots show Projects detail, Focus timer, and Settings rather than Tasks page. Exact placement remains unverified.
+- Focus timer shows 25:00 and presets 15/25/45/60 minutes; user explicitly rejects this clock design. Must retrieve original clock specification before altering.
+- Project Copilot Ask shows 'Sorry, I couldn't answer that. Please try again.'
+- Project Copilot Briefing shows 'Couldn't generate a briefing. Please try again.'
+- Do not claim AI functions work or treat task-view controls as physically verified.
+- Next engineering investigation: locate actual Tasks navigation/rendering, determine if task-view selector is reachable; inspect Copilot error paths; compare Focus timer to approved spec. Do not change user data or overwrite installed versions.
