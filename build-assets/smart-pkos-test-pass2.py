@@ -16,3 +16,14 @@ g,n=re.subn(r'versionName\s+"[^"]+"','versionName "2026.11.01-test2"',g,count=1)
 assert n==1
 gradle.write_text(g)
 print("Added accessible scroll-to-top control and updated test version")
+
+# Pass 3: responsive task grid while retaining existing views.
+tasks=Path("app/src/pages/Tasks.jsx")
+t=tasks.read_text()
+assert '["compact", "Compact"]' in t
+assert '["grid", "Grid"]' not in t
+t=t.replace('["compact", "Compact"]', '["compact", "Compact"], ["grid", "Grid"]', 1)
+t=t.replace('view === "cards" ? "space-y-2 p-3" : "divide-y divide-border"', 'view === "grid" ? "grid grid-cols-1 gap-3 p-3 sm:grid-cols-2" : view === "cards" ? "space-y-2 p-3" : "divide-y divide-border"')
+assert 'sm:grid-cols-2' in t
+tasks.write_text(t)
+print("Pass 3: added responsive task Grid view without changing existing modes")
