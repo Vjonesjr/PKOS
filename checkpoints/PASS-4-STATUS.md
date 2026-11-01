@@ -1,23 +1,17 @@
-# Smart PKOS — Pass 4 feature restoration
+# Smart PKOS — Pass 4 GitHub checkpoint
 
-## Source checkpoint
+## Reproducible build source
+The GitHub branch includes the complete base source as `build-input/pkos-source-20261031.zip.b64` and the Pass 4 feature restoration patch as `build-assets/smart-pkos-test-pass2.py`.
 
-The complete Pass 4 source archive is preserved at:
-https://drive.google.com/file/d/134-OdZJ3gIbTz4d9baTDt9lsqPO3XYqg/view?usp=drivesdk
+The workflow `.github/workflows/pkos-apk-build.yml` reconstructs source, applies Pass 4 changes, verifies feature code, compiles an APK, verifies its package and signature, and installs/launches on an Android emulator.
 
-**Important:** The link above is the *Pass 3 emulator-verified APK artifact*, not the Pass 4 source. Do not use it as a Pass 4 source backup.
+The separately saved local source snapshot `Smart-PKOS-PASS-4-FEATURE-RESTORATION-SOURCE.zip` has not been committed as a binary ZIP. Do not claim otherwise. The GitHub build uses the checked-in base archive and feature patch.
 
-The Pass 4 source archive currently exists in the ChatGPT project workspace as:
-`Smart-PKOS-PASS-4-FEATURE-RESTORATION-SOURCE.zip`
+## Pass 4 requirements
+- Cards, List, Compact, responsive Grid task views
+- Scroll-to-top control
+- Package ID `com.smartpkos.pass4` to avoid overwriting working versions
+- Build, signing verification, emulator installation and launch
 
-The ZIP has **not yet been uploaded into this GitHub branch**. This branch is a dedicated checkpoint for that upload. Do not treat the branch as containing the complete Pass 4 source or a completed Pass 4 APK.
-
-## Required feature checks
-- Task views: Cards, Grid, List, Compact
-- Grid: responsive two columns on wider phones
-- Scroll-to-top control and scroll options
-- Existing four bottom tabs preserved
-- Stable signing key for upgrade builds
-- Actual Android install and launch test
-
-Do not replace the existing working phone installations.
+## Known limitation
+CI debug signing keys are ephemeral. A permanent signing key is still required for future upgrades to this same package. Keep existing phone installations untouched.
