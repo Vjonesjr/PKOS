@@ -58,6 +58,13 @@ jobs:
               if i<500:
                   print(f"{i+1:04d}: {lines[i][:220]}")
           PY
+      - name: Preserve Tasks source for pagination integration
+        uses: actions/upload-artifact@v4
+        with:
+          name: Smart-PKOS-Pass5-Tasks-Source
+          path: app/src/pages/Tasks.jsx
+          if-no-files-found: error
+          retention-days: 30
       - name: Build frontend
         working-directory: app
         run: |
