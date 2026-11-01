@@ -1,4 +1,4 @@
-name: Smart PKOS Pass 4 Feature Restoration
+name: Smart PKOS Pass 5 Feature Restoration
 on:
   push:
     paths:
@@ -26,19 +26,20 @@ jobs:
           test -f app/src/pages/Tasks.jsx
       - name: Separate test app identity
         run: |
-          sed -i 's/applicationId "com.smartpkos.app"/applicationId "com.smartpkos.pass4"/' app/android/app/build.gradle
-          sed -i 's/<string name="app_name">Smart PKOS<\/string>/<string name="app_name">Smart PKOS Pass 4<\/string>/' app/android/app/src/main/res/values/strings.xml
-          grep -F 'applicationId "com.smartpkos.pass4"' app/android/app/build.gradle
-          grep -F 'Smart PKOS Pass 4' app/android/app/src/main/res/values/strings.xml
+          sed -i 's/applicationId "com.smartpkos.app"/applicationId "com.smartpkos.pass5"/' app/android/app/build.gradle
+          sed -i 's/<string name="app_name">Smart PKOS<\/string>/<string name="app_name">Smart PKOS Pass 5<\/string>/' app/android/app/src/main/res/values/strings.xml
+          grep -F 'applicationId "com.smartpkos.pass5"' app/android/app/build.gradle
+          grep -F 'Smart PKOS Pass 5' app/android/app/src/main/res/values/strings.xml
       - name: Apply Smart PKOS test improvements
         run: |
           python3 build-assets/smart-pkos-test-pass2.py
           grep -F 'aria-label="Scroll to top"' app/src/components/Layout.jsx
-      - name: Verify Pass 4 feature source
+      - name: Apply Pass 5 approved changes
         run: |
-          grep -F '["grid", "Grid"]' app/src/pages/Tasks.jsx
+          python3 build-assets/pass5-remove-grid.py
+          python3 build-assets/pass5-visible-scrollbar.py
           grep -F '["compact", "Compact"]' app/src/pages/Tasks.jsx
-          grep -F 'min-[430px]:grid-cols-2' app/src/pages/Tasks.jsx
+          if grep -F '["grid", "Grid"]' app/src/pages/Tasks.jsx; then exit 1; fi
           grep -F 'aria-label="Scroll to top"' app/src/components/Layout.jsx
       - name: Build frontend
         working-directory: app
@@ -64,11 +65,11 @@ jobs:
           AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt | sort -V | tail -1)
           SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
           "$AAPT" dump badging "$APK" | head -5
-          "$AAPT" dump badging "$APK" | grep -F "package: name='com.smartpkos.pass4'"
+          "$AAPT" dump badging "$APK" | grep -F "package: name='com.smartpkos.pass5'"
           "$SIGNER" verify --verbose --print-certs "$APK"
       - uses: actions/upload-artifact@v4
         with:
-          name: Smart-PKOS-Pass-4-Feature-Restoration-APK
+          name: Smart-PKOS-Pass-5-Task-View-Scrollbar-APK
           path: app/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 7
@@ -82,6 +83,6 @@ jobs:
           emulator-boot-timeout: 900
           script: |
             adb install -r app/android/app/build/outputs/apk/debug/app-debug.apk
-            adb shell monkey -p com.smartpkos.pass4 -c android.intent.category.LAUNCHER 1
+            adb shell monkey -p com.smartpkos.pass5 -c android.intent.category.LAUNCHER 1
             sleep 8
-            adb shell pm path com.smartpkos.pass4
+            adb shell pm path com.smartpkos.pass5
