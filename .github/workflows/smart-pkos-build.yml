@@ -39,7 +39,8 @@ jobs:
         run: bash ./gradlew assembleDebug --stacktrace
       - name: Record lint outcome
         if: always()
-        run: echo "Lint outcome: ${{ steps.lint.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          echo "Lint outcome: ${{ steps.lint.outcome }}" >> "$GITHUB_STEP_SUMMARY"
       - name: Capture build environment and output locations
         if: always()
         run: |
