@@ -26,6 +26,8 @@ jobs:
           sha256sum -c scroll-pass/source.sha256
           mkdir app
           unzip -q Smart-PKOS-Advanced-Scroll-Source.zip -d app
+          cp scroll-pass/fixes/main.jsx app/tests/scroll/main.jsx
+          cp scroll-pass/fixes/api.js app/tests/scroll/api.js
       - name: Install and verify frontend
         working-directory: app
         run: |
