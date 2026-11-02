@@ -1,0 +1,39 @@
+name: Smart PKOS integration branch APK build
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-integration-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out final integration source
+        uses: actions/checkout@v4
+        with:
+          ref: smart-pkos-final-integration-20261102
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Build web app
+        run: npm run build
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Sync Android
+        run: npx cap sync android
+      - name: Build Android debug APK
+        working-directory: android
+        run: bash ./gradlew assembleDebug --stacktrace
+      - name: Upload debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smart-pkos-integration-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
