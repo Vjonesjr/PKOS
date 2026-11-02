@@ -34,7 +34,7 @@ jobs:
           s = p.read_text()
           needle = " const g=await page.evaluate("
           assert s.count(needle) == 1
-          s = s.replace(needle, " await page.waitForFunction(() => { const e=document.scrollingElement, track=document.querySelector('.pkos-scroll-track'), thumb=document.querySelector('.pkos-scroll-thumb'); if (!e || !track || !thumb) return false; const t=track.getBoundingClientRect(), b=thumb.getBoundingClientRect(); return Math.abs(b.bottom-t.bottom)<2; }, {timeout:10000});\\n const g=await page.evaluate(".replace('\\\\n','\\n'))
+          s = s.replace(needle, " await page.waitForFunction(() => { const e=document.scrollingElement, track=document.querySelector('.pkos-scroll-track'), thumb=document.querySelector('.pkos-scroll-thumb'); if (!e || !track || !thumb) return false; const t=track.getBoundingClientRect(), b=thumb.getBoundingClientRect(); return Math.abs(b.bottom-t.bottom)<2; });" + chr(10) + needle)
           p.write_text(s)
           PY
       - name: Install and verify frontend
