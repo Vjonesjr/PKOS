@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      VITE_BASE44_APP_ID: ${{ secrets.VITE_BASE44_APP_ID }}
-      VITE_BASE44_APP_BASE_URL: ${{ secrets.VITE_BASE44_APP_BASE_URL }}
+      VITE_BASE44_APP_ID: "6ab97588d935cf6dad456bf1"
+      VITE_BASE44_APP_BASE_URL: "https://gorgeous-smart-brain-flow.base44.app"
     steps:
       - name: Check out final integration source
         uses: actions/checkout@v4
