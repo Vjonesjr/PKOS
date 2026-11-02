@@ -1,0 +1,107 @@
+{
+  "name": "GoalCheckin",
+  "type": "object",
+  "properties": {
+    "goal_id": {
+      "type": "string"
+    },
+    "week_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "on_track",
+        "at_risk",
+        "off_track"
+      ]
+    },
+    "progress_snapshot": {
+      "type": "number"
+    },
+    "kr_snapshot": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "current": {
+            "type": "number"
+          },
+          "target": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "note": {
+      "type": "string"
+    },
+    "workspace": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "demo"
+      ],
+      "default": "personal"
+    }
+  },
+  "required": [
+    "goal_id",
+    "week_start",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

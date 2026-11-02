@@ -1,0 +1,8 @@
+INTERVIEW PREPARATION — DEMO
+
+Practice explaining a LEFT JOIN, a window function and a dashboard decision.
+Use one small example for each answer.
+
+Prepare two questions about how the team validates its metrics.
+
+Follow up: Write a short thank-you note after the interview.

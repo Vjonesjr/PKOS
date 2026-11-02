@@ -1,0 +1,48 @@
+import React from "react";
+import { Link } from "react-router-dom";
+import { CalendarPlus, ExternalLink, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ENTITY_CONFIG } from "@/lib/entityConfig";
+
+const sourceLink = (item) => {
+  if (item.type === "review") return "/learning";
+  const cfg = ENTITY_CONFIG[item.type];
+  return cfg.detail ? `${cfg.route}?id=${item.id}` : item.type === "task" && item.project_id ? `/project-detail?id=${item.project_id}` : cfg.route;
+};
+
+export default function BriefItem({ item, added, onAdd, onDismiss, onPriority }) {
+  const cfg = ENTITY_CONFIG[item.type];
+  const canPrioritize = item.type === "task" || item.type === "project";
+  return (
+    <div className="rounded-xl border border-border bg-background/40 p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="whitespace-normal break-words text-base font-medium leading-6 text-foreground">
+            <span className={`mr-2 text-[11px] ${cfg?.color || "text-pink-400"}`}>{cfg?.label || "Review"}</span>
+            {item.title}
+          </p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.reason}</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Based on: {(item.facts || []).join(" · ")}</p>
+        </div>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <Button size="sm" variant="ghost" className="min-h-11 text-sm" onClick={onDismiss}>Hide suggestion</Button>
+        <Button size="sm" variant="outline" className="min-h-11 gap-2 text-sm" disabled={added} onClick={onAdd}>
+          {added ? <Check className="h-3.5 w-3.5" /> : <CalendarPlus className="h-3.5 w-3.5" />} {added ? "On Today" : "Add to Today"}
+        </Button>
+        {canPrioritize && (
+          <Select value={item.priority} onValueChange={onPriority}>
+            <SelectTrigger className="h-11 w-32 text-sm" aria-label="Change priority"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {["low", "medium", "high"].map((p) => <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
+        <Button asChild size="sm" variant="ghost" className="min-h-11 gap-2 text-sm">
+          <Link to={sourceLink(item)}><ExternalLink className="h-3.5 w-3.5" /> Open Source</Link>
+        </Button>
+      </div>
+    </div>
+  );
+}

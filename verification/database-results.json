@@ -1,0 +1,17 @@
+{
+  "checks": [
+    "Schema and RPC initialize a user without broad write privileges",
+    "Projects start in Later and capacity is enforced",
+    "Today capacity and version conflicts roll back writes",
+    "Conversion is atomic and repeat mutation IDs return the same destination",
+    "Invalid conversion cannot mark a capture processed",
+    "Only one running or paused focus session exists",
+    "Task cycles and cross-owner references are rejected",
+    "Finish requires evidence and explicit handling of unresolved work",
+    "Recurring completion creates one next occurrence",
+    "Invalid preferences roll back; sync carries complete revisions and tombstones",
+    "RLS hides other users and direct client writes are denied"
+  ],
+  "errors": [],
+  "engine": "PostgreSQL via PGlite; schema/RPC tested locally, not deployed"
+}

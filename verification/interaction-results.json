@@ -1,0 +1,99 @@
+{
+  "passed": [
+    "Press shows saving state before completion",
+    "Completed task remains visible in completed section",
+    "Undo returns the task and clears stale completed label",
+    "Failed save keeps task active and explains failure",
+    "Completed page persists a saved task after refresh",
+    "Mark incomplete explicitly returns to active queue",
+    "Overdue titles wrap and actions have readable touch targets",
+    "Remove from Today preserves the saved task and can be undone",
+    "Hide reminder is labeled and Undo restores the reminder",
+    "Hide suggestion keeps its record and Undo restores it",
+    "Permanent task deletion is labeled and cancel saves the task",
+    "Subtask detail, count and own instructions reach generation",
+    "Progress supports plus minus and drag, saves only on request, remembers preferred control",
+    "Back returns to the actual prior page through nested details",
+    "Back from a direct detail link has a safe fallback",
+    "Buttons retain a visible tap acknowledgement"
+  ],
+  "writes": [
+    {
+      "entity": "Task",
+      "id": "t1",
+      "body": {
+        "status": "done",
+        "completed_date": "2026-10-26"
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "t1",
+      "body": {
+        "status": "todo",
+        "completed_date": null
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "t1",
+      "body": {
+        "status": "done",
+        "completed_date": "2026-10-26"
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "t1",
+      "body": {
+        "status": "todo",
+        "completed_date": null
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "stale",
+      "body": {
+        "due_date": "2026-10-27",
+        "today_date": null
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "t1",
+      "body": {
+        "today_date": null
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "t1",
+      "body": {
+        "today_date": "2026-10-26"
+      }
+    },
+    {
+      "entity": "AutomationRun",
+      "id": "flag1",
+      "body": {
+        "flag_open": false
+      }
+    },
+    {
+      "entity": "AutomationRun",
+      "id": "flag1",
+      "body": {
+        "flag_open": true
+      }
+    },
+    {
+      "entity": "Goal",
+      "id": "g1",
+      "body": {
+        "manual_progress": 67,
+        "progress_mode": "manual"
+      }
+    }
+  ],
+  "errors": []
+}

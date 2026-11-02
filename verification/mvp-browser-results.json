@@ -1,0 +1,352 @@
+{
+  "passed": [
+    "Exactly four bottom tabs and owner-scoped Home",
+    "All settings groups exist and preferences survive reload",
+    "AI is opt-in and blocked before any provider call",
+    "Today capacity rejects an extra router task without losing its text",
+    "Completion remains visible and Undo reopens the task",
+    "Capture conversion retries link one destination and preserve the original",
+    "Project conversion starts in Later and has a visible destination",
+    "Activation needs a saved finish line and respects active-project capacity",
+    "Finish review enforces criteria/evidence, recovers failure and supports Undo",
+    "Focus recovers after reload and ending a session leaves its task open",
+    "Back and active tab preserve the originating project flow",
+    "Task removal uses recoverable Trash rather than permanent deletion",
+    "Core screens fit a large-text phone layout",
+    "Private-file capture converts to a connected artifact without AI consent",
+    "Populated Demo workspace renders core screens and preserves Personal data"
+  ],
+  "errors": [],
+  "writes": [
+    {
+      "entity": "Task",
+      "id": "new-1",
+      "body": {
+        "title": "A new task kept safely in my queue",
+        "description": "A new task kept safely in my queue",
+        "status": "todo",
+        "priority": "medium",
+        "workspace": "personal"
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "t1",
+      "body": {
+        "status": "done",
+        "completed_date": "2026-10-26"
+      }
+    },
+    {
+      "entity": "Project",
+      "id": "p1",
+      "body": {
+        "next_action": "Check the supporting notes"
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "t1",
+      "body": {
+        "status": "todo",
+        "completed_date": null
+      }
+    },
+    {
+      "entity": "Project",
+      "id": "p1",
+      "body": {
+        "next_action": "Prepare one clear summary"
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "new-2",
+      "body": {
+        "title": "Prepare the pitch summary",
+        "description": "Keep the original idea. Prepare a short useful summary.",
+        "status": "todo",
+        "project_id": null,
+        "source_capture_id": "c1",
+        "due_date": null,
+        "workspace": "personal"
+      }
+    },
+    {
+      "entity": "Link",
+      "id": "new-3",
+      "body": {
+        "workspace": "personal",
+        "source_type": "capture",
+        "source_id": "c1",
+        "target_type": "task",
+        "target_id": "new-2",
+        "label": "converted to"
+      }
+    },
+    {
+      "entity": "Capture",
+      "id": "c1",
+      "body": {
+        "status": "processed",
+        "converted_to_type": "task",
+        "converted_to_id": "new-2"
+      }
+    },
+    {
+      "entity": "Project",
+      "id": "new-4",
+      "body": {
+        "title": "One more project",
+        "description": "An experiment worth keeping for later.",
+        "status": "Planned",
+        "workspace": "personal"
+      }
+    },
+    {
+      "entity": "Link",
+      "id": "new-5",
+      "body": {
+        "workspace": "personal",
+        "source_type": "capture",
+        "source_id": "c2",
+        "target_type": "project",
+        "target_id": "new-4",
+        "label": "converted to"
+      }
+    },
+    {
+      "entity": "Capture",
+      "id": "c2",
+      "body": {
+        "status": "processed",
+        "converted_to_type": "project",
+        "converted_to_id": "new-4"
+      }
+    },
+    {
+      "entity": "Knowledge",
+      "id": "new-6",
+      "body": {
+        "title": "Project plan: One more project",
+        "category": "Project plan",
+        "type": "personal",
+        "status": "active",
+        "project_id": "new-4",
+        "workspace": "personal",
+        "content": "## Desired outcome\nAn experiment worth keeping for later.\n\n## Definition of done\nThe result has been checked\n\n## Progress mode\nmanual\n\n## Next task\n"
+      }
+    },
+    {
+      "entity": "Project",
+      "id": "new-4",
+      "body": {
+        "next_action": "Review & finish",
+        "progress": 0
+      }
+    },
+    {
+      "entity": "Knowledge",
+      "id": "new-6",
+      "body": {
+        "title": "Project plan: One more project",
+        "category": "Project plan",
+        "type": "personal",
+        "status": "active",
+        "project_id": "new-4",
+        "workspace": "personal",
+        "content": "## Desired outcome\nAn experiment worth keeping for later.\n\n## Definition of done\nThe result has been checked\n\n## Progress mode\nmanual\n\n## Next task\n"
+      }
+    },
+    {
+      "entity": "Project",
+      "id": "new-4",
+      "body": {
+        "next_action": "Review & finish",
+        "progress": 0
+      }
+    },
+    {
+      "entity": "Project",
+      "id": "p1",
+      "body": {
+        "status": "Waiting"
+      }
+    },
+    {
+      "entity": "Knowledge",
+      "id": "new-6",
+      "body": {
+        "title": "Project plan: One more project",
+        "category": "Project plan",
+        "type": "personal",
+        "status": "active",
+        "project_id": "new-4",
+        "workspace": "personal",
+        "content": "## Desired outcome\nAn experiment worth keeping for later.\n\n## Definition of done\nThe result has been checked\n\n## Progress mode\nmanual\n\n## Next task\n"
+      }
+    },
+    {
+      "entity": "Project",
+      "id": "new-4",
+      "body": {
+        "next_action": "Review & finish",
+        "progress": 0
+      }
+    },
+    {
+      "entity": "Project",
+      "id": "new-4",
+      "body": {
+        "status": "Active"
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "finish-child",
+      "body": {
+        "project_id": null,
+        "today_date": null,
+        "parent_task_id": null
+      }
+    },
+    {
+      "entity": "Knowledge",
+      "id": "new-7",
+      "body": {
+        "title": "Finished: One more project",
+        "category": "Project finish evidence",
+        "source": "Finish review · 2026-10-26T18:07:10.304Z",
+        "type": "reference",
+        "status": "active",
+        "workspace": "personal",
+        "project_id": "new-4",
+        "content": "## Result\nThe sample result is present and checked.\n\n## Definition of done\n✓ The result has been checked\n\n## What helped / what to change\n"
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "finish-child",
+      "body": {
+        "project_id": "new-4",
+        "parent_task_id": null,
+        "archived": false,
+        "today_date": null
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "finish-child",
+      "body": {
+        "project_id": null,
+        "today_date": null,
+        "parent_task_id": null
+      }
+    },
+    {
+      "entity": "Knowledge",
+      "id": "new-7",
+      "body": {
+        "title": "Finished: One more project",
+        "category": "Project finish evidence",
+        "source": "Finish review · 2026-10-26T18:07:10.304Z",
+        "type": "reference",
+        "status": "active",
+        "workspace": "personal",
+        "project_id": "new-4",
+        "content": "## Result\nThe sample result is present and checked.\n\n## Definition of done\n✓ The result has been checked\n\n## What helped / what to change\n"
+      }
+    },
+    {
+      "entity": "Project",
+      "id": "new-4",
+      "body": {
+        "status": "Completed",
+        "progress": 100,
+        "next_action": "Finished — review the result"
+      }
+    },
+    {
+      "entity": "Project",
+      "id": "new-4",
+      "body": {
+        "status": "Active",
+        "progress": 0,
+        "next_action": "Review & finish"
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "finish-child",
+      "body": {
+        "project_id": "new-4",
+        "parent_task_id": null,
+        "archived": false,
+        "today_date": null
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "t2",
+      "body": {
+        "archived": true
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "t2",
+      "body": {
+        "archived": false
+      }
+    },
+    {
+      "entity": "Capture",
+      "id": "new-8",
+      "body": {
+        "type": "idea",
+        "title": "",
+        "content": "A saved file for the final review\n\nAttachment: review-notes.txt\nPrivate file: private://sample-file",
+        "tags": [],
+        "important": false,
+        "status": "inbox",
+        "workspace": "personal"
+      }
+    },
+    {
+      "entity": "Knowledge",
+      "id": "new-9",
+      "body": {
+        "title": "A saved file for the final review\n\nAttachment: review-notes.txt\nPrivate file: private://sample-file",
+        "content": "A saved file for the final review\n\nAttachment: review-notes.txt\nPrivate file: private://sample-file",
+        "type": "reference",
+        "category": "Artifacts",
+        "status": "active",
+        "tags": [],
+        "project_id": null,
+        "workspace": "personal"
+      }
+    },
+    {
+      "entity": "Link",
+      "id": "new-10",
+      "body": {
+        "workspace": "personal",
+        "source_type": "capture",
+        "source_id": "new-8",
+        "target_type": "knowledge",
+        "target_id": "new-9",
+        "label": "converted to"
+      }
+    },
+    {
+      "entity": "Capture",
+      "id": "new-8",
+      "body": {
+        "status": "processed",
+        "converted_to_type": "knowledge",
+        "converted_to_id": "new-9"
+      }
+    }
+  ],
+  "apiCalls": 570
+}

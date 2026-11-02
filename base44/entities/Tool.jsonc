@@ -1,0 +1,137 @@
+{
+  "name": "Tool",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "strengths": {
+      "type": "string"
+    },
+    "weaknesses": {
+      "type": "string"
+    },
+    "best_uses": {
+      "type": "string"
+    },
+    "poor_uses": {
+      "type": "string"
+    },
+    "cost": {
+      "type": "string"
+    },
+    "speed": {
+      "type": "string",
+      "enum": [
+        "slow",
+        "medium",
+        "fast"
+      ]
+    },
+    "privacy": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "deployment": {
+      "type": "string",
+      "enum": [
+        "local",
+        "cloud",
+        "hybrid"
+      ]
+    },
+    "coding_ability": {
+      "type": "number"
+    },
+    "reasoning_ability": {
+      "type": "number"
+    },
+    "automation_ability": {
+      "type": "number"
+    },
+    "visual_ability": {
+      "type": "number"
+    },
+    "user_rating": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "last_tested": {
+      "type": "string",
+      "format": "date"
+    },
+    "workspace": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "demo"
+      ],
+      "default": "personal"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

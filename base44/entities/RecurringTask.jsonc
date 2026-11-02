@@ -1,0 +1,39 @@
+{
+  "name": "RecurringTask",
+  "type": "object",
+  "properties": {
+    "title": { "type": "string" },
+    "description": { "type": "string" },
+    "active": { "type": "boolean", "default": true },
+    "project_id": { "type": "string" },
+    "goal_id": { "type": "string" },
+    "default_priority": { "type": "string", "enum": ["low", "medium", "high"], "default": "medium" },
+    "effort": { "type": "string", "enum": ["quick", "medium", "deep"] },
+    "contexts": { "type": "array", "items": { "type": "string" } },
+    "schedule_type": {
+      "type": "string",
+      "enum": ["daily", "weekdays", "weekly", "monthly", "interval_days", "after_completion"],
+      "default": "weekly"
+    },
+    "interval_value": { "type": "number", "default": 1 },
+    "weekdays": { "type": "array", "items": { "type": "number" } },
+    "day_of_month": { "type": "number" },
+    "time_of_day": { "type": "string" },
+    "timezone": { "type": "string" },
+    "start_date": { "type": "string", "format": "date" },
+    "end_date": { "type": "string", "format": "date" },
+    "next_occurrence_at": { "type": "string", "format": "date-time" },
+    "last_generated_at": { "type": "string", "format": "date-time" },
+    "last_completed_at": { "type": "string", "format": "date-time" },
+    "saved_subtasks": { "type": "array", "items": { "type": "string" } },
+    "ai_subtask_level": { "type": "string", "enum": ["basic", "detailed", "step_by_step"], "default": "detailed" },
+    "workspace": { "type": "string", "enum": ["personal", "demo"], "default": "personal" }
+  },
+  "required": ["title", "schedule_type"],
+  "rls": {
+    "create": { "$or": [{ "created_by_id": "{{user.id}}" }, { "user_condition": { "role": "admin" } }] },
+    "read": { "$or": [{ "created_by_id": "{{user.id}}" }, { "user_condition": { "role": "admin" } }] },
+    "update": { "$or": [{ "created_by_id": "{{user.id}}" }, { "user_condition": { "role": "admin" } }] },
+    "delete": { "$or": [{ "created_by_id": "{{user.id}}" }, { "user_condition": { "role": "admin" } }] }
+  }
+}

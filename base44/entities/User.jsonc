@@ -1,0 +1,14 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "goal_drafts_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "goal_drafts_count": {
+      "type": "number",
+      "default": 0
+    }
+  }
+}

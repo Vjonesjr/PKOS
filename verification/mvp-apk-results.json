@@ -1,0 +1,15 @@
+{
+  "apk": "Smart-PKOS-MVP-20261026.apk",
+  "bytes": 4867440,
+  "sha256": "816d821ef79c74d5e61be1ed2a7a9e8a40fac87f077714fbd7dab07e4f36219a",
+  "package": "com.smartpkos.app",
+  "versionCode": 20261026,
+  "versionName": "2026.10.26",
+  "assetFiles": 11,
+  "assetFileSetExact": true,
+  "assetBytesExact": true,
+  "originalSignerVerified": true,
+  "zipIntegrity": true,
+  "alignment": true,
+  "physicalInstallTested": false
+}

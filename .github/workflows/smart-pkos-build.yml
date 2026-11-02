@@ -1,0 +1,66 @@
+name: Smart PKOS build verification
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-and-debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Environment versions
+        run: |
+          node --version
+          npm --version
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Lint (report separately; do not block compilation)
+        id: lint
+        continue-on-error: true
+        run: npm run lint
+      - name: Build web bundle
+        run: npm run build
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Sync Capacitor
+        run: npx cap sync android
+      - name: Build debug APK (not signed for Play Store)
+        working-directory: android
+        run: bash ./gradlew assembleDebug --stacktrace
+      - name: Record lint outcome
+        if: always()
+        run: echo "Lint outcome: ${{ steps.lint.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+      - name: Capture build environment and output locations
+        if: always()
+        run: |
+          mkdir -p build-diagnostics
+          node --version > build-diagnostics/node-version.txt
+          npm --version > build-diagnostics/npm-version.txt
+          find android/app/build/outputs -maxdepth 5 -type f 2>/dev/null > build-diagnostics/android-outputs.txt || true
+          git rev-parse HEAD > build-diagnostics/source-commit.txt
+      - name: Upload debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smart-pkos-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smart-pkos-build-diagnostics
+          path: |
+            android/app/build/reports/**
+            build-diagnostics/**
+          if-no-files-found: ignore

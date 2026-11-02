@@ -1,0 +1,107 @@
+{
+  "name": "DailyDigest",
+  "type": "object",
+  "properties": {
+    "digest_key": {
+      "type": "string",
+      "description": "owner:workspace:date \u2014 one digest per owner, workspace, and day"
+    },
+    "owner_id": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "total": {
+      "type": "number",
+      "default": 0
+    },
+    "pending": {
+      "type": "number",
+      "default": 0
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "recipe_name": {
+            "type": "string"
+          },
+          "record_type": {
+            "type": "string"
+          },
+          "record_id": {
+            "type": "string"
+          },
+          "record_title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "emailed": {
+      "type": "boolean",
+      "default": false
+    },
+    "workspace": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "demo"
+      ],
+      "default": "personal"
+    }
+  },
+  "required": [
+    "digest_key",
+    "owner_id",
+    "date"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,52 @@
+import { useEffect, useId, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { actionSaved } from '@/lib/taskStatus';
+import { SUPPORT_CATEGORY, SUPPORT_PRESETS, emptySupport, supportContent, readSupport, belongsTo, saveSupportTask } from '@/lib/supportPlans';
+
+export default function SupportPlan({type,record,workspace}) {
+ const id=useId(),[values,setValues]=useState(emptySupport),[plan,setPlan]=useState(null),[strategies,setStrategies]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[saved,setSaved]=useState(false),[created,setCreated]=useState([]),[outcome,setOutcome]=useState('Helped'),[lesson,setLesson]=useState('');
+ const [busy,setBusy]=useState(false),lock=useRef(false);
+ const run=async action=>{if(lock.current)return;lock.current=true;setBusy(true);try{return await action();}finally{lock.current=false;setBusy(false);}};
+ const set=patch=>{setValues(p=>({...p,...patch}));setSaved(false);setCreated([]);};
+ useEffect(()=>{let active=true;setLoading(true);setError('');base44.entities.Knowledge.filter({workspace,category:SUPPORT_CATEGORY},'-updated_date',200).then(rows=>{if(!active)return;setStrategies(rows);const found=rows.find(p=>belongsTo(p,type,record.id));setPlan(found||null);setValues(found?readSupport(found.content):{...emptySupport(),blocker:type==='project'?record.blockers||'':''});setSaved(!!found);}).catch(()=>{if(active)setError('Could not load support plans. Retry this page before saving.');}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;};},[workspace,type,record.id]);
+ async function persist(next=values){
+  if(loading||(!plan&&error.startsWith('Could not load')))throw Error('Reload the support plans before saving.');
+  if(!next.blocker.trim()&&!next.helps.trim())throw Error('Describe a blocker or something that helps first.');
+  const payload={title:`Support plan: ${record.title}`,category:SUPPORT_CATEGORY,type:'personal',status:'active',tags:['support-plan'],content:supportContent(next,type,record),...(type==='project'||record.project_id?{project_id:type==='project'?record.id:record.project_id}:{})};
+  const result=plan?await base44.entities.Knowledge.update(plan.id,payload):await base44.entities.Knowledge.create({...payload,workspace});
+  const nextPlan={...plan,...payload,...result};if(!nextPlan.id)throw Error('Support plan could not be confirmed. Reload before trying again.');
+  setPlan(nextPlan);setValues(next);setSaved(true);setError('');setStrategies(p=>[nextPlan,...p.filter(s=>s.id!==nextPlan.id)]);return nextPlan;
+ }
+ async function save(){await persist();actionSaved('Support plan saved in Knowledge. You can reuse it on another task.');}
+ async function add(reminder){const current=saved&&plan?plan:await persist();const tasks=await saveSupportTask(base44,current,type,record,workspace,values,reminder);setCreated(tasks);actionSaved(reminder?`${tasks.length} reminder task${tasks.length===1?'':'s'} saved. Open Today on the chosen day.`:'Next action saved in your task queue.');}
+ async function checkIn(){if(!plan||!saved)throw Error('Save the support plan before recording what worked.');const line=`• ${new Date().toLocaleString()}: ${outcome}${lesson.trim()?` — ${lesson.trim()}`:''}`;const next={...values,history:[values.history,line].filter(Boolean).join('\n')};await persist(next);setLesson('');actionSaved('Check-in saved. Use this lesson when you try again.');}
+ const input=(key,label,placeholder,rows=2)=><div><label htmlFor={`${id}-${key}`} className="text-sm font-medium">{label}</label><Textarea disabled={busy} id={`${id}-${key}`} value={values[key]} rows={rows} onChange={e=>set({[key]:e.target.value})} placeholder={placeholder} className="mt-1" /></div>;
+ if(loading)return <section id="support-plan" className="rounded-2xl border border-border p-5"><p role="status">Loading support plans…</p></section>;
+ return <section id="support-plan" aria-label="Blockers and what helps" className="space-y-4 rounded-2xl border border-primary/30 bg-card/60 p-4 sm:p-5">
+  <div><h2 className="text-lg font-semibold">Blockers & what helps me</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">Describe what gets in your way, choose a practical way around it, then keep what works. No diagnosis is required.</p></div>
+  {error&&<p role="alert" className="text-sm text-destructive">{error}</p>}
+  <details><summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-primary">Try a starting point</summary><div className="flex flex-wrap gap-2">{SUPPORT_PRESETS.map(p=><Button key={p.name} variant="outline" className="min-h-11 h-auto whitespace-normal py-2 text-left" onClick={()=>{if((values.blocker||values.helps)&&!window.confirm('Replace the unsaved blocker and action fields with this starting point?'))return;set({blocker:p.blocker,helps:p.helps,action:p.action,reminder:p.reminder,cadence:p.cadence});}}>{p.name}</Button>)}</div></details>
+  {strategies.filter(s=>s.id!==plan?.id).length>0&&<div><label htmlFor={`${id}-reuse`} className="text-sm">Reuse a saved strategy</label><select id={`${id}-reuse`} value="" className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 text-sm" onChange={e=>{const source=strategies.find(s=>s.id===e.target.value);if(!source)return;if((values.blocker||values.helps)&&!window.confirm('Copy this strategy into your current draft? Your saved plan stays unchanged until you save.'))return;const other=readSupport(source.content);set({helps:[other.helps,other.history?`Lessons from earlier attempts:\n${other.history}`:''].filter(Boolean).join('\n\n'),action:other.action});}}><option value="">Choose something that helped before</option>{strategies.filter(s=>s.id!==plan?.id).map(s=><option key={s.id} value={s.id}>{s.title}</option>)}</select></div>}
+  {input('blocker','What gets in my way?','For example: insurance paperwork feels overwhelming, or I keep switching projects.')}
+  {input('helps','What helps / my unblocker','A checklist, fewer active projects, a quiet place, planned breaks, or support I choose.',3)}
+  {input('action','My next small action','One action I can actually do next.')}
+  <p className="text-xs leading-5 text-muted-foreground">For medication or another care routine, write only the reminder you already chose with your care team. This app does not select medicines or change treatment.</p>
+  <div className="flex flex-wrap gap-2"><Button disabled={busy} onClick={()=>run(save)}>Save support plan</Button><Button variant="outline" disabled={busy||!values.action.trim()} onClick={()=>run(()=>add(false))}>Add next action to task queue</Button></div>
+  <p role="status" className="text-sm text-muted-foreground">{saved?'Saved in Knowledge → Support strategies.':'Changes are not saved yet.'}</p>
+  <details><summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-primary">Add reminders or practice times</summary><div className="space-y-3 pt-2">
+   <p className="text-sm leading-6 text-muted-foreground">These are in-app tasks on Today for the selected day. Phone push alerts are not enabled in this build.</p>
+   <div><label htmlFor={`${id}-reminder`} className="text-sm">Reminder label (choose neutral wording if you prefer)</label><Input id={`${id}-reminder`} value={values.reminder} onChange={e=>set({reminder:e.target.value})} className="mt-1" /></div>
+   <div><label htmlFor={`${id}-cadence`} className="text-sm">How often?</label><select id={`${id}-cadence`} value={values.cadence} onChange={e=>set({cadence:e.target.value})} className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 text-sm"><option value="once">Once</option><option value="daily">Every day</option><option value="twice">Twice a day</option></select></div>
+   <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">{[['date','First day','date'],['time','First time','time'],...(values.cadence==='twice'?[['secondTime','Second time','time']]:[])].map(([key,label,inputType])=><div key={key}><label htmlFor={`${id}-${key}`} className="text-sm">{label}</label><Input id={`${id}-${key}`} type={inputType} value={values[key]} onChange={e=>set({[key]:e.target.value})} className="mt-1 h-11" /></div>)}</div>
+   <Button disabled={busy} onClick={()=>run(()=>add(true))}>Save reminder tasks</Button>
+  </div></details>
+  {created.length>0&&<div role="status" className="space-y-2 rounded-xl border border-primary/40 p-3"><p className="font-medium">Saved — here is where they went:</p>{created.map(t=><Link key={t.id} to={`/task-detail?id=${t.id}`} className="block break-words text-sm text-primary underline">{t.title}{t.scheduled_time?` · ${t.scheduled_time}`:''}</Link>)}<Link to="/" className="inline-block text-sm underline">Open task queue</Link> · <Link to="/today" className="text-sm underline">Open Today</Link></div>}
+  <div className="space-y-3 border-t border-border pt-4"><h3 className="font-semibold">Learn what works next time</h3><p className="text-sm text-muted-foreground">After trying the action, keep a short lesson you can reuse on similar work.</p><label htmlFor={`${id}-outcome`} className="block text-sm">Did this approach help?</label><select id={`${id}-outcome`} value={outcome} onChange={e=>setOutcome(e.target.value)} className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm"><option>Helped</option><option>Helped a little</option><option>Try a different approach</option></select><label htmlFor={`${id}-lesson`} className="block text-sm">What should I repeat or change?</label><Textarea id={`${id}-lesson`} rows={2} value={lesson} onChange={e=>setLesson(e.target.value)} /><Button variant="outline" disabled={busy||!plan||!saved} onClick={()=>run(checkIn)}>Save what worked</Button>{values.history&&<div className="space-y-2 rounded-lg bg-secondary/40 p-3"><p className="text-sm font-medium">My earlier attempts</p><p className="whitespace-pre-wrap break-words text-sm leading-6">{values.history}</p></div>}</div>
+  <Button variant="outline" asChild><Link to="/support">See patterns & what works</Link></Button>
+  <p className="text-xs text-muted-foreground">Saved in this workspace’s Knowledge. Include only the personal details you want to keep.{plan&&<> <Link className="underline" to={`/knowledge-detail?id=${plan.id}`}>Open saved plan</Link></>}</p>
+ </section>;
+}

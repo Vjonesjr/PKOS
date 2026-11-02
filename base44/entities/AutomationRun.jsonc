@@ -1,0 +1,146 @@
+{
+  "name": "AutomationRun",
+  "type": "object",
+  "properties": {
+    "recipe_id": {
+      "type": "string"
+    },
+    "recipe_name": {
+      "type": "string"
+    },
+    "trigger": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "record_type": {
+      "type": "string"
+    },
+    "record_id": {
+      "type": "string"
+    },
+    "record_title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failed",
+        "skipped",
+        "pending_review",
+        "dismissed"
+      ],
+      "default": "success"
+    },
+    "message": {
+      "type": "string"
+    },
+    "flag": {
+      "type": "string",
+      "enum": [
+        "none",
+        "today",
+        "review",
+        "attention",
+        "prompt"
+      ],
+      "default": "none"
+    },
+    "flag_open": {
+      "type": "boolean",
+      "default": false
+    },
+    "run_key": {
+      "type": "string",
+      "description": "Idempotency key: recipe:record:trigger:period"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "live",
+        "nightly"
+      ],
+      "default": "live"
+    },
+    "digest_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "owner_id": {
+      "type": "string"
+    },
+    "workspace": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "demo"
+      ],
+      "default": "personal"
+    }
+  },
+  "required": [
+    "recipe_id",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

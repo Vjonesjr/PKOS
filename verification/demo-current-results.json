@@ -1,0 +1,32 @@
+{
+  "counts": {
+    "Project": 11,
+    "Knowledge": 27,
+    "Task": 285,
+    "Capture": 29,
+    "Decision": 9,
+    "Lesson": 11,
+    "LearningItem": 12,
+    "Flashcard": 21,
+    "ReviewEntry": 12,
+    "Link": 34,
+    "Tool": 4,
+    "Device": 3,
+    "ContextPack": 3,
+    "AutomationRecipe": 8,
+    "Goal": 8,
+    "Habit": 5,
+    "HabitLog": 317,
+    "GoalCheckin": 16,
+    "AutomationRun": 5,
+    "Document": 3
+  },
+  "total": 823,
+  "checks": [
+    "all20types",
+    "owner/workspace isolation",
+    "repeat idempotent",
+    "Personal preserved",
+    "recipes disabled"
+  ]
+}

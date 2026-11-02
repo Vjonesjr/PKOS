@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.mindforge.app"
+    namespace "com.smartpkos.app"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.mindforge.app"
+        applicationId "com.smartpkos.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 12
-        versionName "MindForge 3 (1.6.8)"
+        versionCode 20261032
+        versionName "2026.10.31-ux-pass"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,27 +16,13 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
-    def uploadKeystore = System.getenv('MINDFORGE_UPLOAD_KEYSTORE')
-    def uploadStorePassword = System.getenv('MINDFORGE_UPLOAD_STORE_PASSWORD')
-    def uploadKeyAlias = System.getenv('MINDFORGE_UPLOAD_KEY_ALIAS')
-    def uploadKeyPassword = System.getenv('MINDFORGE_UPLOAD_KEY_PASSWORD')
-
-    if (uploadKeystore && uploadStorePassword && uploadKeyAlias && uploadKeyPassword) {
-        signingConfigs {
-            release {
-                storeFile file(uploadKeystore)
-                storePassword uploadStorePassword
-                keyAlias uploadKeyAlias
-                keyPassword uploadKeyPassword
-            }
-        }
-    }
-
     buildTypes {
+        debug {
+            applicationIdSuffix ".scrolltest"
+            versionNameSuffix "-scroll-test"
+            resValue "string", "app_name", "Smart PKOS Scroll Test"
+        }
         release {
-            if (uploadKeystore && uploadStorePassword && uploadKeyAlias && uploadKeyPassword) {
-                signingConfig signingConfigs.release
-            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -71,4 +57,3 @@ try {
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
-

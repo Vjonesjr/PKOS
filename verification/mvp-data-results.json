@@ -1,0 +1,12 @@
+{
+  "checks": [
+    "Settings reject invalid ranges and isolate different accounts",
+    "Read queries enforce the signed-in owner and reject a foreign record",
+    "Capacity failures do not write or silently reopen a full Today list",
+    "Activation requires a saved definition of done and available capacity",
+    "AI requests are rejected before calling a provider until explicit consent",
+    "Task hierarchy rejects cycles before saving",
+    "Focus recovery, timing and account isolation preserve actual attempts"
+  ],
+  "errors": []
+}

@@ -1,0 +1,5 @@
+import {useEffect,useRef} from 'react';
+import {useLocation} from 'react-router-dom';
+import {useAuth} from '@/lib/AuthContext';
+const ROOTS=new Set(['/','/projects','/capture','/settings']);
+export default function useTabScope(){const location=useLocation(),{user}=useAuth(),key='pkos_tab_history:'+user?.id,history=useRef(null),previous=useRef(null);if(!history.current){try{history.current=JSON.parse(sessionStorage.getItem(key)||'{}');}catch{history.current={};}}const fallback=location.pathname.startsWith('/project')?'/projects':['/capture','/triage','/parse','/artifact'].some(p=>location.pathname.startsWith(p))?'/capture':'/';const section=ROOTS.has(location.pathname)?location.pathname:history.current[location.key]||previous.current||fallback;previous.current=section;useEffect(()=>{history.current[location.key]=section;const entries=Object.entries(history.current).slice(-100);history.current=Object.fromEntries(entries);sessionStorage.setItem(key,JSON.stringify(history.current));},[location.key,key,section]);return section;}

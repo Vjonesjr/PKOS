@@ -1,0 +1,13 @@
+{
+  "checks": [
+    "Support plans round-trip without losing multiline notes",
+    "Evidence counts explicit check-ins only",
+    "Small samples stay provisional",
+    "Reminder retries preserve partial saves without duplicates",
+    "Two daily reminder times remain distinct",
+    "Other workspace data untouched",
+    "Backup restores documents, nested tasks, goals and support references",
+    "Existing data is not overwritten"
+  ],
+  "errors": []
+}

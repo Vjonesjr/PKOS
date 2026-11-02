@@ -1,0 +1,200 @@
+{
+  "name": "Task",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "todo",
+        "in_progress",
+        "waiting",
+        "done"
+      ],
+      "default": "todo"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "effort": {
+      "type": "string",
+      "enum": [
+        "quick",
+        "medium",
+        "deep"
+      ],
+      "description": "How much energy/time the task takes"
+    },
+    "fun": {
+      "type": "number",
+      "description": "How enjoyable the task is, 1-5"
+    },
+    "contexts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Where/how it can be done: mobile, computer, app, errand, home, calls"
+    },
+    "sort_order": {
+      "type": "number",
+      "description": "Manual position in the home task queue (lower = higher)"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "today_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "archived": {
+      "type": "boolean",
+      "default": false
+    },
+    "recurrence": {
+      "type": "string",
+      "enum": [
+        "none",
+        "daily",
+        "weekly",
+        "monthly"
+      ],
+      "default": "none"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "parent_task_id": {
+      "type": "string",
+      "description": "Parent task when this is a subtask (nesting)"
+    },
+    "goal_id": {
+      "type": "string"
+    },
+    "source_capture_id": {
+      "type": "string"
+    },
+    "calendar_event_id": {
+      "type": "string"
+    },
+    "pushed_event_id": {
+      "type": "string",
+      "description": "Google Calendar event created from this task's deadline"
+    },
+    "agenda_event_id": {
+      "type": "string",
+      "description": "Google Calendar event created by the morning agenda sync"
+    },
+    "scheduled_time": {
+      "type": "string"
+    },
+    "workspace": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "demo"
+      ],
+      "default": "personal"
+    },
+    "recurrence_template_id": {
+      "type": "string",
+      "description": "RecurringTask template that generated this occurrence"
+    },
+    "occurrence_key": {
+      "type": "string",
+      "description": "Deterministic duplicate-protection key for a recurring occurrence"
+    },
+    "scheduled_for": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "recurrence_outcome": {
+      "type": "string",
+      "enum": [
+        "generated",
+        "completed",
+        "skipped"
+      ]
+    },
+    "estimated_minutes": {
+      "type": "number"
+    },
+    "ai_subtask_level": {
+      "type": "string",
+      "enum": [
+        "basic",
+        "detailed",
+        "step_by_step"
+      ]
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

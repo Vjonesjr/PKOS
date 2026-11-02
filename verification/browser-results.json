@@ -1,0 +1,91 @@
+{
+  "passed": [
+    "Home neon theme and newer queue",
+    "Real diagram records and explicit links",
+    "Graph zoom and collapse",
+    "List/grid filters and navigation",
+    "Knowledge Map restored",
+    "Archive restore saves selected record",
+    "Clean Sweep reschedules",
+    "AI subtask preview/edit/save",
+    "Focus start/pause/reset and done",
+    "Goal progress editing",
+    "AI milestone preview/save and references",
+    "Route /today",
+    "Route /projects",
+    "Route /settings",
+    "Route /capture",
+    "Route /import",
+    "Route /documents",
+    "Desktop layout"
+  ],
+  "writes": [
+    {
+      "entity": "Task",
+      "id": "ta",
+      "body": {
+        "archived": false
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "stale",
+      "body": {
+        "due_date": "2026-11-02"
+      }
+    },
+    {
+      "entity": "Task",
+      "body": {
+        "title": "Confirm newest records",
+        "parent_task_id": "t1",
+        "project_id": "p1",
+        "status": "todo",
+        "workspace": "personal"
+      }
+    },
+    {
+      "entity": "Task",
+      "body": {
+        "title": "Test phone layout",
+        "parent_task_id": "t1",
+        "project_id": "p1",
+        "status": "todo",
+        "workspace": "personal"
+      }
+    },
+    {
+      "entity": "Task",
+      "id": "t1",
+      "body": {
+        "status": "done",
+        "completed_date": "2026-10-26"
+      }
+    },
+    {
+      "entity": "Goal",
+      "id": "g1",
+      "body": {
+        "manual_progress": 63,
+        "progress_mode": "manual"
+      }
+    },
+    {
+      "entity": "Project",
+      "id": "p1",
+      "body": {
+        "milestones": [
+          {
+            "title": "Verify app functions",
+            "done": false
+          },
+          {
+            "title": "Package signed APK",
+            "done": false
+          }
+        ]
+      }
+    }
+  ],
+  "errors": []
+}

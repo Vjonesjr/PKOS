@@ -1,0 +1,38 @@
+{
+  "counts": {
+    "Project": 11,
+    "Knowledge": 27,
+    "Task": 285,
+    "Capture": 29,
+    "Decision": 9,
+    "Lesson": 11,
+    "LearningItem": 12,
+    "Flashcard": 21,
+    "ReviewEntry": 12,
+    "Link": 34,
+    "Tool": 4,
+    "Device": 3,
+    "ContextPack": 3,
+    "AutomationRecipe": 8,
+    "Goal": 8,
+    "Habit": 5,
+    "HabitLog": 317,
+    "GoalCheckin": 16,
+    "AutomationRun": 5,
+    "Document": 3
+  },
+  "total": 823,
+  "checks": [
+    "all 20 entity types populated",
+    "same-user Demo writes only",
+    "Personal records unchanged",
+    "other-user records unchanged",
+    "repeat is idempotent",
+    "concurrent setup shared",
+    "edited demo text preserved",
+    "relationships resolve",
+    "automation recipes start disabled",
+    "partial failure resumes without duplicates",
+    "anonymous setup rejected"
+  ]
+}

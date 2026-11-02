@@ -1,0 +1,556 @@
+html { scroll-behavior: auto; scroll-padding-top: 88px; scroll-padding-bottom: 100px; }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 1%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 120 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 58%;
+    --accent: 120 100% 42%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 68% 58%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 16%;
+    --input: 0 0% 14%;
+    --ring: 120 100% 50%;
+    --chart-1: 120 100% 50%;
+    --chart-2: 90 100% 45%;
+    --chart-3: 0 0% 40%;
+    --chart-4: 120 70% 40%;
+    --chart-5: 90 80% 50%;
+    --radius: 0.75rem;
+    --font-heading: ui-sans-serif, system-ui, sans-serif;
+    --font-body: ui-sans-serif, system-ui, sans-serif;
+    --font-display: ui-sans-serif, system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --sidebar-background: 0 0% 3%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 120 100% 50%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 0 0% 16%;
+    --sidebar-ring: 120 100% 50%;
+    --glow-1: 120 100% 50%;
+    --glow-2: 90 100% 45%;
+    --glass: 0 0% 6%;
+  }
+
+  .dark {
+    --background: 0 0% 1%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 120 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 58%;
+    --accent: 120 100% 42%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 16%;
+    --input: 0 0% 14%;
+    --ring: 120 100% 50%;
+    --chart-1: 120 100% 50%;
+    --chart-2: 90 100% 45%;
+    --chart-3: 0 0% 40%;
+    --chart-4: 120 70% 40%;
+    --chart-5: 90 80% 50%;
+    --sidebar-background: 0 0% 3%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 120 100% 50%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 0 0% 16%;
+    --sidebar-ring: 120 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+}
+
+/* ===== Neon Green (black / gray / white + neon green) — primary look ===== */
+:root[data-theme="neon"],
+:root[data-theme="dark"],
+:root:not([data-theme]) {
+  --background: 0 0% 1%;
+  --foreground: 0 0% 98%;
+  --card: 0 0% 5%;
+  --card-foreground: 0 0% 98%;
+  --popover: 0 0% 5%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 120 100% 50%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 0% 10%;
+  --secondary-foreground: 0 0% 90%;
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 58%;
+  --accent: 120 100% 42%;
+  --accent-foreground: 0 0% 100%;
+  --border: 0 0% 16%;
+  --input: 0 0% 14%;
+  --ring: 120 100% 50%;
+  --glow-1: 120 100% 50%;
+  --glow-2: 90 100% 45%;
+  --glass: 0 0% 6%;
+}
+
+:root[data-theme="oled"] {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 4%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 4%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 120 100% 52%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 0% 8%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 8%;
+  --muted-foreground: 0 0% 62%;
+  --accent: 120 100% 45%;
+  --accent-foreground: 0 0% 100%;
+  --border: 0 0% 12%;
+  --input: 0 0% 12%;
+  --ring: 120 100% 52%;
+  --glow-1: 120 100% 52%;
+  --glow-2: 90 100% 48%;
+  --glass: 0 0% 5%;
+}
+
+:root[data-theme="light-blue"] {
+  --background: 210 60% 97%;
+  --foreground: 222 40% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 40% 14%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 40% 14%;
+  --primary: 204 90% 44%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 50% 92%;
+  --secondary-foreground: 222 35% 20%;
+  --muted: 210 40% 93%;
+  --muted-foreground: 215 20% 40%;
+  --accent: 238 75% 60%;
+  --accent-foreground: 0 0% 100%;
+  --border: 210 30% 85%;
+  --input: 210 30% 85%;
+  --ring: 204 90% 44%;
+  --glow-1: 195 95% 55%;
+  --glow-2: 238 80% 66%;
+  --glass: 0 0% 100%;
+}
+
+:root[data-theme="red"] {
+  --background: 350 35% 5%;
+  --foreground: 0 20% 97%;
+  --card: 350 30% 9%;
+  --card-foreground: 0 20% 97%;
+  --popover: 350 30% 9%;
+  --popover-foreground: 0 20% 97%;
+  --primary: 0 85% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 350 25% 15%;
+  --secondary-foreground: 0 20% 97%;
+  --muted: 350 25% 15%;
+  --muted-foreground: 0 12% 68%;
+  --accent: 25 95% 58%;
+  --accent-foreground: 0 0% 100%;
+  --border: 350 22% 19%;
+  --input: 350 22% 19%;
+  --ring: 0 85% 60%;
+  --glow-1: 0 85% 60%;
+  --glow-2: 30 95% 58%;
+  --glass: 350 30% 11%;
+}
+
+body {
+  background-color: hsl(var(--background));
+  background-image:
+    radial-gradient(50rem 28rem at 8% -8%, hsl(var(--glow-1) / 0.18), transparent 55%),
+    radial-gradient(45rem 26rem at 92% 8%, hsl(var(--glow-2) / 0.14), transparent 55%),
+    radial-gradient(35rem 22rem at 50% 110%, hsl(var(--glow-1) / 0.08), transparent 60%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+.pk-glass {
+  background: linear-gradient(145deg, hsl(var(--glass) / 0.82), hsl(var(--glass) / 0.42));
+  border: 1px solid hsl(var(--primary) / 0.18);
+  box-shadow:
+    0 12px 40px -16px hsl(var(--glow-1) / 0.55),
+    inset 0 1px 0 hsl(var(--foreground) / 0.06);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.pk-hero { position: relative; overflow: hidden; }
+.pk-hero::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  z-index: 0;
+  pointer-events: none;
+  background: conic-gradient(from 200deg, hsl(var(--glow-1) / 0.25), transparent 30%, hsl(var(--glow-2) / 0.2), transparent 70%);
+  filter: blur(42px);
+  animation: pk-aurora 14s linear infinite;
+}
+.pk-hero > * { position: relative; z-index: 1; }
+
+.pk-grad { background-image: linear-gradient(90deg, hsl(var(--glow-1)), hsl(var(--glow-2))); }
+.pk-grad-text {
+  background-image: linear-gradient(90deg, hsl(120 100% 55%), hsl(90 100% 48%));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.pk-btn {
+  color: hsl(var(--primary-foreground));
+  box-shadow: 0 8px 30px -8px hsl(var(--glow-1) / 0.7);
+  transition: transform .15s ease, box-shadow .2s ease;
+}
+.pk-btn:hover { box-shadow: 0 10px 36px -6px hsl(var(--glow-1) / 0.85); }
+.pk-btn:active { transform: scale(0.97); }
+
+.pk-pill {
+  background: hsl(var(--foreground) / 0.045);
+  border: 1px solid hsl(var(--foreground) / 0.06);
+}
+
+.pk-in { animation: pk-in .5s cubic-bezier(.2,.8,.2,1) both; }
+.pk-in-2 { animation-delay: .08s; }
+.pk-in-3 { animation-delay: .16s; }
+.pk-in-4 { animation-delay: .24s; }
+
+.pk-ring-glow,
+.progress-ring {
+  filter: drop-shadow(0 0 12px hsl(var(--glow-1) / 0.7));
+}
+
+@keyframes pk-aurora { to { transform: rotate(360deg); } }
+@keyframes pk-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes pk-pop { 0% { transform: scale(.3); opacity: 0; } 60% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes pk-burst { from { transform: rotate(var(--a)) translateY(0) scale(1); opacity: 1; } to { transform: rotate(var(--a)) translateY(-110px) scale(.2); opacity: 0; } }
+@keyframes pk-draw { from { stroke-dashoffset: 60; } to { stroke-dashoffset: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .pk-hero::before, .pk-in { animation: none !important; }
+}
+
+/* ===== Button feedback & save animations ===== */
+.pk-btn, button, [role="button"] {
+  transition: transform 0.12s ease, box-shadow 0.2s ease, filter 0.15s ease, background-color 0.15s ease;
+}
+.pk-btn:active, button:active, [role="button"]:active {
+  transform: scale(0.96);
+  filter: brightness(1.15);
+}
+.pk-save-flash {
+  animation: pk-save-flash 0.6s ease-out;
+}
+@keyframes pk-save-flash {
+  0% { box-shadow: 0 0 0 0 hsl(var(--glow-1) / 0.7); }
+  50% { box-shadow: 0 0 20px 4px hsl(var(--glow-1) / 0.9); }
+  100% { box-shadow: 0 0 0 0 hsl(var(--glow-1) / 0); }
+}
+.pk-pulse-success {
+  animation: pk-pulse-success 0.8s ease-out;
+}
+@keyframes pk-pulse-success {
+  0% { background-color: hsl(var(--glow-1) / 0.3); }
+  100% { background-color: transparent; }
+}
+/* List action feedback already covered by pk-save-flash */
+
+/* ===== Extra animations & transitions ===== */
+.pk-glass,
+.rounded-2xl,
+.rounded-xl {
+  transition: border-color 0.2s ease, box-shadow 0.25s ease, transform 0.2s ease, background-color 0.2s ease;
+}
+.pk-glass:hover,
+.rounded-2xl:hover {
+  border-color: hsl(var(--primary) / 0.45);
+  box-shadow: 0 8px 32px -12px hsl(var(--glow-1) / 0.4);
+  transform: translateY(-1px);
+}
+
+/* Staggered list entrance */
+.pk-list-item {
+  animation: pk-in 0.4s cubic-bezier(.2,.8,.2,1) both;
+}
+.pk-list-item:nth-child(1) { animation-delay: 0.02s; }
+.pk-list-item:nth-child(2) { animation-delay: 0.06s; }
+.pk-list-item:nth-child(3) { animation-delay: 0.1s; }
+.pk-list-item:nth-child(4) { animation-delay: 0.14s; }
+.pk-list-item:nth-child(5) { animation-delay: 0.18s; }
+
+/* Fade + slide for modals and overlays */
+.pk-modal-in {
+  animation: pk-modal-in 0.25s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes pk-modal-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Glow pulse on focus */
+input:focus, textarea:focus, select:focus {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 0 0 3px hsl(var(--glow-1) / 0.25);
+}
+
+/* Page content fade */
+main > * {
+  animation: pk-in 0.45s cubic-bezier(.2,.8,.2,1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pk-glass:hover, .rounded-2xl:hover, .pk-list-item, .pk-modal-in, main > * {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ===== Stronger action feedback ===== */
+@keyframes pk-complete-burst {
+  0% { box-shadow: 0 0 0 0 hsl(var(--glow-1) / 0.8); transform: scale(1); }
+  40% { box-shadow: 0 0 28px 6px hsl(var(--glow-1) / 0.9); transform: scale(1.04); }
+  100% { box-shadow: 0 0 0 0 hsl(var(--glow-1) / 0); transform: scale(1); }
+}
+@keyframes pk-check-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pk-complete {
+  animation: pk-complete-burst 0.55s cubic-bezier(.2,.8,.2,1);
+}
+.pk-complete::after {
+  content: "✓";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1em;
+  font-weight: 800;
+  color: hsl(var(--glow-1));
+  animation: pk-check-pop 0.4s ease-out;
+  pointer-events: none;
+}
+button, .pk-btn {
+  position: relative;
+  overflow: hidden;
+}
+button:active, .pk-btn:active {
+  transform: scale(0.94);
+  filter: brightness(1.2);
+  box-shadow: 0 0 20px hsl(var(--glow-1) / 0.6);
+}
+
+/* ===== Tiered feedback by importance ===== */
+/* High: completions, saves */
+.pk-feedback-high {
+  animation: pk-complete-burst 0.6s cubic-bezier(.2,.8,.2,1);
+}
+.pk-feedback-high:active {
+  transform: scale(0.92);
+  box-shadow: 0 0 24px hsl(var(--glow-1) / 0.8);
+}
+
+/* Medium: archive, favorite, links, navigation */
+.pk-feedback-medium {
+  transition: transform 0.12s ease, box-shadow 0.2s ease, filter 0.15s ease;
+}
+.pk-feedback-medium:active {
+  transform: scale(0.96);
+  filter: brightness(1.15);
+  box-shadow: 0 0 12px hsl(var(--glow-1) / 0.45);
+}
+
+/* Low: tags, minor toggles */
+.pk-feedback-low {
+  transition: transform 0.1s ease, background-color 0.15s ease;
+}
+.pk-feedback-low:active {
+  transform: scale(0.98);
+  filter: brightness(1.08);
+}
+
+/* Clear push-down on every button */
+button, .pk-btn, [role="button"], a.pk-btn {
+  transition: transform 0.1s ease, box-shadow 0.15s ease, filter 0.1s ease;
+}
+button:active, .pk-btn:active, [role="button"]:active, a.pk-btn:active {
+  transform: translateY(2px) scale(0.97);
+  filter: brightness(1.1) blur(0.4px);
+}
+
+/* ===== Premium button system (Tesla-like: clean, refined, subtle) ===== */
+.pk-btn, button[data-variant="default"], .pk-save {
+  border-radius: 999px; /* pill shape for primary/save */
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 2px hsl(0 0% 0% / 0.4), 0 0 0 1px hsl(var(--glow-1) / 0.15);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background-color 0.15s ease, filter 0.15s ease;
+}
+.pk-btn:hover, button[data-variant="default"]:hover, .pk-save:hover {
+  box-shadow: 0 4px 16px -4px hsl(var(--glow-1) / 0.5), 0 0 0 1px hsl(var(--glow-1) / 0.3);
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+.pk-btn:active, button[data-variant="default"]:active, .pk-save:active {
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(1.05) blur(0.3px);
+  box-shadow: 0 1px 4px hsl(var(--glow-1) / 0.4);
+}
+
+/* Secondary / ghost stay slightly less round */
+button[data-variant="outline"], button[data-variant="ghost"], button[data-variant="secondary"] {
+  border-radius: 12px;
+}
+
+/* ===== Premium refinements ===== */
+body {
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: -0.011em;
+}
+h1, h2, .pk-grad-text {
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+.pk-glass {
+  border-radius: 20px;
+  border: 1px solid hsl(var(--foreground) / 0.06);
+  box-shadow: 0 8px 32px -12px hsl(0 0% 0% / 0.5), inset 0 1px 0 hsl(var(--foreground) / 0.04);
+}
+.pk-glass:hover {
+  border-color: hsl(var(--primary) / 0.25);
+  box-shadow: 0 12px 40px -12px hsl(var(--glow-1) / 0.25);
+}
+/* Quieter, more expensive spacing */
+main, .space-y-6, .space-y-5 {
+  --tw-space-y-reverse: 0;
+}
+
+/* ===== Buttons that look like buttons ===== */
+.pk-btn, button[data-variant="default"], .pk-save {
+  background: linear-gradient(180deg, hsl(var(--primary) / 0.95), hsl(var(--primary) / 0.8));
+  border: 1px solid hsl(var(--primary) / 0.4);
+  border-radius: 14px;
+  box-shadow:
+    0 1px 0 hsl(var(--foreground) / 0.15) inset,
+    0 2px 4px hsl(0 0% 0% / 0.4),
+    0 0 0 1px hsl(var(--primary) / 0.2);
+  font-weight: 600;
+}
+.pk-btn:hover, button[data-variant="default"]:hover, .pk-save:hover {
+  background: linear-gradient(180deg, hsl(var(--primary)), hsl(var(--primary) / 0.85));
+  box-shadow:
+    0 1px 0 hsl(var(--foreground) / 0.2) inset,
+    0 4px 12px -2px hsl(var(--glow-1) / 0.45);
+  transform: translateY(-1px);
+}
+.pk-btn:active, button[data-variant="default"]:active, .pk-save:active {
+  background: linear-gradient(180deg, hsl(var(--primary) / 0.75), hsl(var(--primary) / 0.65));
+  transform: translateY(1px);
+  box-shadow:
+    0 1px 2px hsl(0 0% 0% / 0.5) inset,
+    0 0 0 1px hsl(var(--primary) / 0.3);
+  filter: brightness(0.95) blur(0.2px);
+}
+
+/* ===== Diagram view transforms ===== */
+.pk-diagram-transform {
+  animation: pk-diagram-in 0.45s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes pk-diagram-in {
+  from { opacity: 0; transform: perspective(800px) rotateX(8deg) translateY(16px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+.pk-diagram-item {
+  animation: pk-diagram-item 0.4s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes pk-diagram-item {
+  from { opacity: 0; transform: translateX(-12px) rotate(-2deg); }
+  to { opacity: 1; transform: none; }
+}
+
+button[data-variant="outline"], button[data-variant="secondary"] { color: hsl(var(--foreground)); background: hsl(var(--secondary) / .5); border: 1px solid hsl(var(--border)); }
+button[data-variant="ghost"] { color: inherit; background: transparent; box-shadow: none; }
+button[data-variant="destructive"] { background: hsl(var(--destructive)); color: hsl(var(--destructive-foreground)); }
+button:focus-visible, [data-node]:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+
+/* A visible acknowledgement remains briefly after release, including on touch screens. */
+[data-tapped="true"] { outline: 2px solid hsl(var(--primary)) !important; outline-offset: 3px; box-shadow: 0 0 0 4px hsl(var(--primary) / .18), 0 0 18px hsl(var(--primary) / .22) !important; }
+button:active:not(:disabled), [role="button"]:active:not([aria-disabled="true"]) { transform: translateY(2px) scale(.97); }
+button[aria-busy="true"] { cursor: progress; }
+
+:root[data-text-size="large"] { font-size: 19px; }
+:root[data-reduce-motion="true"], :root[data-reduce-motion="true"] *, :root[data-reduce-motion="true"] *::before, :root[data-reduce-motion="true"] *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+
+/* Additional user-selectable palettes. */
+:root[data-theme="midnight-blue"] {
+  --background: 222 46% 6%; --foreground: 210 35% 97%; --card: 222 40% 10%; --card-foreground: 210 35% 97%;
+  --popover: 222 40% 10%; --popover-foreground: 210 35% 97%; --primary: 196 95% 55%; --primary-foreground: 222 55% 7%;
+  --secondary: 220 34% 16%; --secondary-foreground: 210 30% 95%; --muted: 220 30% 16%; --muted-foreground: 215 20% 70%;
+  --accent: 228 80% 65%; --accent-foreground: 0 0% 100%; --border: 220 28% 22%; --input: 220 28% 22%; --ring: 196 95% 55%;
+  --glow-1: 196 95% 55%; --glow-2: 228 80% 65%; --glass: 222 40% 10%;
+}
+
+:root[data-theme="purple"] {
+  --background: 270 30% 5%; --foreground: 270 20% 97%; --card: 270 28% 9%; --card-foreground: 270 20% 97%;
+  --popover: 270 28% 9%; --popover-foreground: 270 20% 97%; --primary: 276 90% 66%; --primary-foreground: 270 40% 7%;
+  --secondary: 270 24% 16%; --secondary-foreground: 270 18% 96%; --muted: 270 22% 16%; --muted-foreground: 270 12% 70%;
+  --accent: 320 80% 62%; --accent-foreground: 0 0% 100%; --border: 270 20% 23%; --input: 270 20% 23%; --ring: 276 90% 66%;
+  --glow-1: 276 90% 66%; --glow-2: 320 80% 62%; --glass: 270 28% 10%;
+}
+
+:root[data-theme="warm-light"] {
+  --background: 38 45% 96%; --foreground: 24 26% 16%; --card: 42 55% 99%; --card-foreground: 24 26% 16%;
+  --popover: 42 55% 99%; --popover-foreground: 24 26% 16%; --primary: 25 88% 45%; --primary-foreground: 0 0% 100%;
+  --secondary: 36 35% 89%; --secondary-foreground: 24 26% 20%; --muted: 36 28% 90%; --muted-foreground: 28 14% 42%;
+  --accent: 48 88% 45%; --accent-foreground: 24 30% 12%; --border: 34 24% 80%; --input: 34 24% 80%; --ring: 25 88% 45%;
+  --glow-1: 25 88% 50%; --glow-2: 48 88% 50%; --glass: 42 55% 99%;
+}
+
+/* Native momentum scrolling stays on the existing document; no touch interception. */
+.pkos-scroll-main { padding-right: max(1rem, env(safe-area-inset-right)); padding-bottom: calc(7rem + env(safe-area-inset-bottom)); }
+[data-pkos-header] { padding-top: max(.75rem, env(safe-area-inset-top)); }
+.pkos-scroll-track { position: fixed; right: max(3px, env(safe-area-inset-right)); width: 5px; z-index: 39; pointer-events: none; border-radius: 3px; background: hsl(var(--foreground) / .13); }
+.pkos-scroll-thumb { width: 100%; border-radius: 3px; background: hsl(var(--primary)); box-shadow: 0 0 0 1px hsl(var(--foreground) / .15); }
+.pkos-scroll-tools { position: sticky; top: calc(76px + env(safe-area-inset-top)); z-index: 31; display: flex; align-items: center; gap: .5rem; margin: 0 0 .5rem; padding: .25rem; border-radius: .75rem; background: hsl(var(--background) / .96); }
+.pkos-scroll-main h2, .pkos-task-group { scroll-margin-top: calc(9rem + env(safe-area-inset-top)); }
+.pkos-scroll-main[data-scroll-style="compact"] { padding-top: .75rem; }
+.pkos-scroll-main[data-scroll-style="compact"] :is(.space-y-6,.space-y-5,.space-y-4) > :not([hidden]) ~ :not([hidden]) { margin-top: .75rem; }
+.pkos-scroll-main[data-scroll-style="compact"] section.p-5 { padding: .75rem; }
+.pkos-scroll-main[data-scroll-style="compact"] .pkos-task-group > h2 button { padding-top: .5rem; padding-bottom: .5rem; }
+.pkos-task-group button, .pkos-task-group select { min-height: 44px; }

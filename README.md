@@ -1,30 +1,62 @@
-# Smart PKOS
+# Base44 Project
 
-Smart PKOS is the user's personal knowledge operating system. The current editable source of truth is the Base44 app named **Smart PKOS**.
+Use this repository to run and edit the app locally, then publish changes back through Base44.
 
-## Source of truth
+Any change pushed to the repo will also be reflected in the Base44 Builder.
 
-- Base44 app ID: `6ab97588d935cf6dad456bf1`
-- Latest repair checkpoint: `6ad7386c613d4edb27467022`
-- Checkpoint commit: `895c358527d7f0fb1c263d1ac9f94b50ada03c6c`
-- Current Smart PKOS source snapshot: [smart-pkos](./smart-pkos)
-- Standalone APK reference on the Windows PC: `C:\\Users\\vinni\\Downloads\\Local Files\\Project Experiments\\PKOS\\Smart PKOS.apk`
+## Prerequisites
 
-The old top-level MindForge files are legacy material from a different app. They are preserved in Git history and are not the Smart PKOS source of truth.
+1. Clone the repository using the project's Git URL.
+2. Navigate to the project directory.
+3. Install dependencies: `npm install`.
+4. Install the Base44 CLI: `npm install -g base44@latest`.
+5. Install [Deno](https://docs.deno.com/runtime/getting_started/installation/) — the local Base44 backend runs on it.
 
-## Current repair included
+Run `base44 --help` (or see the [CLI reference](https://docs.base44.com/developers/references/cli/commands/introduction)) for the full command surface.
 
-- Mobile bottom navigation buttons
-- Back navigation and optional double-back exit
-- List, Grid, and Cards task queue views
-- Larger, easier-to-read task cards
-- Numeric project progress Update button
-- Dark, OLED, Light Blue, and Red themes
-- Safer long-file imports
-- Duplicate prevention for imported tasks
-- Starter task suggestions linked to imported goals
-- Project-to-goal links during import
+## Run Locally
 
-## Important
+Three commands, from the project root:
 
-A source/build check does not prove that an APK was installed and tested on a phone. Keep those facts separate.
+```bash
+base44 login   # one-time per machine
+base44 link    # one-time per clone
+base44 dev     # local backend + frontend together
+```
+
+Open the frontend URL that `base44 dev` prints (typically `http://localhost:5173`).
+
+Notes:
+
+- **Every fresh clone needs `base44 link`.** It writes `base44/.app.jsonc` (the app-id pointer), which is deliberately gitignored. Your app id is in the Builder URL (`app.base44.com/apps/<id>/...`); `base44 link --help` shows the non-interactive flags.
+- **`base44 dev` runs the frontend for you** (via `site.serveCommand` in this repo's `base44/config.jsonc`) — never run `npm run dev` yourself: alone it serves a UI with no backend behind it (`[base44] Proxy not enabled`, every `/api` call fails), and alongside `base44 dev` the second Vite silently takes the next port and you end up looking at the wrong one.
+- **The app must be published at least once for the UI to load under `base44 dev`.** The frontend boots by fetching app settings from the hosted app; before the first publish that fails and every page redirects to login. The local API works regardless.
+- Entities, functions, and auth run locally — entity data is **in-memory only**, wiped when `base44 dev` restarts. Everything else (Core integrations, OAuth login) is forwarded to your deployed app. Full breakdown: [Local development overview](https://docs.base44.com/developers/backend/overview/local-dev/local-development-overview).
+
+## Frontend Only, Hosted Backend
+
+To work on just the frontend against your app's live hosted backend:
+
+```bash
+base44 dev --remote
+```
+
+⚠️ In this mode writes go to your app's **production data** — plain `base44 dev` keeps everything local.
+
+## Publish Your Changes
+
+After pushing your changes to git, open the Base44 dashboard and publish the app:
+
+```bash
+base44 dashboard open
+```
+
+This repo syncs to Base44 through git, so publish from the dashboard rather than `base44 deploy` — a CLI deploy ships your local tree directly, bypassing the sync, and the deployed state silently diverges from the repo.
+
+## Docs & Support
+
+GitHub integration: [https://docs.base44.com/developers/app-code/local-development/github](https://docs.base44.com/developers/app-code/local-development/github)
+
+Local development: [https://docs.base44.com/developers/backend/overview/local-dev/local-development-overview](https://docs.base44.com/developers/backend/overview/local-dev/local-development-overview)
+
+Support: [https://app.base44.com/support](https://app.base44.com/support)
