@@ -1,17 +1,21 @@
 name: Smart PKOS build verification
 on:
+  push:
+    branches: [smart-pkos-final-integration-20261102]
+    paths:
+      - '.github/workflows/smart-pkos-build.yml'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   verify-and-debug-apk:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
       - name: Environment versions
         run: |
@@ -37,6 +41,15 @@ jobs:
       - name: Build debug APK (not signed for Play Store)
         working-directory: android
         run: bash ./gradlew assembleDebug --stacktrace
+      - name: Verify debug APK identity and signature
+        working-directory: android
+        run: |
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          SDK_BUILD_TOOLS="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          "$SDK_BUILD_TOOLS/apksigner" verify --verbose "$APK" | tee /tmp/pkos-apk-signature.txt
+          grep -F 'Verified using v2 scheme (APK Signature Scheme v2): true' /tmp/pkos-apk-signature.txt
+          "$SDK_BUILD_TOOLS/aapt" dump badging "$APK" | grep -F "name='com.smartpkos.app.scrolltest'"
       - name: Record lint outcome
         if: always()
         run: |
