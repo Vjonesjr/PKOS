@@ -84,9 +84,11 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(true);
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+      setAuthError(null);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
       setAuthChecked(true);
+      return currentUser;
     } catch (error) {
       console.error('User auth check failed:', error);
       setIsLoadingAuth(false);
@@ -100,6 +102,7 @@ export const AuthProvider = ({ children }) => {
           message: 'Authentication required'
         });
       }
+      throw error;
     }
   };
 
