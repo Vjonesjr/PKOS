@@ -35,3 +35,9 @@ dist-ssr
 .env
 .vite
 base44/.app.jsonc
+
+# Android signing material must stay outside source control
+*.jks
+*.keystore
+*.p12
+*.pfx
