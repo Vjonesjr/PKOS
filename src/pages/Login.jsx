@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,7 @@ import { isNative, nativeGoogleLogin } from "@/lib/native";
 import { safeReturnTo } from "@/lib/authReturnTo";
 
 export default function Login() {
+  const { checkUserAuth } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(() => {
@@ -29,10 +31,17 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await base44.auth.loginViaEmailPassword(email, password);
-      window.location.href = returnTo;
+      const result = await base44.auth.loginViaEmailPassword(email, password);
+      // The SDK normally persists the token. Explicitly hydrate its active client
+      // when a token is returned, before verifying the authenticated session.
+      if (typeof result?.access_token === 'string' && result.access_token) {
+        base44.auth.setToken(result.access_token);
+      }
+      const account = await checkUserAuth();
+      if (!account) throw new Error("Sign-in could not be confirmed. Please retry.");
+      window.location.assign(returnTo);
     } catch (err) {
-      setError(err.message || "Invalid email or password");
+      setError(err?.message || "Unable to confirm sign-in. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
