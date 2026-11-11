@@ -70,7 +70,8 @@ jobs:
             "$BT/apksigner" verify --verbose --print-certs "$source" > "release-artifacts/$label-signature.txt"
             grep -Fx 'Verified using v2 scheme (APK Signature Scheme v2): true' "release-artifacts/$label-signature.txt"
             grep -Fx 'Signer #1 certificate SHA-256 digest: 1b2adac2a4ceab88c34e413b74b523471623d58937985ea1436f064f7534756c' "release-artifacts/$label-signature.txt"
-            "$BT/aapt" dump badging "$source" | head -n 1 > "release-artifacts/$label-package.txt"
+            "$BT/aapt" dump badging "$source" > "release-artifacts/$label-badging.txt"
+            sed -n '1p' "release-artifacts/$label-badging.txt" > "release-artifacts/$label-package.txt"
             grep -Eq "^package: name='$package' versionCode='20261111' " "release-artifacts/$label-package.txt"
             "$BT/zipalign" -c -v 4 "$source" > /dev/null
             unzip -tq "$source" > /dev/null
