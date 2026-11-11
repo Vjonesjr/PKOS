@@ -15,6 +15,11 @@
 - Clean Android 35 emulator: signing-test package installed and launched; archived main `20261024` APK updated in place to `20261111`, disposable app-data marker survived, and the updated main app launched. No sampled AndroidRuntime fatal exceptions.
 - Physical phone package/version/signature remains unknown because no phone was attached.
 
+## Local backup locations
+- Source ZIP: `C:\\Users\\vinni\\Downloads\\PKOS-Backups\\Smart-PKOS-Signing-Continuity-Source-20261111-bbd0ab7.zip`; SHA-256 `6c15468bc34fbc4144e624b6eaa26625ef7378e26d29c616114c34e410751cf7`; 697 tracked entries; no keystore/private-key file.
+- Test APK: `C:\\Users\\vinni\\Downloads\\PKOS-Backups\\Smart-PKOS-SigningTest-20261111.apk`.
+- Main candidate: `C:\\Users\\vinni\\Downloads\\PKOS-Backups\\Smart-PKOS-Main-Update-Candidate-20261111-VERIFY-PHONE-FIRST.apk`.
+
 ## Pending
 1. After action-time authorization, store the recovered key and credentials in encrypted GitHub Actions secrets. This key also signs some older MindForge debug APKs, so access must be treated as security-sensitive.
 2. Enable the new workflow's push trigger on this work branch; inspect the CI run and exact artifact links.
