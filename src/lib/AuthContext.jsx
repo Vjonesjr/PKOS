@@ -1,7 +1,6 @@
 import { isNative, nativeLogout, nativeNavigateToLogin } from '@/lib/native';
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { appParams } from '@/lib/app-params';
 
 const AuthContext = createContext();
 
@@ -19,62 +18,27 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const checkAppState = async () => {
+    setIsLoadingPublicSettings(true);
+    setAuthError(null);
     try {
-      setIsLoadingPublicSettings(true);
-      setAuthError(null);
-      
-      try {
-        const publicSettings = await base44.app.getPublicSettings();
-        setAppPublicSettings(publicSettings);
-        
-        // If we got the app public settings successfully, check if user is authenticated
-        if (appParams.token) {
-          await checkUserAuth();
-        } else {
-          setIsLoadingAuth(false);
-          setIsAuthenticated(false);
-          setAuthChecked(true);
-        }
-        setIsLoadingPublicSettings(false);
-      } catch (appError) {
-        console.error('App state check failed:', appError);
-        
-        // Handle app-level errors
-        if (appError.status === 403 && appError.data?.extra_data?.reason) {
-          const reason = appError.data.extra_data.reason;
-          if (reason === 'auth_required') {
-            setAuthError({
-              type: 'auth_required',
-              message: 'Authentication required'
-            });
-          } else if (reason === 'user_not_registered') {
-            setAuthError({
-              type: 'user_not_registered',
-              message: 'User not registered for this app'
-            });
-          } else {
-            setAuthError({
-              type: reason,
-              message: appError.message
-            });
-          }
-        } else {
-          setAuthError({
-            type: 'unknown',
-            message: appError.message || 'Failed to load app'
-          });
-        }
-        setIsLoadingPublicSettings(false);
-        setIsLoadingAuth(false);
-      }
+      const publicSettings = await base44.app.getPublicSettings();
+      setAppPublicSettings(publicSettings);
     } catch (error) {
-      console.error('Unexpected error:', error);
-      setAuthError({
-        type: 'unknown',
-        message: error.message || 'An unexpected error occurred'
-      });
+      // Public settings are useful metadata, but a temporary failure must
+      // never trap an existing session behind the loading screen.
+      console.error('Public app settings unavailable:', error);
+      setAppPublicSettings(null);
+    } finally {
       setIsLoadingPublicSettings(false);
-      setIsLoadingAuth(false);
+    }
+
+    // Ask the SDK for the CURRENT session. A token captured at module import
+    // can be missing or stale after native OAuth / email login redirects.
+    try {
+      await checkUserAuth();
+    } catch (error) {
+      // checkUserAuth records the unauthenticated state. Do not leave the
+      // screen spinning or erase a valid session on transient settings errors.
     }
   };
 
@@ -93,6 +57,7 @@ export const AuthProvider = ({ children }) => {
       console.error('User auth check failed:', error);
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
+      setUser(null);
       setAuthChecked(true);
       
       // If user auth fails, it might be an expired token
