@@ -44,5 +44,5 @@ The separate `com.smartpkos.app.signingtest` APK can be installed alongside the 
 - These tests establish update/data continuity **for that examined archived APK on the emulator only**. They do not establish the package, signer, version, current data state, or app functionality on the user's physical phone.
 
 ## Evidence ledger
-- Existing Build 7 source APK: https://github.com/Vjonesjr/PKOS/actions/runs/42955066037/artifacts/13826328196 — `com.smartpkos.app.scrolltest`, earlier runner debug signer. It is not a main-app update.
+- Existing Build 7 artifact: https://github.com/Vjonesjr/PKOS/actions/runs/42955066037/artifacts/13826328196 — downloaded ZIP SHA-256 `5e51503d8a5587acf25fb764e4b97f6078018d67b20ce1e2351a6bbd0db3c245`. Its APK is `com.smartpkos.app.scrolltest`, versionCode `20261032`, certificate SHA-256 `463999c9d36fa3f0afa1b8f290df023e4e4c06aae328e32bc0048ac1c83fcd0a`, APK SHA-256 `dd3f38991e4848b82302dd5e70142c0939c6a2e4a4aef38ff63ed00fceeecce7`. `apksigner` verified v2 signing. This signer differs from the recovered original key. The new test package has a different ID so it does not replace Build 7; Build 7 itself is not a main-app update.
 - The new CI run and exact artifact links must be appended after a successful signed build. Until then, signing and install gates remain pending.
