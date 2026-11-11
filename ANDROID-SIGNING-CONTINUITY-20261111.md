@@ -33,6 +33,16 @@ An APK can update an installed app while preserving its app data only when the p
 
 The separate `com.smartpkos.app.signingtest` APK can be installed alongside the existing main and earlier scroll-test apps. Its successful install or launch does not prove main-package update compatibility, login, or data preservation on the phone.
 
+## Local build and emulator evidence (2026-11-11)
+- `npm ci --no-audit --no-fund`, `npm run lint`, Vite build with the public Base44 app context, and `npx cap sync android` passed.
+- An initial Android build failed because the shared Windows Gradle cache had missing `metadata.bin` files. An isolated task-specific Gradle cache and the installed Android SDK path allowed `assembleDebug assembleRelease` to pass (325 executed tasks).
+- Android `apksigner` verified v2 signatures and the pinned original certificate for both APKs; `aapt` verified package IDs and versionCode `20261111`; `zipalign -c -v 4` passed.
+- Local isolated test APK: `android/app/build/outputs/apk/debug/app-debug.apk`, SHA-256 `9ff80ae0bd7c59f86e21b768e9c388885ac8d603d8d6614bc3770c10151d7e07`.
+- Local main update candidate: `android/app/build/outputs/apk/release/app-release.apk`, SHA-256 `bdbae05b30784491c1bee024e9f58ff962ec71207ad063f4d1e3632ca36f7419`.
+- A clean Android 35 emulator installed and foreground-launched the isolated test APK. `am start -W` returned `Status: ok`, a process remained running, and the sampled AndroidRuntime log had no fatal exception.
+- On that clean emulator, the archived `Smart-PKOS-theme-20261024-debug.apk` (versionCode `20261024`) installed. A disposable private data marker was created. `adb install -r` of the new main candidate returned `Success`, the installed versionCode became `20261111`, and the marker remained. The updated main app also launched without a sampled fatal Android exception.
+- These tests establish update/data continuity **for that examined archived APK on the emulator only**. They do not establish the package, signer, version, current data state, or app functionality on the user's physical phone.
+
 ## Evidence ledger
 - Existing Build 7 source APK: https://github.com/Vjonesjr/PKOS/actions/runs/42955066037/artifacts/13826328196 — `com.smartpkos.app.scrolltest`, earlier runner debug signer. It is not a main-app update.
 - The new CI run and exact artifact links must be appended after a successful signed build. Until then, signing and install gates remain pending.
