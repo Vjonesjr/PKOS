@@ -71,12 +71,18 @@ jobs:
           npm --version > build-diagnostics/npm-version.txt
           find android/app/build/outputs -maxdepth 5 -type f 2>/dev/null > build-diagnostics/android-outputs.txt || true
           git rev-parse HEAD > build-diagnostics/source-commit.txt
+      - name: Give test APK a unique download filename
+        if: success()
+        run: |
+          mkdir -p release-artifacts
+          cp android/app/build/outputs/apk/debug/app-debug.apk "release-artifacts/Smart-PKOS-ScrollTest-Build-${{ github.run_number }}-Run-${{ github.run_id }}.apk"
+          sha256sum release-artifacts/*.apk | tee release-artifacts/SHA256SUMS.txt
       - name: Upload debug APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: smart-pkos-debug-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          name: Smart-PKOS-ScrollTest-Build-${{ github.run_number }}-Run-${{ github.run_id }}
+          path: release-artifacts/*
           if-no-files-found: error
       - name: Upload build diagnostics
         if: always()
