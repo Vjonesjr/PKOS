@@ -4,6 +4,9 @@ on:
     branches: [smart-pkos-final-integration-20261102]
     paths:
       - '.github/workflows/smart-pkos-build.yml'
+      - 'src/lib/AuthContext.jsx'
+      - 'src/pages/Login.jsx'
+      - 'src/App.jsx'
   workflow_dispatch:
 permissions:
   contents: read
@@ -36,6 +39,15 @@ jobs:
           npm run build
           # Avoid a silently nonfunctional APK when Vite env vars were not embedded.
           grep -R -q '6ab97588d935cf6dad456bf1' dist/assets
+      - name: Check email-login redirect contract
+        run: |
+          grep -Fq 'const account = await checkUserAuth()' src/pages/Login.jsx
+          grep -Fq 'if (!account) throw' src/pages/Login.jsx
+          grep -Fq 'window.location.assign(returnTo)' src/pages/Login.jsx
+          if grep -Fq 'navigateToLogin();' src/App.jsx; then
+            echo 'Unsafe render-time login redirect detected' >&2
+            exit 1
+          fi
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
