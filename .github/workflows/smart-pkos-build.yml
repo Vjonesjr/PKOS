@@ -1,12 +1,14 @@
 name: Smart PKOS build verification
 on:
   push:
-    branches: [smart-pkos-final-integration-20261102]
+    branches: [smart-pkos-login-repair-20261111]
     paths:
       - '.github/workflows/smart-pkos-build.yml'
       - 'src/lib/AuthContext.jsx'
       - 'src/pages/Login.jsx'
       - 'src/App.jsx'
+      - 'android/app/build.gradle'
+      - 'tests/auth/session-contract.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -39,6 +41,8 @@ jobs:
           npm run build
           # Avoid a silently nonfunctional APK when Vite env vars were not embedded.
           grep -R -q '6ab97588d935cf6dad456bf1' dist/assets
+      - name: Test startup session and login contracts
+        run: node --test tests/auth/session-contract.test.mjs
       - name: Check email-login redirect contract
         run: |
           grep -Fq 'const account = await checkUserAuth()' src/pages/Login.jsx
@@ -70,7 +74,10 @@ jobs:
           SDK_BUILD_TOOLS="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
           "$SDK_BUILD_TOOLS/apksigner" verify --verbose "$APK" | tee /tmp/pkos-apk-signature.txt
           grep -F 'Verified using v2 scheme (APK Signature Scheme v2): true' /tmp/pkos-apk-signature.txt
-          "$SDK_BUILD_TOOLS/aapt" dump badging "$APK" | grep -F "name='com.smartpkos.app.scrolltest'"
+          "$SDK_BUILD_TOOLS/aapt" dump badging "$APK" | tee /tmp/pkos-badging.txt
+          grep -F "name='com.smartpkos.app.scrolltest'" /tmp/pkos-badging.txt
+          grep -F "versionCode='20261033'" /tmp/pkos-badging.txt
+
       - name: Record lint outcome
         if: always()
         run: |
