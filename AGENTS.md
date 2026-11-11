@@ -32,3 +32,7 @@ npx skills add base44/skills
 - Prefer the existing Base44 CLI workflow over adding new npm scripts for Base44-specific tasks.
 - Reuse the existing SDK client and Vite plugin patterns before adding new Base44 integration paths.
 - Run the relevant checks from `package.json` before finishing code changes.
+
+## Mandatory Smart PKOS Execution Contract
+
+Before development, read [WORKFLOW-CARD.md](WORKFLOW-CARD.md) and answer its six gates: finished result, verb steps, owner, yes/no proof, user decision points, and interruption recovery. Implement against the existing verified source; preserve the working APK and data. Keep commits and a reproducible handoff, including on partial/failed builds. Never report a build as verified without test, package/signature, and install/launch evidence. Do not ask for repeated approval for safe routine steps; stop for destructive actions, publication, financial commitments, or core requirement changes.
