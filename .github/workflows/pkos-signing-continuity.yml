@@ -1,5 +1,13 @@
 name: Smart PKOS signing continuity
 on:
+  push:
+    branches: [codex/pkos-signing-continuity-20261111]
+    paths:
+      - '.github/workflows/pkos-signing-continuity.yml'
+      - 'android/app/build.gradle'
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
   workflow_dispatch:
 permissions:
   contents: read
