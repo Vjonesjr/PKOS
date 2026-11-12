@@ -15,16 +15,17 @@
 - Clean Android 35 emulator: signing-test package installed and launched; archived main `20261024` APK updated in place to `20261111`, disposable app-data marker survived, and the updated main app launched. No sampled AndroidRuntime fatal exceptions.
 - Physical phone package/version/signature remains unknown because no phone was attached.
 
-## Local backup locations
-- Source ZIP: `C:\\Users\\vinni\\Downloads\\PKOS-Backups\\Smart-PKOS-Signing-Continuity-Source-20261111-bbd0ab7.zip`; SHA-256 `6c15468bc34fbc4144e624b6eaa26625ef7378e26d29c616114c34e410751cf7`; 697 tracked entries; no keystore/private-key file.
-- Test APK: `C:\\Users\\vinni\\Downloads\\PKOS-Backups\\Smart-PKOS-SigningTest-20261111.apk`.
-- Main candidate: `C:\\Users\\vinni\\Downloads\\PKOS-Backups\\Smart-PKOS-Main-Update-Candidate-20261111-VERIFY-PHONE-FIRST.apk`.
+## CI and artifact
+- The owner approved encrypted GitHub Actions secret storage. All four signing secrets were saved; the key and credentials were never committed. The recovered key also signs some older MindForge debug APKs, so repository Actions access remains security-sensitive.
+- Work-branch CI passed on 2026-11-12: https://github.com/Vjonesjr/PKOS/actions/runs/43236780437 at source commit `56c5ff2e9e3e043b5c8d5664472d68a48feaa094`.
+- Signed APK ZIP: https://github.com/Vjonesjr/PKOS/actions/runs/43236780437/artifacts/13951993968. It contains separate signing-test and main update-candidate APKs plus signature, package, checksum, and source-commit reports.
+- Emulator evidence: https://github.com/Vjonesjr/PKOS/actions/runs/43236780437/artifacts/13954115529. CI clean-install and launch passed. The local archived-main in-place update/data-marker test remains the stronger continuity evidence for that examined APK only.
+- CI verified the APKs before upload. An independent post-download recheck of the CI ZIP was blocked by the browser's artifact redirect; see the detailed report.
 
-## Pending
-1. After action-time authorization, store the recovered key and credentials in encrypted GitHub Actions secrets. This key also signs some older MindForge debug APKs, so access must be treated as security-sensitive.
-2. Enable the new workflow's push trigger on this work branch; inspect the CI run and exact artifact links.
-3. Independently inspect the phone's installed package, versionCode, and certificate before recommending any main-app installation. Do not uninstall, clear data, or downgrade.
-4. Physical phone login and app functionality remain separate unpassed gates.
+## Remaining gate
+1. Independently inspect the phone's installed package, versionCode, and certificate before recommending any main-app installation. Do not uninstall, clear data, or downgrade.
+2. Physical phone login and app functionality remain separate unpassed gates.
 
 ## Resume command
-Review `.github/workflows/pkos-signing-continuity.yml`, enable its work-branch push trigger only after secrets exist, then follow the new Actions run to completion. Do not describe the main update as compatible with the current phone installation until its signer and version have been read.
+Review the successful run and exact artifact above. Before any main-package installation, follow the phone inspection steps in `ANDROID-SIGNING-CONTINUITY-20261111.md`. Do not describe the main update as compatible with the current phone installation until its signer and version have been read.
+
