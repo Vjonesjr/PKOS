@@ -20,6 +20,8 @@ Repository Actions secrets (encrypted in GitHub, never checked in):
 - `PKOS_SIGNING_KEY_ALIAS`: `androiddebugkey`.
 - `PKOS_SIGNING_KEY_PASSWORD`: key password.
 
+All four secrets were saved on 2026-11-12 after the owner's action-time approval. The successful CI build below proves they were available to the signing step and produced the pinned certificate. This recovered key is also used by some older MindForge debug APKs; keep repository Actions access restricted and rotate only with an explicit migration plan.
+
 CI must decode the keystore outside the checkout, set `PKOS_SIGNING_KEYSTORE` to that temporary file, and pass only the four secret values into the Gradle signing step. It must fail if any secret is absent or the certificate differs from the pinned SHA-256. It must never upload the keystore or a password in an artifact or log.
 
 ## Install compatibility gate
@@ -45,4 +47,13 @@ The separate `com.smartpkos.app.signingtest` APK can be installed alongside the 
 
 ## Evidence ledger
 - Existing Build 7 artifact: https://github.com/Vjonesjr/PKOS/actions/runs/42955066037/artifacts/13826328196 — downloaded ZIP SHA-256 `5e51503d8a5587acf25fb764e4b97f6078018d67b20ce1e2351a6bbd0db3c245`. Its APK is `com.smartpkos.app.scrolltest`, versionCode `20261032`, certificate SHA-256 `463999c9d36fa3f0afa1b8f290df023e4e4c06aae328e32bc0048ac1c83fcd0a`, APK SHA-256 `dd3f38991e4848b82302dd5e70142c0939c6a2e4a4aef38ff63ed00fceeecce7`. `apksigner` verified v2 signing. This signer differs from the recovered original key. The new test package has a different ID so it does not replace Build 7; Build 7 itself is not a main-app update.
-- The new CI run and exact artifact links must be appended after a successful signed build. Until then, signing and install gates remain pending.
+
+## GitHub Actions verification (2026-11-12)
+- Successful run: https://github.com/Vjonesjr/PKOS/actions/runs/43236780437, source commit `56c5ff2e9e3e043b5c8d5664472d68a48feaa094` on the work branch.
+- Exact signed APK artifact: https://github.com/Vjonesjr/PKOS/actions/runs/43236780437/artifacts/13951993968. ZIP name: `Smart-PKOS-Signed-Candidates-Run-43236780437`, GitHub artifact digest SHA-256 `544f2485bf9369d9b68403362196751ee478ec25a59f830795d4bcf5f1fe3455`; GitHub retains it for 90 days. It contains `Smart-PKOS-SigningTest-Run-43236780437.apk`, `Smart-PKOS-Main-Update-Candidate-Run-43236780437.apk`, per-APK signature/package reports, `SHA256SUMS.txt`, and `source-commit.txt`.
+- Exact emulator evidence artifact: https://github.com/Vjonesjr/PKOS/actions/runs/43236780437/artifacts/13954115529.
+- Passed CI steps: locked dependency install, lint, Vite build with public Base44 context, Capacitor sync, Gradle debug/release builds with recovered key, `apksigner` v2 and pinned certificate check, `aapt` package ID and versionCode `20261111` check, `zipalign`, ZIP integrity, signed-artifact upload, and clean Android 35 emulator install/launch of the isolated test package. The emulator evidence upload also passed.
+- The artifact's APK bytes were verified within CI before upload. A separate local build and archived-APK update test passed as documented above. An independent post-download recheck of the CI ZIP could not be completed in this environment because the browser blocked GitHub's redirected artifact download; the CI ZIP digest comes from GitHub metadata. Do not equate the local APK hashes with the CI APK hashes without reading `SHA256SUMS.txt` from that ZIP.
+- The workflow first failed on an `apksigner` output-label difference and then on a Bash option in the emulator action's `sh` runner. Both were corrected; the final run above passed. No APK from a failed run is the recommended artifact.
+- The physical phone's installed package, certificate, and versionCode remain unverified. Do not install the main update candidate on it until the install compatibility gate above passes. No phone app or user data was changed.
+
