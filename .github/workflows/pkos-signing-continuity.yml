@@ -1,0 +1,130 @@
+name: Smart PKOS signing continuity
+on:
+  push:
+    branches: [codex/pkos-signing-continuity-20261111]
+    paths:
+      - '.github/workflows/pkos-signing-continuity.yml'
+      - 'android/app/build.gradle'
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  signed-apks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Lint
+        run: npm run lint
+      - name: Build web bundle with public Base44 app context
+        env:
+          VITE_BASE44_APP_ID: '6ab97588d935cf6dad456bf1'
+          VITE_BASE44_APP_BASE_URL: 'https://gorgeous-smart-brain-flow.base44.app'
+        run: |
+          npm run build
+          grep -R -q '6ab97588d935cf6dad456bf1' dist/assets
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Sync Capacitor
+        run: npx cap sync android
+      - name: Restore recovered signer and build both APKs
+        working-directory: android
+        env:
+          PKOS_SIGNING_KEYSTORE_BASE64: ${{ secrets.PKOS_SIGNING_KEYSTORE_BASE64 }}
+          PKOS_SIGNING_STORE_PASSWORD: ${{ secrets.PKOS_SIGNING_STORE_PASSWORD }}
+          PKOS_SIGNING_KEY_ALIAS: ${{ secrets.PKOS_SIGNING_KEY_ALIAS }}
+          PKOS_SIGNING_KEY_PASSWORD: ${{ secrets.PKOS_SIGNING_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$PKOS_SIGNING_KEYSTORE_BASE64"
+          test -n "$PKOS_SIGNING_STORE_PASSWORD"
+          test -n "$PKOS_SIGNING_KEY_ALIAS"
+          test -n "$PKOS_SIGNING_KEY_PASSWORD"
+          umask 077
+          mkdir -p "$RUNNER_TEMP/pkos-signing"
+          export PKOS_SIGNING_KEYSTORE="$RUNNER_TEMP/pkos-signing/original.keystore"
+          trap 'rm -f "$PKOS_SIGNING_KEYSTORE"' EXIT
+          printf '%s' "$PKOS_SIGNING_KEYSTORE_BASE64" | base64 --decode > "$PKOS_SIGNING_KEYSTORE"
+          test -s "$PKOS_SIGNING_KEYSTORE"
+          actual_cert="$(keytool -exportcert -keystore "$PKOS_SIGNING_KEYSTORE" -storepass:env PKOS_SIGNING_STORE_PASSWORD -alias "$PKOS_SIGNING_KEY_ALIAS" | sha256sum | cut -d' ' -f1)"
+          test "$actual_cert" = '1b2adac2a4ceab88c34e413b74b523471623d58937985ea1436f064f7534756c'
+          bash ./gradlew assembleDebug assembleRelease --no-daemon --stacktrace
+      - name: Verify signatures, package IDs, versionCode, and archive integrity
+        run: |
+          set -euo pipefail
+          BT="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          test -x "$BT/apksigner"
+          test -x "$BT/aapt"
+          mkdir -p release-artifacts
+          verify_apk() {
+            local source="$1" package="$2" label="$3" dest="$4"
+            test -s "$source"
+            "$BT/apksigner" verify --verbose --print-certs "$source" > "release-artifacts/$label-signature.txt"
+            grep -Fx 'Verified using v2 scheme (APK Signature Scheme v2): true' "release-artifacts/$label-signature.txt"
+            grep -Fq 'certificate SHA-256 digest: 1b2adac2a4ceab88c34e413b74b523471623d58937985ea1436f064f7534756c' "release-artifacts/$label-signature.txt"
+            "$BT/aapt" dump badging "$source" > "release-artifacts/$label-badging.txt"
+            sed -n '1p' "release-artifacts/$label-badging.txt" > "release-artifacts/$label-package.txt"
+            grep -Eq "^package: name='$package' versionCode='20261111' " "release-artifacts/$label-package.txt"
+            "$BT/zipalign" -c -v 4 "$source" > /dev/null
+            unzip -tq "$source" > /dev/null
+            cp "$source" "release-artifacts/$dest"
+          }
+          verify_apk android/app/build/outputs/apk/debug/app-debug.apk com.smartpkos.app.signingtest test "Smart-PKOS-SigningTest-Run-${{ github.run_id }}.apk"
+          verify_apk android/app/build/outputs/apk/release/app-release.apk com.smartpkos.app main "Smart-PKOS-Main-Update-Candidate-Run-${{ github.run_id }}.apk"
+          sha256sum release-artifacts/*.apk > release-artifacts/SHA256SUMS.txt
+          git rev-parse HEAD > release-artifacts/source-commit.txt
+      - name: Upload signed APKs and verification
+        uses: actions/upload-artifact@v4
+        with:
+          name: Smart-PKOS-Signed-Candidates-Run-${{ github.run_id }}
+          path: release-artifacts/*
+          if-no-files-found: error
+          retention-days: 90
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Clean emulator install and launch of isolated test app
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            set -eu
+            adb install release-artifacts/Smart-PKOS-SigningTest-Run-${{ github.run_id }}.apk
+            adb logcat -c
+            adb shell am start -W -n com.smartpkos.app.signingtest/com.smartpkos.app.MainActivity | tee release-artifacts/emulator-launch.txt
+            sleep 10
+            adb shell pidof com.smartpkos.app.signingtest | tee release-artifacts/emulator-pid.txt
+            test -s release-artifacts/emulator-pid.txt
+            adb logcat -d -s AndroidRuntime:E > release-artifacts/emulator-android-errors.txt
+            ! grep -F 'FATAL EXCEPTION' release-artifacts/emulator-android-errors.txt
+      - name: Upload emulator evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Smart-PKOS-Emulator-Evidence-Run-${{ github.run_id }}
+          path: |
+            release-artifacts/emulator-*.txt
+            android/app/build/reports/**
+          if-no-files-found: ignore
+          retention-days: 90
